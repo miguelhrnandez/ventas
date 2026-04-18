@@ -394,9 +394,32 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
   </div>
 
   <div id="adm-Tob" class="hidden">
-    <div class="card">
-      <div style="font-size:15px;font-weight:600;margin-bottom:16px">Clientes On Boarding — historial completo</div>
-      <div id="adm-ob-content"><div class="es">Cargando...</div></div>
+    <div class="nav" style="margin-bottom:20px">
+      <button class="active" onclick="obAdmTab('clientes',this)">Clientes y movimientos</button>
+      <button onclick="obAdmTab('asign',this)">Asignacion</button>
+    </div>
+    <div id="adm-ob-tclientes">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div style="font-size:15px;font-weight:600">Clientes On Boarding</div>
+          <div style="display:flex;gap:8px">
+            <select id="adm-ob-fob" onchange="adminVerClientesOB()" style="width:auto"><option value="">Todos los OB</option></select>
+            <select id="adm-ob-fpago" onchange="adminVerClientesOB()" style="width:auto">
+              <option value="">Todos</option>
+              <option value="pendiente">Pago pendiente</option>
+              <option value="aceptado">Pago aceptado</option>
+              <option value="denegado">Pago denegado</option>
+            </select>
+          </div>
+        </div>
+        <div id="adm-ob-content"><div class="es">Cargando...</div></div>
+      </div>
+    </div>
+    <div id="adm-ob-tasign" class="hidden">
+      <div class="card ox">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Asignar clientes a On Boarding</div>
+        <div id="adm-ob-asignb"></div>
+      </div>
     </div>
   </div>
 
@@ -1111,7 +1134,8 @@ function rOBMis(isAdmin=false){
           <div style="font-size:14px;font-weight:600;color:var(--text)">${op.cliente}</div>
           <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} · ${op.plan} · ${fmtD(op.fecha)}</div>
         </div>
-        <div style="text-align:right;display:flex;align-items:center;gap:10px">
+        <div style="text-align:right;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          ${op.pago_ob==='aceptado'?'<span class="badge b-acp">Pago aceptado</span>':op.pago_ob==='denegado'?'<span class="badge b-den">Pago denegado</span>':'<span class="badge b-pend">Pago pendiente</span>'}
           ${totCom>0?`<div><div class="at" style="font-size:16px;font-weight:600">${fmt(totCom)}</div><div style="font-size:11px;color:var(--text3)">total comision</div></div>`:''}
           <div style="display:flex;gap:6px">
             <button class="bb" onclick="openOBMov('${op.id}','${op.cliente.replace(/'/g,"\'")}','incremento')" style="font-size:11px;padding:4px 10px">+ Incremento</button>
@@ -1316,46 +1340,111 @@ function obTab(t,btn){
 
 
 // ═══ ADMIN VER OB ═══
+function obAdmTab(t,btn){
+  document.getElementById('adm-ob-tclientes').classList.toggle('hidden',t!=='clientes')
+  document.getElementById('adm-ob-tasign').classList.toggle('hidden',t!=='asign')
+  document.querySelectorAll('#adm-Tob .nav button').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  if(t==='asign')rAdmOBAsign()
+}
 async function adminVerClientesOB(){
-  // Cargar todos los clientes OB y sus movimientos
   const{data:opsOB}=await db.from('operaciones').select('*').not('ob_id','is',null).order('fecha',{ascending:false})
   const{data:movs}=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false})
   const ops=opsOB||[],allMovsAdm=movs||[]
-  if(!ops.length){html('adm-ob-content','<div class="es">Sin clientes OB asignados</div>');return}
-  // Guardar globalmente para que toggleOB72/delOBMov funcionen
   obOps=ops;obMovs=allMovsAdm
-  html('adm-ob-content',ops.map(op=>{
+
+  // Poblar filtro de OB
+  const selOB=document.getElementById('adm-ob-fob')
+  if(selOB){
+    const obUnicos={}
+    ops.forEach(op=>{if(op.ob_id&&op.ob_nombre)obUnicos[op.ob_id]=op.ob_nombre})
+    const curOB=selOB.value
+    selOB.innerHTML='<option value="">Todos los OB</option>'+Object.entries(obUnicos).map(([id,nom])=>`<option value="${id}"${curOB===id?' selected':''}>${nom}</option>`).join('')
+  }
+
+  const filtroOB=document.getElementById('adm-ob-fob')?.value||''
+  const filtroPago=document.getElementById('adm-ob-fpago')?.value||''
+  let opsFilt=ops
+  if(filtroOB)opsFilt=opsFilt.filter(x=>x.ob_id===filtroOB)
+  if(filtroPago==='pendiente')opsFilt=opsFilt.filter(x=>!x.pago_ob||x.pago_ob==='pendiente')
+  else if(filtroPago==='aceptado')opsFilt=opsFilt.filter(x=>x.pago_ob==='aceptado')
+  else if(filtroPago==='denegado')opsFilt=opsFilt.filter(x=>x.pago_ob==='denegado')
+
+  if(!opsFilt.length){html('adm-ob-content','<div class="es">Sin clientes OB con ese filtro</div>');return}
+
+  // Totales
+  const totComs=allMovsAdm.reduce((a,m)=>{
+    if(m.tipo==='incremento'&&m.antes_72hrs!==null)return a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275))
+    if(m.tipo==='ahorro')return a+Math.round(m.monto*0.10)
+    return a
+  },0)
+
+  html('adm-ob-content',opsFilt.map(op=>{
     const movsOp=allMovsAdm.filter(x=>x.operacion_id===op.id)
     const totCom=calcComOBMovs(movsOp)
     const incs=movsOp.filter(x=>x.tipo==='incremento')
     const ahs=movsOp.filter(x=>x.tipo==='ahorro')
+    const pagoBadge=op.pago_ob==='aceptado'
+      ?'<span class="badge b-acp">Pago aceptado</span>'
+      :op.pago_ob==='denegado'
+        ?'<span class="badge b-den">Pago denegado</span>'
+        :'<span class="badge b-pend">Pago pendiente</span>'
     return`<div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px">
         <div>
           <div style="font-size:14px;font-weight:600;color:var(--text)">${op.cliente}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} · ${op.plan} · OB: ${op.ob_nombre||'-'}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} · ${op.plan} · <span style="color:var(--teal)">OB: ${op.ob_nombre||'-'}</span></div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           ${totCom>0?`<div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div>`:''}
-          <button class="bb" onclick="adminAgregarMovOB('${op.id}','${op.cliente.replace(/'/g,"\'")}','${op.ob_id}','${op.ob_nombre||''}')" style="font-size:11px;padding:4px 10px">+ Movimiento</button>
+          ${pagoBadge}
+          ${op.pago_ob!=='aceptado'?`<button class="bg" onclick="setOBPago('${op.id}','aceptado')" style="font-size:11px;padding:3px 8px">✓ Aceptar pago</button>`:''}
+          ${op.pago_ob!=='denegado'?`<button class="br" onclick="setOBPago('${op.id}','denegado')" style="font-size:11px;padding:3px 8px">✗ Denegar pago</button>`:''}
+          ${op.pago_ob?`<button onclick="setOBPago('${op.id}',null)" style="font-size:11px;padding:3px 8px">↺ Pendiente</button>`:''}
+          <button class="bb" onclick="adminAgregarMovOB('${op.id}','${op.cliente.replace(/'/g,"\'")}','${op.ob_id}','${op.ob_nombre||''}')" style="font-size:11px;padding:4px 10px">+ Mov.</button>
         </div>
       </div>
       ${movsOp.length?`
       <div style="background:var(--bg3);border-radius:8px;padding:12px">
         <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">${incs.length} incremento${incs.length!==1?'s':''} · ${ahs.length} ahorro${ahs.length!==1?'s':''}</div>
         ${renderMovHistorial(movsOp,true)}
-      </div>`:'<div style="font-size:12px;color:var(--text3);font-style:italic">Sin movimientos</div>'}
+      </div>`:'<div style="font-size:12px;color:var(--text3);font-style:italic">Sin movimientos cargados</div>'}
     </div>`
   }).join(''))
 }
+async function setOBPago(opId,estado){
+  await db.from('operaciones').update({pago_ob:estado}).eq('id',opId)
+  await loadAll();adminVerClientesOB()
+}
+function rAdmOBAsign(){
+  const opsDisp=allOps.filter(x=>categ(x.monto).isVenta&&!x.ob_id)
+  const obUsers=allUsers.filter(x=>x.rol==='on_boarding')
+  if(!opsDisp.length){html('adm-ob-asignb','<div class="es">No hay ventas sin asignar</div>');return}
+  html('adm-ob-asignb',`<table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Asignar OB</th></tr></thead>
+  <tbody>${opsDisp.map(op=>`<tr>
+    <td>${fmtD(op.fecha)}</td>
+    <td style="color:var(--text)">${op.asesor_nombre}</td>
+    <td>${op.cliente}</td>
+    <td>${op.plan}</td>
+    <td class="am">${fmt(op.monto)}</td>
+    <td><select onchange="asignOBAdmin('${op.id}',this.value)" style="width:auto;min-width:150px;font-size:12px;padding:5px 28px 5px 8px">
+      <option value="">Sin asignar</option>
+      ${obUsers.map(u=>`<option value="${u.id}|${u.nombre}">${u.nombre}</option>`).join('')}
+    </select></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function asignOBAdmin(opId,val){
+  if(!val)return
+  const[obId,obNombre]=val.split('|')
+  await db.from('operaciones').update({ob_id:obId,ob_nombre:obNombre}).eq('id',opId)
+  await loadAll();rAdmOBAsign()
+}
 function adminAgregarMovOB(opId,cliente,obId,obNombre){
-  // Para el admin, guardar con el ob_id del responsable OB
   const savedId=CU.id,savedNombre=CU.nombre
   CU.id=obId;CU.nombre=obNombre
-  const op=obOps.find(x=>x.id===opId)||{id:opId,fecha:new Date().toISOString().slice(0,10),cliente}
+  const op=obOps.find(x=>x.id===opId)||allOps.find(x=>x.id===opId)||{id:opId,fecha:new Date().toISOString().slice(0,10),cliente}
   if(!obOps.find(x=>x.id===opId))obOps=[...obOps,op]
   openOBMov(opId,cliente,'incremento')
-  // Restaurar despues de que se abra el modal
   setTimeout(()=>{CU.id=savedId;CU.nombre=savedNombre},100)
 }
 
@@ -1939,7 +2028,7 @@ admTab=function(t,btn){
   if(t==='ob'){
     ['cp','pr','co','to','us','inc','liq'].forEach(x=>hi('adm-T'+x))
     sh('adm-Tob')
-    document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
+    document.querySelectorAll('#SADM > .nav button').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
     adminVerClientesOB()
     return

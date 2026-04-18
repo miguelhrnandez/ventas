@@ -702,14 +702,15 @@ let aComFiltro={desde:'',hasta:''}
 function rACom(){
   const desde=document.getElementById('ac-desde')?.value||''
   const hasta=document.getElementById('ac-hasta')?.value||''
-  let ops=aOps.filter(x=>categ(x.monto).isVenta)
-  if(desde)ops=ops.filter(x=>x.fecha>=desde)
-  if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
+  // Solo mostrar aceptadas, agrupadas por fecha en que fueron aceptadas
+  let ops=aOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria)
+  if(desde)ops=ops.filter(x=>x.fecha_tesoreria>=desde)
+  if(hasta)ops=ops.filter(x=>x.fecha_tesoreria<=hasta)
   const byP={}
-  ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  ops.forEach(op=>{const p=getPer(op.fecha_tesoreria);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
-  const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
-  const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+  const totalGral=ops.reduce((a,x)=>a+calcC(x.monto),0)
+  const totalPend=0
   const filtros=`<div class="card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <span style="font-size:13px;color:var(--text2);white-space:nowrap">Filtrar por fecha:</span>
@@ -744,8 +745,8 @@ function rACom(){
         <td style="font-size:12px">${fmtD(op.fecha)}</td>
         <td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td><td class="am">${fmt(op.monto)}</td>
         <td><span class="badge ${c.cls}">${c.label}</span></td>
-        <td class="ag">${op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente'}</td>
-        <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td></tr>`}).join('')}</tbody>
+        <td class="ag">${fmt(calcC(op.monto))}</td>
+        <td><span class="badge b-acp">Aceptada</span></td></tr>`}).join('')}</tbody>
       <tfoot><tr>
         <td colspan="5" style="font-weight:500;color:var(--text)">Total semana</td>
         <td class="ag" style="font-weight:600">${fmt(tot)}</td>
@@ -1323,8 +1324,10 @@ async function setPagoPres(opId,estado){
 }
 let admComSort={field:"total",dir:"desc"}
 function rAdmCom(){
-  const filtro=gv('adm-fp'),vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
-  vn.forEach(op=>{const p=getPer(op.fecha);if(filtro&&p.key!==filtro)return;if(!byP[p.key])byP[p.key]={label:p.label,cob:p.cob,ops:[]};byP[p.key].ops.push(op)})
+  // Comisiones agrupadas por fecha de aceptacion (fecha_tesoreria)
+  const filtro=gv('adm-fp')
+  const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
+  vn.forEach(op=>{const p=getPer(op.fecha_tesoreria);if(filtro&&p.key!==filtro)return;if(!byP[p.key])byP[p.key]={label:p.label,cob:p.cob,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   if(!ks.length){html('adm-cob','<div class="es">Sin datos</div>');return}
   const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
@@ -1338,7 +1341,7 @@ function rAdmCom(){
     const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
     // OB
     const obMap={}
-    allOps.filter(x=>x.ob_id&&getPer(x.fecha).key===k).forEach(op=>{
+    allOps.filter(x=>x.ob_id&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria&&getPer(x.fecha_tesoreria).key===k).forEach(op=>{
       if(!obMap[op.ob_id])obMap[op.ob_id]={nombre:op.ob_nombre,comInc:0,comAh:0}
       const ci=op.ob_incremento>0&&op.ob_hrs_incremento!=null?Math.round(op.ob_incremento*(op.ob_hrs_incremento<=72?0.55:0.275)):0
       const ca=op.ob_ahorros>0?Math.round(op.ob_ahorros*0.10):0
@@ -1359,11 +1362,8 @@ function rAdmCom(){
           const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentadores',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
           let rows=[
             ...Object.values(porAs).map(r=>{
-              const acpCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesoreria==='aceptada').length
-              const pendCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesoreria!=='aceptada').length
-              const status=acpCount>0&&pendCount===0?'<span class="badge b-acp">'+acpCount+' aceptadas</span>':
-                acpCount>0?'<span class="badge b-acp">'+acpCount+' acept.</span> <span class="badge b-pend">'+pendCount+' pend.</span>':
-                '<span class="badge b-pend">'+pendCount+' pendientes</span>'
+              const acpCount=p.ops.filter(x=>x.asesor_id===r.aid).length
+              const status='<span class="badge b-acp">'+acpCount+' aceptada'+(acpCount!==1?'s':'')+'</span>'
               return{nombre:r.nombre,rolKey:'asesor',total:r.com,det:r.ops+' venta'+(r.ops!==1?'s':'')+' - 50% c/tope $250k',colorCls:'ag',carpetaStatus:status}
             }),
             ...(comJA>0?[{nombre:jefeAh?jefeAh.nombre:'Jefe Ahorro',rolKey:'jefe_ahorro',total:comJA,det:opAh.length+' ventas ahorro - 16.5%',colorCls:'ag'}]:[]),
@@ -1497,8 +1497,8 @@ async function delUser(id){
   await loadAll();rAdmUsers();rAdmStats()
 }
 function pobPer(){
-  const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
-  vn.forEach(op=>{const p=getPer(op.fecha);byP[p.key]=p.label})
+  const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
+  vn.forEach(op=>{const p=getPer(op.fecha_tesoreria);byP[p.key]=p.label})
   const ks=Object.keys(byP).sort().reverse(),sel=document.getElementById('adm-fp'),cur=sel.value
   sel.innerHTML='<option value="">Todos los periodos</option>'+ks.map(k=>`<option value="${k}">${byP[k]}</option>`).join('')
   if(cur)sel.value=cur

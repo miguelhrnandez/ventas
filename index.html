@@ -327,6 +327,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
     <button onclick="admTab('inc',this)">Incentivos</button>
     <button onclick="admTab('liq',this)">Liquidaciones</button>
     <button onclick="admTab('us',this)">Usuarios</button>
+    <button onclick="admTab('ob',this)">On Boarding</button>
   </div>
   <div id="adm-Tcp"><div id="adm-cpb"></div></div>
   <div id="adm-Tpr" class="hidden">
@@ -389,6 +390,13 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
         </div>
         <div id="inc-list"></div>
       </div>
+    </div>
+  </div>
+
+  <div id="adm-Tob" class="hidden">
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:16px">Clientes On Boarding — historial completo</div>
+      <div id="adm-ob-content"><div class="es">Cargando...</div></div>
     </div>
   </div>
 
@@ -478,7 +486,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 <script>
 const SURL='https://mwblnzzesjajzxmpuqbe.supabase.co'
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Ymxuenplc2phanp4bXB1cWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMjI1ODAsImV4cCI6MjA5MTc5ODU4MH0.ahMEabDGeVR9Yj4RiMUeX3eY_N4FnIfSZvMCK0vIwaw'
-const ADMU='admin',ADMP='admin123'
+const ADMU='admin',ADMP='miguel041002'
 const{createClient}=supabase
 const db=createClient(SURL,SKEY)
 let CU=null,allOps=[],allUsers=[],allLl=[]
@@ -556,13 +564,15 @@ async function doLogin(){
 }
 function logout(){CU=null;showOnly('SL');sv('lu','');sv('lp','');document.getElementById('lb').textContent='Ingresar'}
 
+let allObMovs=[]
 async function loadAll(){
-  const[o,u,l]=await Promise.all([
+  const[o,u,l,om]=await Promise.all([
     db.from('operaciones').select('*').order('fecha',{ascending:false}),
     db.from('usuarios').select('*').order('nombre'),
-    db.from('carpetas_llevadas').select('periodo_key')
+    db.from('carpetas_llevadas').select('periodo_key'),
+    db.from('ob_movimientos').select('*').order('fecha',{ascending:false})
   ])
-  allOps=o.data||[];allUsers=u.data||[];allLl=(l.data||[]).map(x=>x.periodo_key)
+  allOps=o.data||[];allUsers=u.data||[];allLl=(l.data||[]).map(x=>x.periodo_key);allObMovs=om.data||[]
 }
 
 // ═══ MODAL EDITAR ═══
@@ -1028,64 +1038,92 @@ function jpTab(t,btn){
 }
 
 // ═══ ON BOARDING ═══
-let obOps=[],obDisp=[]
+let obOps=[],obDisp=[],obMovs=[]
 async function showOB(){
   showOnly('SOB');document.getElementById('ob-nom').textContent=CU.nombre
   await loadOBData();rOBStats();rOBMis()
 }
 async function loadOBData(){
-  const[mis,disp]=await Promise.all([
+  const[mis,disp,movs]=await Promise.all([
     db.from('operaciones').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
-    db.from('operaciones').select('*').is('ob_id',null).eq('estado','venta').order('fecha',{ascending:false})
+    db.from('operaciones').select('*').is('ob_id',null).eq('estado','venta').order('fecha',{ascending:false}),
+    db.from('ob_movimientos').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false})
   ])
-  obOps=mis.data||[];obDisp=disp.data||[]
+  obOps=mis.data||[];obDisp=disp.data||[];obMovs=movs.data||[]
+}
+function getMovsOp(opId){return obMovs.filter(x=>x.operacion_id===opId)}
+function calcComOBMovs(movs){
+  return movs.reduce((a,m)=>{
+    if(m.tipo==='incremento'&&m.antes_72hrs!==null&&m.antes_72hrs!==undefined)return a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275))
+    if(m.tipo==='ahorro')return a+Math.round(m.monto*0.10)
+    return a
+  },0)
 }
 function rOBStats(){
-  const totInc=obOps.reduce((a,x)=>a+(x.ob_incremento>0?Math.round(x.ob_incremento*(x.ob_hrs_incremento<=72?0.55:0.275)):0),0)
-  const totAh=obOps.reduce((a,x)=>a+(x.ob_ahorros>0?Math.round(x.ob_ahorros*0.10):0),0)
+  const totCom=obMovs.reduce((a,m)=>{
+    if(m.tipo==='incremento')return a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275))
+    if(m.tipo==='ahorro')return a+Math.round(m.monto*0.10)
+    return a
+  },0)
+  const totInc=obMovs.filter(x=>x.tipo==='incremento').reduce((a,m)=>a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275)),0)
+  const totAh=obMovs.filter(x=>x.tipo==='ahorro').reduce((a,m)=>a+Math.round(m.monto*0.10),0)
   html('ob-stats',`<div class="sc"><div class="sv">${obOps.length}</div><div class="sl">Mis clientes</div></div>
-    <div class="sc"><div class="sv">${obOps.filter(x=>x.ob_incremento>0).length}</div><div class="sl">Con incremento</div></div>
+    <div class="sc"><div class="sv">${obMovs.filter(x=>x.tipo==='incremento').length}</div><div class="sl">Incrementos cargados</div></div>
     <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totInc)}</div><div class="sl">Com. incrementos</div></div>
     <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totAh)}</div><div class="sl">Com. ahorros</div></div>`)
 }
-function rOBMis(){
+function renderMovHistorial(movs, isAdmin=false){
+  if(!movs.length) return '<div style="font-size:12px;color:var(--text3);padding:8px 0">Sin movimientos aun</div>'
+  return movs.map(m=>{
+    const com=m.tipo==='incremento'?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):Math.round(m.monto*0.10)
+    const badge=m.tipo==='incremento'
+      ?(m.antes_72hrs===null||m.antes_72hrs===undefined
+        ?`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(80,80,80,0.3);color:var(--text3)">% pendiente</span>`
+        :`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(96,165,250,0.15);color:var(--blue)">${m.antes_72hrs?'≤72hs (55%)':'>72hs (27.5%)'}</span>`)
+      :`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(45,212,191,0.15);color:var(--teal)">Ahorro 10%</span>`
+    const adminBtns=isAdmin?`
+      ${m.tipo==='incremento'?`<button onclick="toggleOB72('${m.id}',${!m.antes_72hrs})" style="font-size:10px;padding:2px 7px;border-radius:6px;background:var(--amber-bg);color:var(--amber);border:1px solid rgba(251,191,36,0.2);cursor:pointer">⇄ ${m.antes_72hrs?'Pasar a >72hs':'Pasar a ≤72hs'}</button>`:''}
+      <button onclick="delOBMov('${m.id}')" style="font-size:10px;padding:2px 7px;border-radius:6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);cursor:pointer">✕ Borrar</button>
+    `:`<button onclick="delOBMov('${m.id}')" style="font-size:10px;padding:2px 7px;border-radius:6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);cursor:pointer">✕ Borrar</button>`
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        ${badge}
+        <span style="font-size:12px;color:var(--text2)">${fmtD(m.fecha)}</span>
+        <span class="am" style="font-size:13px">${fmt(m.monto)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="at" style="font-size:13px;font-weight:600">${fmt(com)}</span>
+        <div style="display:flex;gap:4px">${adminBtns}</div>
+      </div>
+    </div>`
+  }).join('')
+}
+function rOBMis(isAdmin=false){
   if(!obOps.length){html('ob-misb','<div class="card"><div class="es">No tenes clientes asignados aun</div></div>');return}
   html('ob-misb',obOps.map(op=>{
-    const horasInc=op.ob_incremento>0&&op.ob_fecha_incremento?Math.round((new Date(op.ob_fecha_incremento+'T12:00:00')-new Date(op.fecha+'T12:00:00'))/(1000*3600)):null
-    const pctInc=horasInc!=null?(horasInc<=72?55:27.5):null
-    const comInc=op.ob_incremento>0&&pctInc!=null?Math.round(op.ob_incremento*(pctInc/100)):0
-    const comAh=op.ob_ahorros>0?Math.round(op.ob_ahorros*0.10):0
-    const totCom=comInc+comAh
+    const movs=getMovsOp(op.id)
+    const totCom=calcComOBMovs(movs)
+    const incs=movs.filter(x=>x.tipo==='incremento')
+    const ahs=movs.filter(x=>x.tipo==='ahorro')
     return`<div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
         <div>
           <div style="font-size:14px;font-weight:600;color:var(--text)">${op.cliente}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} - ${op.plan} - ${fmtD(op.fecha)}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} · ${op.plan} · ${fmtD(op.fecha)}</div>
         </div>
-        <div style="text-align:right">
-          ${totCom>0?`<div class="at" style="font-size:16px;font-weight:600">${fmt(totCom)}</div><div style="font-size:11px;color:var(--text3)">total comision</div>`:'<div style="font-size:12px;color:var(--text3)">sin comision aun</div>'}
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div style="background:var(--bg3);border-radius:8px;padding:12px">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Incremento de cuota</div>
-          ${op.ob_incremento>0?`
-            <div class="am" style="font-size:15px;font-weight:600">${fmt(op.ob_incremento)}</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:2px">${horasInc}hs despues - ${pctInc}% = <span class="at">${fmt(comInc)}</span></div>
-            <span style="font-size:11px;color:var(--text3);margin-top:6px;display:block">Bloqueado</span>
-          `:`<div style="font-size:12px;color:var(--text3)">Sin incremento</div>
-            <button class="bg" onclick="editOBInc('${op.id}')" style="font-size:11px;padding:3px 8px;margin-top:8px">Cargar incremento</button>`}
-        </div>
-        <div style="background:var(--bg3);border-radius:8px;padding:12px">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Ahorros del cliente</div>
-          ${op.ob_ahorros>0?`
-            <div class="am" style="font-size:15px;font-weight:600">${fmt(op.ob_ahorros)}</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:2px">10% = <span class="at">${fmt(comAh)}</span></div>
-            <button class="br" onclick="editOBAh('${op.id}')" style="font-size:11px;padding:3px 8px;margin-top:8px">Editar</button>
-          `:`<div style="font-size:12px;color:var(--text3)">Sin ahorros</div>
-            <button class="bg" onclick="editOBAh('${op.id}')" style="font-size:11px;padding:3px 8px;margin-top:8px">Cargar ahorros</button>`}
+        <div style="text-align:right;display:flex;align-items:center;gap:10px">
+          ${totCom>0?`<div><div class="at" style="font-size:16px;font-weight:600">${fmt(totCom)}</div><div style="font-size:11px;color:var(--text3)">total comision</div></div>`:''}
+          <div style="display:flex;gap:6px">
+            <button class="bb" onclick="openOBMov('${op.id}','${op.cliente.replace(/'/g,"\'")}','incremento')" style="font-size:11px;padding:4px 10px">+ Incremento</button>
+            <button class="bb" onclick="openOBMov('${op.id}','${op.cliente.replace(/'/g,"\'")}','ahorro')" style="font-size:11px;padding:4px 10px">+ Ahorro</button>
+          </div>
         </div>
       </div>
+      ${movs.length?`
+      <div style="background:var(--bg3);border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Historial — ${incs.length} incremento${incs.length!==1?'s':''} · ${ahs.length} ahorro${ahs.length!==1?'s':''}</div>
+        ${renderMovHistorial(movs,isAdmin)}
+      </div>`:'<div style="font-size:12px;color:var(--text3);font-style:italic">Sin movimientos cargados aun</div>'}
     </div>`
   }).join(''))
 }
@@ -1103,100 +1141,123 @@ async function asignOB(opId){
   await loadOBData();rOBStats();rOBMis();rOBDisp()
 }
 
-let obEditId=null,obEditType=null
-function editOBInc(id){
-  obEditId=id;obEditType='inc'
-  const op=obOps.find(x=>x.id===id)
+// ── OB MOVIMIENTOS: cargar incremento o ahorro ───────────────────────────────
+let obMovOpId=null,obMovTipo=null,obMovOpFecha=null,obMovOpCliente=null
+function openOBMov(opId,cliente,tipo){
+  obMovOpId=opId;obMovTipo=tipo
+  const op=obOps.find(x=>x.id===opId)
+  obMovOpFecha=op?op.fecha:null;obMovOpCliente=cliente
+  const hoy=new Date().toISOString().slice(0,10)
   const modal=document.createElement('div')
   modal.id='ob-modal'
   modal.className='modal-bg'
-  modal.innerHTML=`<div class="modal">
-    <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text)">Cargar incremento - ${op.cliente}</div>
+  const tituloTipo=tipo==='incremento'?'Incremento de cuota':'Ahorro del cliente'
+  modal.innerHTML=`<div class="modal" style="max-width:440px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)">${tituloTipo}</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px">${cliente}</div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div><label>Monto del incremento ($)</label><input id="ob-inc-val" type="number" value="${op.ob_incremento||''}" placeholder="Ej: 50000"></div>
-      <div><label>Fecha del incremento</label><input id="ob-inc-fecha" type="date" value="${op.ob_fecha_incremento||''}"></div>
-      <div id="ob-inc-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">
+      <div class="g2">
+        <div><label>Monto ($)</label><input id="obm-monto" type="number" placeholder="Ej: 50000" oninput="previewOBMov()"></div>
+        <div><label>Fecha</label><input id="obm-fecha" type="date" value="${hoy}" onchange="previewOBMov()" oninput="previewOBMov()"></div>
+      </div>
+
+      <div id="obm-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">
         Ingresa los datos para ver la comision estimada
       </div>
+      <div id="obm-err" style="display:none;font-size:12px;color:var(--red)"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button onclick="document.getElementById('ob-modal').remove()" style="flex:1">Cancelar</button>
-        <button class="bp" onclick="guardarOBInc('${id}')" style="flex:2">Guardar</button>
+        <button class="bp" onclick="guardarOBMov()" style="flex:2">Guardar</button>
       </div>
     </div>
   </div>`
   document.body.appendChild(modal)
-  document.getElementById('ob-inc-val').addEventListener('input',previewOBInc)
-  document.getElementById('ob-inc-fecha').addEventListener('change',previewOBInc)
+  if(tipo==='incremento')setOB72(true)
 }
-function previewOBInc(){
-  const m=parseFloat(document.getElementById('ob-inc-val').value)
-  const f=document.getElementById('ob-inc-fecha').value
-  const el=document.getElementById('ob-inc-prev')
-  if(!m||!f){el.textContent='Ingresa los datos para ver la comision estimada';return}
-  const hrs=Math.round((new Date(f+'T12:00:00')-new Date(obOps.find(x=>x.id===obEditId).fecha+'T12:00:00'))/(1000*3600))
-  const pct=hrs<=72?55:27.5
-  el.innerHTML=`${hrs}hs desde la venta - Tasa: <strong style="color:var(--teal)">${pct}%</strong> - Comision: <span class="at">${fmt(Math.round(m*(pct/100)))}</span>`
+let obMov72=true
+function setOB72(v){
+  obMov72=v
+  const b72=document.getElementById('obm-btn72')
+  const b72no=document.getElementById('obm-btn72no')
+  if(!b72)return
+  if(v){
+    b72.style.background='rgba(45,212,191,0.25)';b72.style.color='var(--teal)';b72.style.borderColor='rgba(45,212,191,0.4)'
+    b72no.style.background='var(--bg3)';b72no.style.color='var(--text2)';b72no.style.borderColor='var(--border2)'
+  } else {
+    b72no.style.background='rgba(251,191,36,0.2)';b72no.style.color='var(--amber)';b72no.style.borderColor='rgba(251,191,36,0.3)'
+    b72.style.background='var(--bg3)';b72.style.color='var(--text2)';b72.style.borderColor='var(--border2)'
+  }
+  previewOBMov()
 }
-async function guardarOBInc(id){
-  const m=parseFloat(document.getElementById('ob-inc-val').value)
-  const f=document.getElementById('ob-inc-fecha').value
-  if(!m||!f)return
-  const op=obOps.find(x=>x.id===id)
-  const hrs=Math.round((new Date(f+'T12:00:00')-new Date(op.fecha+'T12:00:00'))/(1000*3600))
-  const pct=hrs<=72?55:27.5
-  const comision=Math.round(m*(pct/100))
-  const confirmar=confirm('Confirmas el incremento de '+new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(m)+' para '+op.cliente+'?\n\nFecha: '+f+' ('+hrs+'hs desde la venta)\nTasa aplicada: '+pct+'%\nTu comision: '+new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(comision)+'\n\nEste dato no se puede modificar una vez guardado.')
-  if(!confirmar)return
-  await db.from('operaciones').update({ob_incremento:m,ob_fecha_incremento:f,ob_hrs_incremento:hrs}).eq('id',id)
+function previewOBMov(){
+  const m=parseFloat(document.getElementById('obm-monto')?.value)
+  const f=document.getElementById('obm-fecha')?.value
+  const el=document.getElementById('obm-prev')
+  if(!el)return
+  if(!m||isNaN(m)){el.textContent='Ingresa los datos para ver la comision estimada';return}
+  let com=0,det=''
+  if(obMovTipo==='incremento'){
+    let pct=27.5,hrs=null
+    if(f&&obMovOpFecha){
+      hrs=Math.round((new Date(f+'T12:00:00')-new Date(obMovOpFecha+'T12:00:00'))/(1000*3600))
+      pct=hrs<=72?55:27.5
+    }
+    com=Math.round(m*(pct/100))
+    det=hrs!==null?`${hrs}hs desde la venta — Tasa: <strong style="color:var(--teal)">${pct}%</strong> (${hrs<=72?'≤72hs':'>72hs'}) — Comision: <span class="at">${fmt(com)}</span>`:`Tasa: <strong style="color:var(--teal)">${pct}%</strong> — Comision: <span class="at">${fmt(com)}</span>`
+  } else {
+    com=Math.round(m*0.10)
+    det=`Tasa: 10% — Comision: <span class="at">${fmt(com)}</span>`
+  }
+  el.innerHTML=det
+}
+async function guardarOBMov(){
+  const m=parseFloat(document.getElementById('obm-monto')?.value)
+  const f=document.getElementById('obm-fecha')?.value
+  const errEl=document.getElementById('obm-err')
+  if(!m||!f){if(errEl){errEl.textContent='Completa todos los campos.';errEl.style.display='block'}return}
+  let com=0
+  if(obMovTipo==='incremento')com=Math.round(m*(obMov72?0.55:0.275))
+  else com=Math.round(m*0.10)
+  // Calcular automáticamente si fue antes o después de 72hs
+  let auto72=null
+  if(obMovTipo==='incremento'&&obMovOpFecha){
+    const hrsCalc=Math.round((new Date(f+'T12:00:00')-new Date(obMovOpFecha+'T12:00:00'))/(1000*3600))
+    auto72=hrsCalc<=72
+  }
+  const comFinal=obMovTipo==='incremento'&&auto72!==null?Math.round(m*(auto72?0.55:0.275)):com
+  const{error}=await db.from('ob_movimientos').insert({
+    operacion_id:obMovOpId,ob_id:CU.id,ob_nombre:CU.nombre,
+    tipo:obMovTipo,monto:m,fecha:f,antes_72hrs:auto72,comision:comFinal
+  })
+  if(error){if(errEl){errEl.textContent='Error al guardar: '+error.message;errEl.style.display='block'}return}
   document.getElementById('ob-modal').remove()
-  await loadOBData();rOBStats();rOBMis()
+  if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
+  else{await loadOBData();rOBStats();rOBMis()}
 }
-function editOBAh(id){
-  const op=obOps.find(x=>x.id===id)
-  const modal=document.createElement('div')
-  modal.id='ob-modal'
-  modal.className='modal-bg'
-  modal.innerHTML=`<div class="modal">
-    <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text)">Cargar ahorros - ${op.cliente}</div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div><label>Monto de ahorros del cliente ($)</label><input id="ob-ah-val" type="number" value="${op.ob_ahorros||''}" placeholder="Ej: 30000" oninput="previewOBAh()"></div>
-      <div id="ob-ah-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">
-        Ingresa el monto para ver la comision
-      </div>
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <button onclick="document.getElementById('ob-modal').remove()" style="flex:1">Cancelar</button>
-        <button class="bp" onclick="guardarOBAh('${id}')" style="flex:2">Guardar</button>
-      </div>
-    </div>
-  </div>`
-  document.body.appendChild(modal)
+async function delOBMov(movId){
+  if(!confirm('Eliminar este movimiento? La comision se descontara.'))return
+  await db.from('ob_movimientos').delete().eq('id',movId)
+  if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
+  else{await loadOBData();rOBStats();rOBMis()}
 }
-function previewOBAh(){
-  const m=parseFloat(document.getElementById('ob-ah-val').value)
-  const el=document.getElementById('ob-ah-prev')
-  if(!m){el.textContent='Ingresa el monto para ver la comision';return}
-  el.innerHTML=`Comision: <span class="at">${fmt(Math.round(m*0.10))}</span> (10%)`
-}
-async function guardarOBAh(id){
-  const m=parseFloat(document.getElementById('ob-ah-val').value)
-  if(!m)return
-  await db.from('operaciones').update({ob_ahorros:m}).eq('id',id)
-  document.getElementById('ob-modal').remove()
-  await loadOBData();rOBStats();rOBMis()
+async function toggleOB72(movId,nuevoValor){
+  await db.from('ob_movimientos').update({antes_72hrs:nuevoValor}).eq('id',movId)
+  if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
+  else{await loadOBData();rOBStats();rOBMis()}
 }
 function rOBCom(){
   const desde=document.getElementById('obc-desde')?.value||''
   const hasta=document.getElementById('obc-hasta')?.value||''
-  let ops=[...obOps]
-  if(desde)ops=ops.filter(x=>x.fecha>=desde)
-  if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
+  let movsFilt=[...obMovs]
+  if(desde)movsFilt=movsFilt.filter(x=>x.fecha>=desde)
+  if(hasta)movsFilt=movsFilt.filter(x=>x.fecha<=hasta)
   const byP={}
-  ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  movsFilt.forEach(m=>{const p=getPer(m.fecha);if(!byP[p.key])byP[p.key]={...p,movs:[]};byP[p.key].movs.push(m)})
   const ks=Object.keys(byP).sort().reverse()
-  const calcCI=op=>op.ob_incremento>0&&op.ob_hrs_incremento!=null?Math.round(op.ob_incremento*(op.ob_hrs_incremento<=72?0.55:0.275)):0
-  const calcCA=op=>op.ob_ahorros>0?Math.round(op.ob_ahorros*0.10):0
-  const totalGralInc=ops.reduce((a,x)=>a+calcCI(x),0)
-  const totalGralAh=ops.reduce((a,x)=>a+calcCA(x),0)
+  const calcCI=m=>m.tipo==='incremento'?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):0
+  const calcCA=m=>m.tipo==='ahorro'?Math.round(m.monto*0.10):0
+  const totalGralInc=movsFilt.filter(x=>x.tipo==='incremento').reduce((a,x)=>a+calcCI(x),0)
+  const totalGralAh=movsFilt.filter(x=>x.tipo==='ahorro').reduce((a,x)=>a+calcCA(x),0)
   const totalGral=totalGralInc+totalGralAh
   const filtros=`<div class="card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -1213,37 +1274,34 @@ function rOBCom(){
   if(!ks.length){html('ob-cob',filtros+'<div class="card"><div class="es">Sin comisiones en ese periodo</div></div>');return}
   html('ob-cob',filtros+ks.map(k=>{
     const p=byP[k]
-    const totInc=p.ops.reduce((a,x)=>a+calcCI(x),0)
-    const totAh=p.ops.reduce((a,x)=>a+calcCA(x),0)
+    const totInc=p.movs.filter(x=>x.tipo==='incremento').reduce((a,x)=>a+calcCI(x),0)
+    const totAh=p.movs.filter(x=>x.tipo==='ahorro').reduce((a,x)=>a+calcCA(x),0)
     const tot=totInc+totAh
     return`<div class="card" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div>
           <div style="font-size:14px;font-weight:600;color:var(--text)">Semana: ${p.label}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.ops.length} cliente${p.ops.length!==1?'s':''}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.movs.length} movimiento${p.movs.length!==1?'s':''}</div>
         </div>
         <div style="text-align:right">
           <div class="at" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Inc: ${fmt(totInc)} &nbsp;+&nbsp; Ah: ${fmt(totAh)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Inc: ${fmt(totInc)} + Ah: ${fmt(totAh)}</div>
         </div>
       </div>
-      <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Incremento</th><th>Hs</th><th>Tasa</th><th>Com. inc.</th><th>Ahorros</th><th>Com. ah.</th><th>Total</th></tr></thead>
-      <tbody>${p.ops.map(op=>{
-        const hrs=op.ob_hrs_incremento
-        const pct=hrs!=null?(hrs<=72?55:27.5):null
-        const ci=calcCI(op),ca=calcCA(op)
+      <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Monto</th><th>Tasa</th><th>Comision</th></tr></thead>
+      <tbody>${p.movs.map(m=>{
+        const op=obOps.find(x=>x.id===m.operacion_id)
+        const com=m.tipo==='incremento'?calcCI(m):calcCA(m)
+        const tasa=m.tipo==='incremento'?(m.antes_72hrs?'55% (≤72hs)':'27.5% (>72hs)'):'10%'
         return`<tr>
-          <td style="font-size:12px">${fmtD(op.fecha)}</td>
-          <td style="color:var(--text)">${op.cliente}</td>
-          <td class="am">${op.ob_incremento>0?fmt(op.ob_incremento):'-'}</td>
-          <td style="font-size:12px">${hrs!=null?hrs+'hs':'-'}</td>
-          <td style="font-size:12px;color:${pct===55?'var(--green)':'var(--amber)'}">${pct!=null?pct+'%':'-'}</td>
-          <td class="at">${ci>0?fmt(ci):'-'}</td>
-          <td class="am">${op.ob_ahorros>0?fmt(op.ob_ahorros):'-'}</td>
-          <td class="at">${ca>0?fmt(ca):'-'}</td>
-          <td class="at" style="font-weight:600">${fmt(ci+ca)}</td>
+          <td style="font-size:12px">${fmtD(m.fecha)}</td>
+          <td style="color:var(--text)">${op?op.cliente:'-'}</td>
+          <td><span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${m.tipo==='incremento'?'rgba(96,165,250,0.15)':'rgba(45,212,191,0.15)'};color:${m.tipo==='incremento'?'var(--blue)':'var(--teal)'}">${m.tipo==='incremento'?'Incremento':'Ahorro'}</span></td>
+          <td class="am">${fmt(m.monto)}</td>
+          <td style="font-size:12px;color:var(--text2)">${tasa}</td>
+          <td class="at" style="font-weight:600">${fmt(com)}</td>
         </tr>`}).join('')}</tbody>
-      <tfoot><tr><td colspan="8" style="font-weight:600;color:var(--text)">Total semana</td><td class="at" style="font-weight:600">${fmt(tot)}</td></tr></tfoot>
+      <tfoot><tr><td colspan="5" style="font-weight:600;color:var(--text)">Total semana</td><td class="at" style="font-weight:600">${fmt(tot)}</td></tr></tfoot>
     </table></div>`
   }).join(''))
 }
@@ -1254,6 +1312,51 @@ function obTab(t,btn){
   if(btn)btn.classList.add('active')
   if(t==='disp')rOBDisp()
   if(t==='co')rOBCom()
+}
+
+
+// ═══ ADMIN VER OB ═══
+async function adminVerClientesOB(){
+  // Cargar todos los clientes OB y sus movimientos
+  const{data:opsOB}=await db.from('operaciones').select('*').not('ob_id','is',null).order('fecha',{ascending:false})
+  const{data:movs}=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false})
+  const ops=opsOB||[],allMovsAdm=movs||[]
+  if(!ops.length){html('adm-ob-content','<div class="es">Sin clientes OB asignados</div>');return}
+  // Guardar globalmente para que toggleOB72/delOBMov funcionen
+  obOps=ops;obMovs=allMovsAdm
+  html('adm-ob-content',ops.map(op=>{
+    const movsOp=allMovsAdm.filter(x=>x.operacion_id===op.id)
+    const totCom=calcComOBMovs(movsOp)
+    const incs=movsOp.filter(x=>x.tipo==='incremento')
+    const ahs=movsOp.filter(x=>x.tipo==='ahorro')
+    return`<div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${op.cliente}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} · ${op.plan} · OB: ${op.ob_nombre||'-'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${totCom>0?`<div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div>`:''}
+          <button class="bb" onclick="adminAgregarMovOB('${op.id}','${op.cliente.replace(/'/g,"\'")}','${op.ob_id}','${op.ob_nombre||''}')" style="font-size:11px;padding:4px 10px">+ Movimiento</button>
+        </div>
+      </div>
+      ${movsOp.length?`
+      <div style="background:var(--bg3);border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">${incs.length} incremento${incs.length!==1?'s':''} · ${ahs.length} ahorro${ahs.length!==1?'s':''}</div>
+        ${renderMovHistorial(movsOp,true)}
+      </div>`:'<div style="font-size:12px;color:var(--text3);font-style:italic">Sin movimientos</div>'}
+    </div>`
+  }).join(''))
+}
+function adminAgregarMovOB(opId,cliente,obId,obNombre){
+  // Para el admin, guardar con el ob_id del responsable OB
+  const savedId=CU.id,savedNombre=CU.nombre
+  CU.id=obId;CU.nombre=obNombre
+  const op=obOps.find(x=>x.id===opId)||{id:opId,fecha:new Date().toISOString().slice(0,10),cliente}
+  if(!obOps.find(x=>x.id===opId))obOps=[...obOps,op]
+  openOBMov(opId,cliente,'incremento')
+  // Restaurar despues de que se abra el modal
+  setTimeout(()=>{CU.id=savedId;CU.nombre=savedNombre},100)
 }
 
 // ═══ ADMIN ═══
@@ -1397,11 +1500,10 @@ function rAdmCom(){
     const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
     // OB
     const obMap={}
-    allOps.filter(x=>x.ob_id&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria&&getPer(x.fecha_tesoreria).key===k).forEach(op=>{
-      if(!obMap[op.ob_id])obMap[op.ob_id]={nombre:op.ob_nombre,comInc:0,comAh:0}
-      const ci=op.ob_incremento>0&&op.ob_hrs_incremento!=null?Math.round(op.ob_incremento*(op.ob_hrs_incremento<=72?0.55:0.275)):0
-      const ca=op.ob_ahorros>0?Math.round(op.ob_ahorros*0.10):0
-      obMap[op.ob_id].comInc+=ci;obMap[op.ob_id].comAh+=ca
+    allObMovs.filter(m=>getPer(m.fecha).key===k).forEach(m=>{
+      if(!obMap[m.ob_id])obMap[m.ob_id]={nombre:m.ob_nombre,comInc:0,comAh:0}
+      if(m.tipo==='incremento')obMap[m.ob_id].comInc+=Math.round(m.monto*(m.antes_72hrs?0.55:0.275))
+      if(m.tipo==='ahorro')obMap[m.ob_id].comAh+=Math.round(m.monto*0.10)
     })
     const comOBTotal=Object.values(obMap).reduce((a,x)=>a+x.comInc+x.comAh,0)
     const totGen=Object.values(porAs).reduce((a,x)=>a+x.com,0)+comJA+comJP+comPres+comJPres+comOBTotal
@@ -1560,7 +1662,7 @@ function pobPer(){
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
+  ['cp','pr','co','to','us','inc','liq','ob'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
   document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   if(t==='co'){pobPer();rAdmCom()}
@@ -1832,6 +1934,14 @@ admTab=function(t,btn){
     document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
     poblarSelUsrIncentivos();rLiquidaciones()
+    return
+  }
+  if(t==='ob'){
+    ['cp','pr','co','to','us','inc','liq'].forEach(x=>hi('adm-T'+x))
+    sh('adm-Tob')
+    document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
+    if(btn)btn.classList.add('active')
+    adminVerClientesOB()
     return
   }
   _origAdmTab(t,btn)

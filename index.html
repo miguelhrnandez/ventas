@@ -1248,6 +1248,7 @@ function rAdmPres(){
     <td><div style="display:flex;gap:4px">
       ${op.presentador_id&&op.pago_presentador!=='aceptado'?`<button class="bg" onclick="setPagoPres('${op.id}','aceptado')" style="font-size:11px;padding:3px 8px">Aceptar</button>`:''}
       ${op.presentador_id&&op.pago_presentador!=='denegado'?`<button class="br" onclick="setPagoPres('${op.id}','denegado')" style="font-size:11px;padding:3px 8px">Denegar</button>`:''}
+      <button class="br" onclick="deleteOp('${op.id}','admin')" style="font-size:11px;padding:3px 8px">Eliminar</button>
     </div></td>
   </tr>`).join('')}</tbody></table>`)
 }
@@ -1849,6 +1850,7 @@ async function deleteOp(id,source){
   } else {
     await loadAll();rAdmCarp();rAdmStats()
     if(!document.getElementById('adm-Tto').classList.contains('hidden'))rAdmTodas()
+    if(!document.getElementById('adm-Tpr').classList.contains('hidden'))rAdmPres()
   }
 }
 </script>

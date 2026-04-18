@@ -40,6 +40,7 @@ button:active{transform:scale(0.98)}
 .b-presentador{background:rgba(251,191,36,0.15);color:var(--amber)}
 .b-jefe_presentaciones{background:rgba(74,222,128,0.15);color:var(--green)}
 .b-on_boarding{background:rgba(45,212,191,0.15);color:var(--teal)}
+.b-admin{background:rgba(232,25,44,0.15);color:var(--accent)}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 24px}
 .sc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
 .sv{font-size:19px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace}
@@ -113,6 +114,22 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 </div>
 </div>
 
+
+
+<!-- MODAL PERFIL ADMIN -->
+<div id="modal-adm-perfil" class="modal-bg hidden">
+  <div class="modal">
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Mi perfil</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Nombre que se muestra</label><input id="adm-perfil-nom" placeholder="Tu nombre"></div>
+      <div id="adm-perfil-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-adm-perfil')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarPerfilAdm()" style="flex:2">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL DENEGAR CON MOTIVO -->
 <div id="modal-denegar" class="modal-bg hidden">
@@ -300,7 +317,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 
 <!-- ADMIN -->
 <div id="SADM" class="hidden wrap">
-  <div class="ph"><div><div class="pt">Panel de administracion</div><div class="ps">Control total</div></div><button onclick="logout()">Cerrar sesion</button></div>
+  <div class="ph"><div><div class="pt" id="adm-nom-display">Panel de administracion</div><div class="ps">Control total</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="document.getElementById('adm-perfil-nom').value=CU&&CU.nombre?CU.nombre:'';sh('modal-adm-perfil')">Mi perfil</button><button onclick="logout()">Cerrar sesion</button></div></div>
   <div class="g4" style="margin-bottom:24px" id="adm-stats"></div>
   <div class="nav">
     <button class="active" onclick="admTab('cp',this)">Carpetas</button>
@@ -414,6 +431,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
               <option value="presentador">Presentador</option>
               <option value="jefe_presentaciones">Jefe de presentaciones</option>
               <option value="on_boarding">On Boarding</option>
+              <option value="admin">Administrador</option>
               <optgroup id="u-rol-custom-group" label="— Roles personalizados —"></optgroup>
             </select>
           </div>
@@ -523,13 +541,14 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElement
 async function doLogin(){
   const u=gv('lu').trim(),p=gv('lp')
   hi('le');document.getElementById('lb').textContent='Ingresando...'
-  if(u===ADMU&&p===ADMP){CU={role:'admin',nombre:'Administrador'};await showAdm();return}
+  if(u===ADMU&&p===ADMP){CU={role:'admin',nombre:'Administrador',isHardAdmin:true};await showAdm();return}
   const{data,error}=await db.from('usuarios').select('*').eq('username',u).eq('password',p).single()
   document.getElementById('lb').textContent='Ingresar'
   if(error||!data){sh('le');document.getElementById('le').textContent='Usuario o contrasena incorrectos';return}
   CU={...data,role:data.rol}
   const r=data.rol
-  if(r==='asesor')await showAs()
+  if(r==='admin')await showAdm()
+  else if(r==='asesor')await showAs()
   else if(r==='jefe_ahorro'||r==='jefe_pozo')await showJV()
   else if(r==='presentador')await showPr()
   else if(r==='jefe_presentaciones')await showJP()
@@ -595,6 +614,31 @@ async function guardarEdit(){
   aOps=data||[];rAStats();rAOps()
 }
 
+
+
+async function guardarPerfilAdm(){
+  hi('adm-perfil-err')
+  const nom=document.getElementById('adm-perfil-nom').value.trim()
+  if(!nom){sh('adm-perfil-err');document.getElementById('adm-perfil-err').textContent='Ingresa un nombre.';return}
+  if(CU.isHardAdmin){
+    // Solo actualiza en memoria
+    CU.nombre=nom
+    document.getElementById('adm-nom-display').textContent=nom
+    hi('modal-adm-perfil')
+    return
+  }
+  const{error}=await db.from('usuarios').update({nombre:nom}).eq('id',CU.id)
+  if(error){sh('adm-perfil-err');document.getElementById('adm-perfil-err').textContent='Error al guardar.';return}
+  CU.nombre=nom
+  document.getElementById('adm-nom-display').textContent=nom
+  hi('modal-adm-perfil')
+  const ok=document.createElement('div')
+  ok.textContent='Nombre actualizado'
+  ok.className='aok'
+  ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'
+  document.body.appendChild(ok)
+  setTimeout(()=>ok.remove(),3000)
+}
 
 // ═══ MODAL DENEGAR CON MOTIVO ═══
 let denegarId=null
@@ -1215,6 +1259,8 @@ function obTab(t,btn){
 // ═══ ADMIN ═══
 async function showAdm(){
   showOnly('SADM')
+  const nomAdm=CU&&CU.nombre?CU.nombre:'Administrador'
+  document.getElementById('adm-nom-display').textContent=nomAdm
   await loadAll()
   rAdmStats()
   rAdmCarp()
@@ -1564,6 +1610,7 @@ async function guardarMyPass(){
   if(!p1||p1.length<4){sh('myp-err');document.getElementById('myp-err').textContent='Minimo 4 caracteres.';return}
   if(p1!==p2){sh('myp-err');document.getElementById('myp-err').textContent='Las contrasenas no coinciden.';return}
   document.getElementById('myp-btn').textContent='Guardando...'
+  if(CU.isHardAdmin){sh('myp-err');document.getElementById('myp-err').textContent='El admin maestro no puede cambiar contraseña desde aqui. Editala en el codigo.';document.getElementById('myp-btn').textContent='Guardar';return}
   const{error}=await db.from('usuarios').update({password:p1,password_visible:p1}).eq('id',CU.id)
   document.getElementById('myp-btn').textContent='Guardar'
   if(error){sh('myp-err');document.getElementById('myp-err').textContent='Error al guardar.';return}
@@ -1713,7 +1760,7 @@ function getRolSelectOptions(currentRol, currentCustomId){
   const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
   const base=[
     {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
-    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'}
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
   ]
   const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
   const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
@@ -1874,7 +1921,7 @@ function poblarRolCustomSelect(){
 function getRolSelectOptions(currentRol,currentCustomId){
   const base=[
     {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
-    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'}
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
   ]
   const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
   const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')

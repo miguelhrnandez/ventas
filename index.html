@@ -1257,7 +1257,7 @@ function rAdmCarp(){
         </div>
       </div>
       <div style="overflow-x:auto"><table>
-        <thead><tr><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Llevada</th><th>Accion</th></tr></thead>
+        <thead><tr><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Llevada</th><th>Acciones</th></tr></thead>
         <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
           <td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
           <td>${op.unidad||'-'}</td><td class="am">${fmt(op.monto)}</td>
@@ -1265,7 +1265,11 @@ function rAdmCarp(){
           <td class="ag">${op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente'}</td>
           <td>${op.carpeta_tesoreria==='denegada'&&op.motivo_denegacion?`<div><span class="badge b-den">Denegada</span><div style="font-size:11px;color:var(--red);margin-top:3px;max-width:150px">💬 ${op.motivo_denegacion}</div></div>`:badgeE(op.carpeta_tesoreria||'pendiente')}</td>
           <td>${op.carpeta_llevada?'<span style="font-size:11px;color:var(--blue)">✓ Llevada</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'}</td>
-          ${ddMenu('dd-c-'+op.id,[{label:'✓ Aceptar',action:"setTes('"+op.id+"','aceptada')"},{label:'✗ Denegar',action:"openDenegar('"+op.id+"')"},{label:'↺ Pendiente',action:"setTes('"+op.id+"','pendiente')"},{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar operacion',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
+          <td><div style="display:flex;gap:4px;align-items:center">
+            ${op.carpeta_tesoreria!=='aceptada'?`<button class="bg" onclick="setTes('${op.id}','aceptada')" style="font-size:11px;padding:3px 8px">✓ Aceptar</button>`:''}
+            ${op.carpeta_tesoreria!=='denegada'?`<button class="br" onclick="openDenegar('${op.id}')" style="font-size:11px;padding:3px 8px">✗ Denegar</button>`:''}
+            ${ddMenu('dd-c-'+op.id,[{label:'↺ Pendiente',action:"setTes('"+op.id+"','pendiente')"},{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar operacion',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
+          </div></td>
         </tr>`}).join('')}</tbody>
       </table></div>
     </div>`

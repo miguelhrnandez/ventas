@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planes de Ahorro</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f0f;--bg2:#171717;--bg3:#1f1f1f;--bg4:#2a2a2a;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#f0f0f0;--text2:#a0a0a0;--text3:#505050;--accent:#d4a843;--accent2:#b8902a;--green:#4ade80;--green-bg:rgba(74,222,128,0.1);--amber:#fbbf24;--amber-bg:rgba(251,191,36,0.1);--red:#f87171;--red-bg:rgba(248,113,113,0.1);--blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);--purple:#c084fc;--purple-bg:rgba(192,132,252,0.1);--teal:#2dd4bf;--teal-bg:rgba(45,212,191,0.1)}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+.hidden{display:none!important}
+input,select,textarea{font-family:'DM Sans',sans-serif;font-size:14px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:10px 14px;width:100%;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:var(--text3)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23606060' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select option{background:var(--bg3)}
+button{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:9px 18px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;transition:all 0.15s;white-space:nowrap}
+button:hover{background:var(--bg4)}
+button:active{transform:scale(0.98)}
+.bp{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:600}
+.bp:hover{background:var(--accent2)}
+.bg{background:var(--green-bg);color:var(--green);border-color:rgba(74,222,128,0.2)}
+.bg:hover{background:rgba(74,222,128,0.18)}
+.br{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,0.2)}
+.br:hover{background:rgba(248,113,113,0.18)}
+.bb{background:var(--blue-bg);color:var(--blue);border-color:rgba(96,165,250,0.2)}
+.bb:hover{background:rgba(96,165,250,0.18)}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
+.b-reserva{background:var(--amber-bg);color:var(--amber)}
+.b-bonificada{background:var(--blue-bg);color:var(--blue)}
+.b-completa{background:var(--green-bg);color:var(--green)}
+.b-acp{background:var(--green-bg);color:var(--green)}
+.b-den{background:var(--red-bg);color:var(--red)}
+.b-pend{background:var(--amber-bg);color:var(--amber)}
+.b-asesor{background:rgba(255,255,255,0.08);color:var(--text2)}
+.b-jefe_ahorro{background:rgba(96,165,250,0.15);color:var(--blue)}
+.b-jefe_pozo{background:rgba(192,132,252,0.15);color:var(--purple)}
+.b-presentador{background:rgba(251,191,36,0.15);color:var(--amber)}
+.b-jefe_presentaciones{background:rgba(74,222,128,0.15);color:var(--green)}
+.b-on_boarding{background:rgba(45,212,191,0.15);color:var(--teal)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 24px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.sv{font-size:19px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace}
+.sl{font-size:12px;color:var(--text2);margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.nav{display:flex;gap:4px;margin-bottom:24px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content;flex-wrap:wrap}
+.nav button{border:none;background:transparent;color:var(--text2);padding:8px 16px;border-radius:7px;font-size:13px}
+.nav button:hover{background:var(--bg3);color:var(--text)}
+.nav button.active{background:var(--bg4);color:var(--text)}
+label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
+.em{font-size:12px;color:var(--red);margin-top:4px}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.pt{font-size:20px;font-weight:600;color:var(--text)}
+.ps{font-size:13px;color:var(--text2);margin-top:2px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.es{text-align:center;padding:3rem;color:var(--text3);font-size:13px}
+.ag{color:var(--green);font-family:'DM Mono',monospace;font-weight:500}
+.am{color:var(--text);font-family:'DM Mono',monospace}
+.at{color:var(--teal);font-family:'DM Mono',monospace;font-weight:500}
+.aok{background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px}
+.wrap{max-width:1150px;margin:0 auto;padding:24px 16px}
+.ox{overflow-x:auto}
+.ddmenu{position:relative;display:inline-block}
+.ddmenu-btn{background:transparent;border:none;color:var(--text3);font-size:18px;padding:2px 6px;cursor:pointer;border-radius:4px;line-height:1}
+.ddmenu-btn:hover{background:var(--bg4);color:var(--text)}
+.ddmenu-list{position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;min-width:160px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.4);overflow:hidden;display:none}
+.ddmenu-list.open{display:block}
+.ddmenu-list button{display:block;width:100%;text-align:left;border:none;border-radius:0;background:transparent;padding:9px 14px;font-size:13px;color:var(--text2)}
+.ddmenu-list button:hover{background:var(--bg3);color:var(--text)}
+.ddmenu-list .dd-danger{color:var(--red)}
+.ddmenu-list .dd-danger:hover{background:var(--red-bg)}
+.ddmenu-list .dd-sep{height:1px;background:var(--border);margin:3px 0}
+.modal-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;width:100%;max-width:480px}
+@media(max-width:700px){.g4{grid-template-columns:1fr 1fr}.g2,.g3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="SL" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem">
+<div style="width:100%;max-width:380px">
+  <div style="text-align:center;margin-bottom:36px">
+    <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;background:var(--accent);margin-bottom:14px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#0f0f0f" stroke-width="2" stroke-linejoin="round"/><path d="M9 22V12h6v10" stroke="#0f0f0f" stroke-width="2" stroke-linejoin="round"/></svg>
+    </div>
+    <div style="font-size:20px;font-weight:600">Planes de Ahorro</div>
+    <div style="font-size:13px;color:var(--text2);margin-top:4px">Sistema de ventas</div>
+  </div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div><label>Usuario</label><input id="lu" type="text" placeholder="Tu usuario"></div>
+      <div><label>Contrasena</label><input id="lp" type="password" placeholder="..."></div>
+      <div id="le" class="hidden em"></div>
+      <button class="bp" id="lb" onclick="doLogin()" style="padding:11px;margin-top:4px">Ingresar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL EDITAR OPERACION -->
+<div id="modal-edit" class="modal-bg hidden">
+  <div class="modal">
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Editar operacion</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Nombre del cliente</label><input id="me-cliente" placeholder="Apellido y nombre"></div>
+      <div class="g2">
+        <div><label>Tipo de plan</label>
+          <select id="me-plan"><option value="Ahorro">Plan de ahorro</option><option value="Pozo">Plan de pozo</option></select>
+        </div>
+        <div>
+          <label>Cuota inicial ($)</label>
+          <input id="me-monto" type="number" oninput="prevEditTipo()">
+          <div id="me-monto-lock" style="display:none;align-items:center;gap:6px;margin-top:5px;font-size:12px;color:var(--amber)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2"/></svg>
+            Monto bloqueado — la operacion ya es una venta
+          </div>
+        </div>
+      </div>
+      <div><label>Unidad / lote</label><input id="me-unidad" placeholder="Ej: 3B"></div>
+      <div><label>Observaciones</label><textarea id="me-obs" rows="2" style="resize:vertical"></textarea></div>
+      <div id="me-prev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
+      <div id="me-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="closeEdit()" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarEdit()" id="me-btn" style="flex:2">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR CONTRASENA -->
+<div id="modal-pass" class="modal-bg hidden">
+  <div class="modal">
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Cambiar contrasena</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:13px;color:var(--text2)" id="mp-nombre"></div>
+      <div><label>Nueva contrasena</label><input id="mp-pass" type="password" placeholder="..."></div>
+      <div><label>Confirmar contrasena</label><input id="mp-pass2" type="password" placeholder="..."></div>
+      <div id="mp-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="closePass()" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarPass()" id="mp-btn" style="flex:2">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR FECHA -->
+<div id="modal-fecha" class="modal-bg hidden">
+  <div class="modal">
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Cambiar fecha de operacion</div>
+    <div id="mf-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Nueva fecha</label><input id="mf-fecha" type="date"></div>
+      <div id="mf-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)"></div>
+      <div id="mf-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="closeFecha()" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarFecha()" id="mf-btn" style="flex:2">Guardar fecha</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR CONTRASENA PROPIA -->
+<div id="modal-mypass" class="modal-bg hidden">
+  <div class="modal">
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Cambiar mi contrasena</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Nueva contrasena</label><input id="myp-new" type="password" placeholder="..."></div>
+      <div><label>Confirmar contrasena</label><input id="myp-new2" type="password" placeholder="..."></div>
+      <div id="myp-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-mypass')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarMyPass()" id="myp-btn" style="flex:2">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ASESOR -->
+<div id="SA" class="hidden wrap">
+  <div class="ph"><div><div class="pt" id="a-nom"></div><div class="ps">Panel de asesor</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
+  <div class="nav">
+    <button class="active" onclick="aTab('o',this)">Mis operaciones</button>
+    <button onclick="aTab('n',this)">Cargar nueva</button>
+    <button onclick="aTab('c',this)">Mis comisiones</button>
+  </div>
+  <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
+  <div id="a-tn" class="hidden">
+    <div class="card" style="max-width:520px">
+      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
+      <div id="a-nok" class="hidden aok">Operacion guardada</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div><label>Nombre del cliente</label><input id="nc" placeholder="Apellido y nombre"></div>
+        <div class="g2">
+          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Plan de ahorro</option><option value="Pozo">Plan de pozo</option></select></div>
+          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
+        </div>
+        <div class="g2">
+          <div><label>Unidad / lote</label><input id="nu" placeholder="Ej: 3B"></div>
+          <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
+        </div>
+        <div><label>Metodo de pago</label>
+          <select id="nmpago"><option value="">Seleccionar...</option><option value="Transferencia">Transferencia</option><option value="Efectivo">Efectivo</option></select>
+        </div>
+        <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
+        <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
+        <div id="nerr" class="hidden em"></div>
+        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
+      </div>
+    </div>
+  </div>
+  <div id="a-tc" class="hidden"><div id="a-cb"></div></div>
+</div>
+
+<!-- JEFE VENTAS -->
+<div id="SJV" class="hidden wrap">
+  <div class="ph"><div><div class="pt" id="jv-nom"></div><div class="ps" id="jv-sub"></div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="g3" style="margin-bottom:24px" id="jv-stats"></div>
+  <div class="nav">
+    <button class="active" onclick="jvTab('cp',this)">Carpetas de mi plan</button>
+    <button onclick="jvTab('co',this)">Mis cobros</button>
+  </div>
+  <div id="jv-tcp"><div id="jv-cpb"></div></div>
+  <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
+</div>
+
+<!-- PRESENTADOR -->
+<div id="SPR" class="hidden wrap">
+  <div class="ph"><div><div class="pt" id="pr-nom"></div><div class="ps">Panel de presentador</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="g3" style="margin-bottom:24px" id="pr-stats"></div>
+  <div class="card ox"><div id="pr-ob"></div></div>
+</div>
+
+<!-- JEFE PRESENTACIONES -->
+<div id="SJP" class="hidden wrap">
+  <div class="ph"><div><div class="pt" id="jp-nom"></div><div class="ps">Jefe de presentaciones</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="g3" style="margin-bottom:24px" id="jp-stats"></div>
+  <div class="nav">
+    <button class="active" onclick="jpTab('op',this)">Operaciones del equipo</button>
+    <button onclick="jpTab('co',this)">Mis cobros</button>
+  </div>
+  <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
+  <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
+</div>
+
+<!-- ON BOARDING -->
+<div id="SOB" class="hidden wrap">
+  <div class="ph"><div><div class="pt" id="ob-nom"></div><div class="ps">Panel de On Boarding</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
+  <div class="nav">
+    <button class="active" onclick="obTab('mis',this)">Mis clientes</button>
+    <button onclick="obTab('disp',this)">Ventas disponibles</button>
+    <button onclick="obTab('co',this)">Mis comisiones</button>
+  </div>
+  <div id="ob-tmis"><div id="ob-misb"></div></div>
+  <div id="ob-tdisp" class="hidden"><div class="card ox"><div id="ob-dispb"></div></div></div>
+  <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
+</div>
+
+<!-- ADMIN -->
+<div id="SADM" class="hidden wrap">
+  <div class="ph"><div><div class="pt">Panel de administracion</div><div class="ps">Control total</div></div><button onclick="logout()">Cerrar sesion</button></div>
+  <div class="g4" style="margin-bottom:24px" id="adm-stats"></div>
+  <div class="nav">
+    <button class="active" onclick="admTab('cp',this)">Carpetas</button>
+    <button onclick="admTab('pr',this)">Presentaciones</button>
+    <button onclick="admTab('co',this)">Comisiones</button>
+    <button onclick="admTab('to',this)">Todas las ops</button>
+    <button onclick="admTab('inc',this)">Incentivos</button>
+    <button onclick="admTab('liq',this)">Liquidaciones</button>
+    <button onclick="admTab('us',this)">Usuarios</button>
+  </div>
+  <div id="adm-Tcp"><div id="adm-cpb"></div></div>
+  <div id="adm-Tpr" class="hidden">
+    <div class="card ox">
+      <div style="font-size:15px;font-weight:600;margin-bottom:16px">Asignacion de presentadores</div>
+      <div style="margin-bottom:14px"><select id="adm-fpr" onchange="rAdmPres()" style="width:auto"><option value="">Todos</option><option value="sin">Sin presentador</option><option value="pendiente">Pendiente</option><option value="aceptado">Aceptado</option><option value="denegado">Denegado</option></select></div>
+      <div id="adm-prb"></div>
+    </div>
+  </div>
+  <div id="adm-Tco" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div style="font-size:15px;font-weight:600">Comisiones por periodo</div>
+        <select id="adm-fp" onchange="rAdmCom()" style="width:auto;min-width:220px"><option value="">Todos los periodos</option></select>
+      </div>
+      <div id="adm-cob"></div>
+    </div>
+  </div>
+  <div id="adm-Tto" class="hidden">
+    <div class="card ox">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div style="font-size:15px;font-weight:600">Todas las operaciones</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select id="adm-fa" onchange="rAdmTodas()" style="width:auto"></select>
+          <select id="adm-fe" onchange="rAdmTodas()" style="width:auto"><option value="">Todos</option><option value="venta_completa">Venta completa</option><option value="venta_bonificada">Venta bonificada</option><option value="reserva">Reserva</option></select>
+        </div>
+      </div>
+      <div id="adm-tob"></div>
+    </div>
+  </div>
+  <div id="adm-Tinc" class="hidden">
+    <div style="display:grid;grid-template-columns:400px 1fr;gap:16px;align-items:start">
+      <div class="card">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Cargar incentivo</div>
+        <div id="inc-ok" class="hidden aok">Incentivo cargado</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><label>Empleado</label><select id="inc-usr" style="width:100%"><option value="">Seleccionar...</option></select></div>
+          <div><label>Tipo</label>
+            <select id="inc-tipo">
+              <option value="semanal">Incentivo semanal</option>
+              <option value="mensual">Incentivo mensual</option>
+            </select>
+          </div>
+          <div class="g2">
+            <div><label>Monto ($)</label><input id="inc-monto" type="number" placeholder="Ej: 50000"></div>
+            <div><label>Fecha</label><input id="inc-fecha" type="date"></div>
+          </div>
+          <div><label>Descripcion (opcional)</label><input id="inc-desc" placeholder="Ej: Premio por mejor vendedor"></div>
+          <div id="inc-err" class="hidden em"></div>
+          <button class="bp" onclick="cargarIncentivo()" style="padding:11px">Cargar incentivo</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <div style="font-size:15px;font-weight:600">Incentivos cargados</div>
+          <div style="display:flex;gap:8px">
+            <select id="inc-f-usr" onchange="rIncentivos()" style="width:auto"><option value="">Todos</option></select>
+            <select id="inc-f-tipo" onchange="rIncentivos()" style="width:auto"><option value="">Todos los tipos</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option></select>
+          </div>
+        </div>
+        <div id="inc-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="adm-Tliq" class="hidden">
+    <div style="display:grid;grid-template-columns:400px 1fr;gap:16px;align-items:start">
+      <div class="card">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Registrar liquidacion RRHH</div>
+        <div id="liq-ok" class="hidden aok">Liquidacion registrada</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><label>Empleado</label><select id="liq-usr" style="width:100%"><option value="">Seleccionar...</option></select></div>
+          <div><label>Monto liquidacion ($)</label><input id="liq-monto" type="number" placeholder="Ej: 500000"></div>
+          <div><label>Fecha de liquidacion</label><input id="liq-fecha" type="date"></div>
+          <div><label>Descripcion</label><input id="liq-desc" placeholder="Ej: Liquidacion final por renuncia"></div>
+          <div id="liq-err" class="hidden em"></div>
+          <button class="bp" onclick="cargarLiquidacion()" style="padding:11px">Registrar liquidacion</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Liquidaciones registradas</div>
+        <div id="liq-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="adm-Tus" class="hidden">
+    <div style="display:grid;grid-template-columns:420px 1fr;gap:16px;align-items:start">
+      <div class="card">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Agregar usuario</div>
+        <div id="adm-uok" class="hidden aok">Usuario agregado</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><label>Nombre completo</label><input id="u-nom" placeholder="Ej: Garcia Laura"></div>
+          <div><label>Usuario (para login)</label><input id="u-usr" placeholder="Ej: lgarcia"></div>
+          <div><label>Contrasena</label><input id="u-pas" type="password" placeholder="..."></div>
+          <div><label>Rol</label>
+            <select id="u-rol" onchange="onRolChange()">
+              <option value="">Seleccionar rol...</option>
+              <option value="asesor">Asesor de ventas</option>
+              <option value="jefe_ahorro">Jefe de ventas - Ahorro</option>
+              <option value="jefe_pozo">Jefe de ventas - Pozo</option>
+              <option value="presentador">Presentador</option>
+              <option value="jefe_presentaciones">Jefe de presentaciones</option>
+              <option value="on_boarding">On Boarding</option>
+              <optgroup id="u-rol-custom-group" label="— Roles personalizados —"></optgroup>
+            </select>
+          </div>
+          <div id="adm-uerr" class="hidden em"></div>
+          <button class="bp" onclick="addUsuario()" style="padding:11px">Agregar usuario</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Usuarios activos</div>
+        <div id="adm-usb"></div>
+      </div>
+    </div>
+    <!-- Roles personalizados -->
+    <div style="margin-top:16px;display:grid;grid-template-columns:400px 1fr;gap:16px;align-items:start">
+      <div class="card">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Crear rol personalizado</div>
+        <div id="rol-ok" class="hidden aok">Rol creado</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><label>Nombre del rol</label><input id="rol-nom" placeholder="Ej: Supervisor regional"></div>
+          <div>
+            <label style="margin-bottom:8px">Permisos</label>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ops" style="width:auto"> Ver sus operaciones y comisiones</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-cargar" style="width:auto"> Cargar ventas/reservas</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pres" style="width:auto"> Ver/cargar presentaciones</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ob" style="width:auto"> Ver/cargar on boarding</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-carp" style="width:auto"> Ver carpetas</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-comtodo" style="width:auto"> Ver comisiones de todo el equipo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-usrs" style="width:auto"> Gestionar usuarios</label>
+            </div>
+          </div>
+          <div id="rol-err" class="hidden em"></div>
+          <button class="bp" onclick="crearRol()" style="padding:11px">Crear rol</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Roles personalizados</div>
+        <div id="roles-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SURL='https://mwblnzzesjajzxmpuqbe.supabase.co'
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Ymxuenplc2phanp4bXB1cWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMjI1ODAsImV4cCI6MjA5MTc5ODU4MH0.ahMEabDGeVR9Yj4RiMUeX3eY_N4FnIfSZvMCK0vIwaw'
+const ADMU='admin',ADMP='admin123'
+const{createClient}=supabase
+const db=createClient(SURL,SKEY)
+let CU=null,allOps=[],allUsers=[],allLl=[]
+let editId=null,passUserId=null
+
+const fmt=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n)
+const fmtD=iso=>{if(!iso)return'-';const d=new Date(iso.length===10?iso+'T12:00:00':iso);return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'})}
+const gv=id=>document.getElementById(id).value
+const sv=(id,val)=>{document.getElementById(id).value=val}
+const sh=id=>document.getElementById(id).classList.remove('hidden')
+const hi=id=>document.getElementById(id).classList.add('hidden')
+const html=(id,h)=>{document.getElementById(id).innerHTML=h}
+const screens=['SL','SA','SJV','SPR','SJP','SOB','SADM']
+
+function categ(m){
+  if(m<100000)return{label:'Reserva',cls:'b-reserva',isVenta:false}
+  if(m<200000)return{label:'Venta bonificada',cls:'b-bonificada',isVenta:true}
+  return{label:'Venta completa',cls:'b-completa',isVenta:true}
+}
+function calcC(m){
+  if(m<100000)return 0
+  if(m<200000)return Math.min(m*0.5,250000)
+  return Math.min(m*0.5,250000)
+}
+function calcJV(m){return m<100000?0:m*0.165}
+
+function getPer(ds){
+  const d=new Date(ds+'T12:00:00'),day=d.getDay()
+  const dts=day===6?0:day+1
+  const sat=new Date(d);sat.setDate(d.getDate()-dts)
+  const thu=new Date(sat);thu.setDate(sat.getDate()+6)
+  const vie=new Date(thu);vie.setDate(thu.getDate()+1)
+  const cob=new Date(vie);cob.setDate(vie.getDate()+6)
+  const key=sat.toISOString().slice(0,10)+'_'+thu.toISOString().slice(0,10)
+  return{key,sat,thu,vie,cob,label:fmtD(sat.toISOString().slice(0,10))+' al '+fmtD(thu.toISOString().slice(0,10))}
+}
+function badgeE(e){
+  if(e==='aceptada'||e==='aceptado')return'<span class="badge b-acp">Aceptada</span>'
+  if(e==='denegada'||e==='denegado')return'<span class="badge b-den">Denegada</span>'
+  return'<span class="badge b-pend">Pendiente</span>'
+}
+function showOnly(id){screens.forEach(s=>s===id?sh(s):hi(s))}
+
+// OB comision
+function calcOBCom(op){
+  let total=0
+  if(op.ob_incremento>0&&op.ob_fecha_incremento&&op.fecha){
+    const ventaTs=new Date(op.fecha+'T12:00:00').getTime()
+    const incTs=new Date(op.ob_fecha_incremento+'T12:00:00').getTime()
+    const hrs=(incTs-ventaTs)/(1000*3600)
+    const pct=hrs<=72?0.55:0.275
+    total+=op.ob_incremento*pct
+  }
+  if(op.ob_ahorros>0)total+=op.ob_ahorros*0.10
+  return Math.round(total)
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('SL').classList.contains('hidden'))doLogin()})
+
+async function doLogin(){
+  const u=gv('lu').trim(),p=gv('lp')
+  hi('le');document.getElementById('lb').textContent='Ingresando...'
+  if(u===ADMU&&p===ADMP){CU={role:'admin',nombre:'Administrador'};await showAdm();return}
+  const{data,error}=await db.from('usuarios').select('*').eq('username',u).eq('password',p).single()
+  document.getElementById('lb').textContent='Ingresar'
+  if(error||!data){sh('le');document.getElementById('le').textContent='Usuario o contrasena incorrectos';return}
+  CU={...data,role:data.rol}
+  const r=data.rol
+  if(r==='asesor')await showAs()
+  else if(r==='jefe_ahorro'||r==='jefe_pozo')await showJV()
+  else if(r==='presentador')await showPr()
+  else if(r==='jefe_presentaciones')await showJP()
+  else if(r==='on_boarding')await showOB()
+}
+function logout(){CU=null;showOnly('SL');sv('lu','');sv('lp','');document.getElementById('lb').textContent='Ingresar'}
+
+async function loadAll(){
+  const[o,u,l]=await Promise.all([
+    db.from('operaciones').select('*').order('fecha',{ascending:false}),
+    db.from('usuarios').select('*').order('nombre'),
+    db.from('carpetas_llevadas').select('periodo_key')
+  ])
+  allOps=o.data||[];allUsers=u.data||[];allLl=(l.data||[]).map(x=>x.periodo_key)
+}
+
+// ═══ MODAL EDITAR ═══
+function openEdit(id){
+  const op=aOps.find(x=>x.id===id);if(!op)return
+  editId=id
+  const esVenta=categ(op.monto).isVenta
+  sv('me-cliente',op.cliente);sv('me-plan',op.plan);sv('me-monto',op.monto);sv('me-unidad',op.unidad||'')
+  sv('me-celular',op.celular||'');sv('me-mpago',op.metodo_pago||'');sv('me-obs',op.obs||'')
+  const montoEl=document.getElementById('me-monto')
+  const planEl=document.getElementById('me-plan')
+  const lockEl=document.getElementById('me-monto-lock')
+  if(esVenta){
+    montoEl.readOnly=true;montoEl.style.opacity='0.5';montoEl.style.cursor='not-allowed'
+    planEl.disabled=true;planEl.style.opacity='0.5'
+    if(lockEl)lockEl.style.display='flex'
+  } else {
+    montoEl.readOnly=false;montoEl.style.opacity='1';montoEl.style.cursor=''
+    planEl.disabled=false;planEl.style.opacity='1'
+    if(lockEl)lockEl.style.display='none'
+  }
+  hi('me-err');prevEditTipo()
+  sh('modal-edit')
+}
+function closeEdit(){hi('modal-edit');editId=null}
+function prevEditTipo(){
+  const m=parseInt(gv('me-monto')),el=document.getElementById('me-prev')
+  if(!m||isNaN(m)){hi('me-prev');return}sh('me-prev')
+  const c=categ(m)
+  el.innerHTML=`Categoria: <strong style="color:var(--${c.cls.includes('completa')?'green':c.cls.includes('bonificada')?'blue':'amber'})">${c.label}</strong>` + (c.isVenta?` - Comision est.: <span class="ag">${fmt(calcC(m))}</span>`:'')
+}
+async function guardarEdit(){
+  hi('me-err')
+  const cl=gv('me-cliente').trim(),pl=gv('me-plan'),mo=parseInt(gv('me-monto')),un=gv('me-unidad').trim(),cel=gv('me-celular').trim(),mpago=gv('me-mpago'),ob=gv('me-obs').trim()
+  if(!cl||!pl||!mo||isNaN(mo)||mo<=0){sh('me-err');document.getElementById('me-err').textContent='Completa todos los campos.';return}
+  const opActual=aOps.find(x=>x.id===editId)
+  const c=categ(mo)
+  if(opActual&&!categ(opActual.monto).isVenta&&c.isVenta){
+    const fmtN=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n)
+    const ok=confirm('Vas a convertir esta reserva en '+c.label+' por '+fmtN(mo)+'.\n\n¿Estas seguro? Esta accion no se puede deshacer.')
+    if(!ok)return
+  }
+  document.getElementById('me-btn').textContent='Guardando...'
+  const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:cel,metodo_pago:mpago,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
+  document.getElementById('me-btn').textContent='Guardar cambios'
+  if(error){sh('me-err');document.getElementById('me-err').textContent='Error al guardar.';return}
+  closeEdit()
+  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  aOps=data||[];rAStats();rAOps()
+}
+
+// ═══ MODAL CONTRASENA ═══
+function openPass(uid,nombre){
+  passUserId=uid
+  document.getElementById('mp-nombre').textContent='Usuario: '+nombre
+  sv('mp-pass','');sv('mp-pass2','');hi('mp-err')
+  sh('modal-pass')
+}
+function closePass(){hi('modal-pass');passUserId=null}
+async function guardarPass(){
+  hi('mp-err')
+  const p1=gv('mp-pass'),p2=gv('mp-pass2')
+  if(!p1||p1.length<4){sh('mp-err');document.getElementById('mp-err').textContent='La contrasena debe tener al menos 4 caracteres.';return}
+  if(p1!==p2){sh('mp-err');document.getElementById('mp-err').textContent='Las contrasenas no coinciden.';return}
+  document.getElementById('mp-btn').textContent='Guardando...'
+  const{error}=await db.from('usuarios').update({password:p1}).eq('id',passUserId)
+  document.getElementById('mp-btn').textContent='Guardar'
+  if(error){sh('mp-err');document.getElementById('mp-err').textContent='Error al guardar.';return}
+  closePass()
+  const ok=document.createElement('div')
+  ok.textContent='Contrasena actualizada'
+  ok.className='aok'
+  ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;animation:none'
+  document.body.appendChild(ok)
+  setTimeout(()=>ok.remove(),3000)
+}
+
+// ═══ ASESOR ═══
+let aOps=[]
+async function showAs(){
+  showOnly('SA');document.getElementById('a-nom').textContent=CU.nombre
+  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  aOps=data||[];rAStats();rAOps()
+}
+function rAStats(){
+  const vc=aOps.filter(x=>x.estado==='venta'||x.monto>=100000)
+  const vcompl=aOps.filter(x=>x.monto>=200000),vbon=aOps.filter(x=>x.monto>=100000&&x.monto<200000),res=aOps.filter(x=>x.monto<100000)
+  html('a-stats',`<div class="sc"><div class="sv">${vcompl.length}</div><div class="sl">Ventas completas</div></div>
+    <div class="sc"><div class="sv">${vbon.length}</div><div class="sl">Ventas bonificadas</div></div>
+    <div class="sc"><div class="sv">${res.length}</div><div class="sl">Reservas</div></div>
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto),0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
+}
+function rAOps(){
+  if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciones</div>');return}
+  html('a-ob',`<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Monto</th><th>Categoria</th><th>Tesoreria</th><th>Accion</th></tr></thead>
+  <tbody>${aOps.map(op=>{const c=categ(op.monto);return`<tr>
+    <td>${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td><td>${op.unidad||'-'}</td>
+    <td class="am">${fmt(op.monto)}</td>
+    <td><span class="badge ${c.cls}">${c.label}</span></td>
+    <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td>
+    ${ddMenu('dd-a-'+op.id,[{label:'Editar',action:"openEdit('"+op.id+"')"},{sep:true},{label:'Eliminar',action:"deleteOp('"+op.id+"','asesor')",danger:true}])}
+  </tr>`}).join('')}</tbody></table>`)
+}
+function prevT(){
+  const m=parseInt(gv('nm')),el=document.getElementById('nprev')
+  if(!m||isNaN(m)){hi('nprev');return}sh('nprev')
+  const c=categ(m)
+  const col=m>=200000?'var(--green)':m>=100000?'var(--blue)':'var(--amber)'
+  el.innerHTML=`Categoria: <strong style="color:${col}">${c.label}</strong>` + (c.isVenta?` &nbsp;·&nbsp; Comision estimada: <span class="ag">${fmt(calcC(m))}</span>`:'&nbsp;·&nbsp; <span style="color:var(--amber)">Menos de $100.000 — se guarda como reserva</span>')
+}
+async function cargarVenta(){
+  hi('nerr');hi('a-nok')
+  const cl=gv('nc').trim(),pl=gv('npl'),mo=parseInt(gv('nm')),un=gv('nu').trim(),cel=gv('ncel').trim(),mpago=gv('nmpago'),ob=gv('nob').trim()
+  if(!cl){sh('nerr');document.getElementById('nerr').textContent='Ingresa el nombre del cliente.';return}
+  if(!pl){sh('nerr');document.getElementById('nerr').textContent='Selecciona el tipo de plan.';return}
+  if(!mo||isNaN(mo)||mo<=0){sh('nerr');document.getElementById('nerr').textContent='Ingresa un monto valido.';return}
+  document.getElementById('nbtn').textContent='Guardando...'
+  const c=categ(mo)
+  const{error}=await db.from('operaciones').insert({fecha:new Date().toISOString().slice(0,10),asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva',celular:cel,metodo_pago:mpago,carpeta_tesoreria:'pendiente',pago_presentador:null})
+  document.getElementById('nbtn').textContent='Guardar operacion'
+  if(error){sh('nerr');document.getElementById('nerr').textContent='Error: '+(error.message||error.details||JSON.stringify(error));return}
+  sv('nc','');sv('npl','');sv('nm','');sv('nu','');sv('ncel','');sv('nmpago','');sv('nob','');hi('nprev')
+  document.getElementById('a-nok').textContent='Operacion guardada: '+cl+' - '+fmt(mo)
+  sh('a-nok');setTimeout(()=>hi('a-nok'),3000)
+  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  aOps=data||[];rAStats();aTab('o',document.querySelector('#SA .nav button'))
+}
+let aComFiltro={desde:'',hasta:''}
+function rACom(){
+  const desde=document.getElementById('ac-desde')?.value||''
+  const hasta=document.getElementById('ac-hasta')?.value||''
+  let ops=aOps.filter(x=>categ(x.monto).isVenta)
+  if(desde)ops=ops.filter(x=>x.fecha>=desde)
+  if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
+  const byP={}
+  ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  const ks=Object.keys(byP).sort().reverse()
+  const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+  const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+  const filtros=`<div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--text2);white-space:nowrap">Filtrar por fecha:</span>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <input type="date" id="ac-desde" value="${desde}" onchange="rACom()" style="width:auto;font-size:13px;padding:7px 12px">
+        <span style="color:var(--text3);font-size:13px">hasta</span>
+        <input type="date" id="ac-hasta" value="${hasta}" onchange="rACom()" style="width:auto;font-size:13px;padding:7px 12px">
+        ${desde||hasta?`<button onclick="document.getElementById('ac-desde').value='';document.getElementById('ac-hasta').value='';rACom()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
+      </div>
+      <div style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap">
+        <div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>
+        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${fmt(totalPend)}</div><div style="font-size:11px;color:var(--text2)">pendiente</div></div>`:''}
+      </div>
+    </div>
+  </div>`
+  if(!ks.length){html('a-cb',filtros+'<div class="card"><div class="es">Sin ventas en ese periodo</div></div>');return}
+  html('a-cb',filtros+ks.map(k=>{
+    const p=byP[k],acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcC(x.monto),0),pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+    return`<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Semana: ${p.label}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.ops.length} venta${p.ops.length!==1?'s':''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="ag" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
+          ${pend>0?`<div style="font-size:11px;color:var(--amber);margin-top:2px">${fmt(pend)} pendiente</div>`:''}
+        </div>
+      </div>
+      <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Categoria</th><th>Comision</th><th>Tesoreria</th></tr></thead>
+      <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
+        <td style="font-size:12px">${fmtD(op.fecha)}</td>
+        <td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td><td class="am">${fmt(op.monto)}</td>
+        <td><span class="badge ${c.cls}">${c.label}</span></td>
+        <td class="ag">${op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente'}</td>
+        <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td></tr>`}).join('')}</tbody>
+      <tfoot><tr>
+        <td colspan="5" style="font-weight:500;color:var(--text)">Total semana</td>
+        <td class="ag" style="font-weight:600">${fmt(tot)}</td>
+        <td></td>
+      </tr></tfoot>
+      </table>
+    </div>`
+  }).join(''))
+}
+function aTab(t,btn){
+  hi('a-to');hi('a-tn');hi('a-tc');sh(t==='o'?'a-to':t==='n'?'a-tn':'a-tc')
+  document.querySelectorAll('#SA .nav button').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active');if(t==='c')rACom()
+}
+
+// ═══ JEFE VENTAS ═══
+let jvOps=[]
+async function showJV(){
+  showOnly('SJV');document.getElementById('jv-nom').textContent=CU.nombre
+  const pl=CU.rol==='jefe_ahorro'?'Ahorro':'Pozo'
+  document.getElementById('jv-sub').textContent='Jefe de ventas - Plan '+pl
+  const{data}=await db.from('operaciones').select('*').eq('plan',pl).order('fecha',{ascending:false})
+  jvOps=(data||[]).filter(x=>categ(x.monto).isVenta);rJVStats();rJVCarp()
+}
+function rJVStats(){
+  const acp=jvOps.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto),0)
+  html('jv-stats',`<div class="sc"><div class="sv">${jvOps.length}</div><div class="sl">Ventas de mi plan</div></div>
+    <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Carpetas aceptadas</div></div>
+    <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(tot)}</div><div class="sl">Mis cobros</div></div>`)
+}
+function rJVCarp(){
+  const byP={}
+  jvOps.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  const ks=Object.keys(byP).sort().reverse()
+  if(!ks.length){html('jv-cpb','<div class="card"><div class="es">Sin carpetas aun</div></div>');return}
+  html('jv-cpb',ks.map(k=>{
+    const p=byP[k],acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto),0),pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
+    return`<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div><div style="font-size:14px;font-weight:600;color:var(--text)">Periodo: ${p.label}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))}</div></div>
+        <div style="text-align:right"><div class="ag" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
+        ${pend>0?`<div style="font-size:11px;color:var(--amber)">${fmt(pend)} pendiente</div>`:''}</div>
+      </div>
+      <table><thead><tr><th>Asesor</th><th>Cliente</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Mi cobro 16.5%</th><th>Tesoreria</th></tr></thead>
+      <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
+        <td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.unidad||'-'}</td>
+        <td class="am">${fmt(op.monto)}</td><td><span class="badge ${c.cls}">${c.label}</span></td>
+        <td class="ag">${op.carpeta_tesoreria==='aceptada'?fmt(calcJV(op.monto)):'pendiente'}</td>
+        <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td></tr>`}).join('')}</tbody></table>
+    </div>`
+  }).join(''))
+}
+function rJVCob(){
+  const desde=document.getElementById('jvc-desde')?.value||''
+  const hasta=document.getElementById('jvc-hasta')?.value||''
+  let ops=jvOps.filter(x=>x.carpeta_tesoreria==='aceptada')
+  if(desde)ops=ops.filter(x=>x.fecha>=desde)
+  if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
+  const byP={}
+  ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  const ks=Object.keys(byP).sort().reverse()
+  const totalGral=ops.reduce((a,x)=>a+calcJV(x.monto),0)
+  const filtros=`<div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--text2)">Filtrar:</span>
+      <input type="date" id="jvc-desde" value="${desde}" onchange="rJVCob()" style="width:auto;font-size:13px;padding:7px 12px">
+      <span style="color:var(--text3);font-size:13px">hasta</span>
+      <input type="date" id="jvc-hasta" value="${hasta}" onchange="rJVCob()" style="width:auto;font-size:13px;padding:7px 12px">
+      ${desde||hasta?`<button onclick="document.getElementById('jvc-desde').value='';document.getElementById('jvc-hasta').value='';rJVCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
+      <div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>
+    </div>
+  </div>`
+  if(!ks.length){html('jv-cob',filtros+'<div class="card"><div class="es">Sin cobros en ese periodo</div></div>');return}
+  html('jv-cob',filtros+ks.map(k=>{
+    const p=byP[k],tot=p.ops.reduce((a,x)=>a+calcJV(x.monto),0)
+    return`<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div><div style="font-weight:600;color:var(--text)">Semana: ${p.label}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.ops.length} venta${p.ops.length!==1?'s':''}</div></div>
+        <div class="ag" style="font-size:16px;font-weight:600">${fmt(tot)}</div>
+      </div>
+      <table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Cuota</th><th>Mi cobro 16.5%</th></tr></thead>
+      <tbody>${p.ops.map(op=>`<tr>
+        <td style="font-size:12px">${fmtD(op.fecha)}</td><td>${op.asesor_nombre}</td>
+        <td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td>
+        <td class="am">${fmt(op.monto)}</td><td class="ag">${fmt(calcJV(op.monto))}</td></tr>`).join('')}
+      </tbody>
+      <tfoot><tr><td colspan="5" style="font-weight:600;color:var(--text)">Total semana</td><td class="ag" style="font-weight:600">${fmt(tot)}</td></tr></tfoot>
+    </table></div>`
+  }).join(''))
+}
+function jvTab(t,btn){
+  hi('jv-tcp');hi('jv-tco');sh(t==='cp'?'jv-tcp':'jv-tco')
+  document.querySelectorAll('#SJV .nav button').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active');if(t==='co')rJVCob()
+}
+
+// ═══ PRESENTADOR ═══
+let prOps=[]
+async function showPr(){
+  showOnly('SPR');document.getElementById('pr-nom').textContent=CU.nombre
+  const{data}=await db.from('operaciones').select('*').eq('presentador_id',CU.id).order('fecha',{ascending:false})
+  prOps=data||[];rPrStats();rPrOps()
+}
+function rPrStats(){
+  const acp=prOps.filter(x=>x.pago_presentador==='aceptado')
+  html('pr-stats',`<div class="sc"><div class="sv">${prOps.length}</div><div class="sl">Ventas de mis charlas</div></div>
+    <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Pagos aceptados</div></div>
+    <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(acp.length*74000)}</div><div class="sl">Total a cobrar</div></div>`)
+}
+function rPrOps(){
+  const desde=document.getElementById('pr-desde')?.value||''
+  const hasta=document.getElementById('pr-hasta')?.value||''
+  let ops=[...prOps]
+  if(desde)ops=ops.filter(x=>x.fecha>=desde)
+  if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
+  const byP={}
+  ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  const ks=Object.keys(byP).sort().reverse()
+  const totalAcp=ops.filter(x=>x.pago_presentador==='aceptado').length*74000
+  const totalPend=ops.filter(x=>x.pago_presentador!=='aceptado').length
+  const filtros=`<div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--text2)">Filtrar:</span>
+      <input type="date" id="pr-desde" value="${desde}" onchange="rPrOps()" style="width:auto;font-size:13px;padding:7px 12px">
+      <span style="color:var(--text3);font-size:13px">hasta</span>
+      <input type="date" id="pr-hasta" value="${hasta}" onchange="rPrOps()" style="width:auto;font-size:13px;padding:7px 12px">
+      ${desde||hasta?`<button onclick="document.getElementById('pr-desde').value='';document.getElementById('pr-hasta').value='';rPrOps()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
+      <div style="margin-left:auto;display:flex;gap:16px">
+        <div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalAcp)}</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>
+        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${totalPend} pend.</div><div style="font-size:11px;color:var(--text2)">pendientes</div></div>`:''}
+      </div>
+    </div>
+  </div>`
+  if(!ks.length){html('pr-ob',filtros+'<div class="es">Sin ventas en ese periodo</div>');return}
+  html('pr-ob',filtros+ks.map(k=>{
+    const p=byP[k]
+    const acp=p.ops.filter(x=>x.pago_presentador==='aceptado')
+    const tot=acp.length*74000
+    return`<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div><div style="font-weight:600;color:var(--text)">Semana: ${p.label}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${acp.length} de ${p.ops.length} aceptadas</div></div>
+        <div class="ag" style="font-size:16px;font-weight:600">${fmt(tot)}</div>
+      </div>
+      <table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Mi pago</th><th>Estado</th></tr></thead>
+      <tbody>${p.ops.map(op=>`<tr>
+        <td style="font-size:12px">${fmtD(op.fecha)}</td>
+        <td>${op.asesor_nombre}</td><td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td>
+        <td class="ag">${op.pago_presentador==='aceptado'?fmt(74000):'pendiente'}</td>
+        <td>${badgeE(op.pago_presentador||'pendiente')}</td></tr>`).join('')}
+      </tbody>
+      ${tot>0?`<tfoot><tr><td colspan="4" style="font-weight:600;color:var(--text)">Total semana confirmado</td><td class="ag" style="font-weight:600">${fmt(tot)}</td><td></td></tr></tfoot>`:''}
+    </table></div>`
+  }).join(''))
+}
+
+// ═══ JEFE PRESENTACIONES ═══
+let jpOps=[]
+async function showJP(){
+  showOnly('SJP');document.getElementById('jp-nom').textContent=CU.nombre
+  const{data}=await db.from('operaciones').select('*').not('presentador_id','is',null).order('fecha',{ascending:false})
+  jpOps=data||[];rJPStats();rJPOps()
+}
+function rJPStats(){
+  const acp=jpOps.filter(x=>x.pago_presentador==='aceptado')
+  html('jp-stats',`<div class="sc"><div class="sv">${jpOps.length}</div><div class="sl">Ventas del equipo</div></div>
+    <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Pagos aceptados</div></div>
+    <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(acp.length*35000)}</div><div class="sl">Mis cobros</div></div>`)
+}
+function rJPOps(){
+  if(!jpOps.length){html('jp-ob','<div class="es">Sin operaciones del equipo</div>');return}
+  html('jp-ob',`<table><thead><tr><th>Fecha</th><th>Presentador</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Pago pres.</th><th>Mi cobro</th><th>Estado</th></tr></thead>
+  <tbody>${jpOps.map(op=>`<tr>
+    <td>${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.presentador_nombre||'-'}</td>
+    <td>${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
+    <td class="ag">${op.pago_presentador==='aceptado'?fmt(74000):'pendiente'}</td>
+    <td class="ag">${op.pago_presentador==='aceptado'?fmt(35000):'pendiente'}</td>
+    <td>${badgeE(op.pago_presentador||'pendiente')}</td></tr>`).join('')}</tbody></table>`)
+}
+function rJPCob(){
+  const desde=document.getElementById('jpc-desde')?.value||''
+  const hasta=document.getElementById('jpc-hasta')?.value||''
+  let ops=jpOps.filter(x=>x.pago_presentador==='aceptado')
+  if(desde)ops=ops.filter(x=>x.fecha>=desde)
+  if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
+  const byP={}
+  ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  const ks=Object.keys(byP).sort().reverse()
+  const totalGral=ops.length*35000
+  const filtros=`<div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--text2)">Filtrar:</span>
+      <input type="date" id="jpc-desde" value="${desde}" onchange="rJPCob()" style="width:auto;font-size:13px;padding:7px 12px">
+      <span style="color:var(--text3);font-size:13px">hasta</span>
+      <input type="date" id="jpc-hasta" value="${hasta}" onchange="rJPCob()" style="width:auto;font-size:13px;padding:7px 12px">
+      ${desde||hasta?`<button onclick="document.getElementById('jpc-desde').value='';document.getElementById('jpc-hasta').value='';rJPCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
+      <div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>
+    </div>
+  </div>`
+  if(!ks.length){html('jp-cob',filtros+'<div class="card"><div class="es">Sin cobros en ese periodo</div></div>');return}
+  html('jp-cob',filtros+ks.map(k=>{
+    const p=byP[k],tot=p.ops.length*35000
+    return`<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div><div style="font-weight:600;color:var(--text)">Semana: ${p.label}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.ops.length} pago${p.ops.length!==1?'s':''}</div></div>
+        <div class="ag" style="font-size:16px;font-weight:600">${fmt(tot)}</div>
+      </div>
+      <table><thead><tr><th>Fecha</th><th>Presentador</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Mi cobro</th></tr></thead>
+      <tbody>${p.ops.map(op=>`<tr>
+        <td style="font-size:12px">${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.presentador_nombre}</td>
+        <td>${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
+        <td class="ag">${fmt(35000)}</td></tr>`).join('')}
+      </tbody>
+      <tfoot><tr><td colspan="5" style="font-weight:600;color:var(--text)">Total semana</td><td class="ag" style="font-weight:600">${fmt(tot)}</td></tr></tfoot>
+    </table></div>`
+  }).join(''))
+}
+function jpTab(t,btn){
+  hi('jp-top');hi('jp-tco');sh(t==='op'?'jp-top':'jp-tco')
+  document.querySelectorAll('#SJP .nav button').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active');if(t==='co')rJPCob()
+}
+
+// ═══ ON BOARDING ═══
+let obOps=[],obDisp=[]
+async function showOB(){
+  showOnly('SOB');document.getElementById('ob-nom').textContent=CU.nombre
+  await loadOBData();rOBStats();rOBMis()
+}
+async function loadOBData(){
+  const[mis,disp]=await Promise.all([
+    db.from('operaciones').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
+    db.from('operaciones').select('*').is('ob_id',null).eq('estado','venta').order('fecha',{ascending:false})
+  ])
+  obOps=mis.data||[];obDisp=disp.data||[]
+}
+function rOBStats(){
+  const totInc=obOps.reduce((a,x)=>a+(x.ob_incremento>0?Math.round(x.ob_incremento*(x.ob_hrs_incremento<=72?0.55:0.275)):0),0)
+  const totAh=obOps.reduce((a,x)=>a+(x.ob_ahorros>0?Math.round(x.ob_ahorros*0.10):0),0)
+  html('ob-stats',`<div class="sc"><div class="sv">${obOps.length}</div><div class="sl">Mis clientes</div></div>
+    <div class="sc"><div class="sv">${obOps.filter(x=>x.ob_incremento>0).length}</div><div class="sl">Con incremento</div></div>
+    <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totInc)}</div><div class="sl">Com. incrementos</div></div>
+    <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totAh)}</div><div class="sl">Com. ahorros</div></div>`)
+}
+function rOBMis(){
+  if(!obOps.length){html('ob-misb','<div class="card"><div class="es">No tenes clientes asignados aun</div></div>');return}
+  html('ob-misb',obOps.map(op=>{
+    const horasInc=op.ob_incremento>0&&op.ob_fecha_incremento?Math.round((new Date(op.ob_fecha_incremento+'T12:00:00')-new Date(op.fecha+'T12:00:00'))/(1000*3600)):null
+    const pctInc=horasInc!=null?(horasInc<=72?55:27.5):null
+    const comInc=op.ob_incremento>0&&pctInc!=null?Math.round(op.ob_incremento*(pctInc/100)):0
+    const comAh=op.ob_ahorros>0?Math.round(op.ob_ahorros*0.10):0
+    const totCom=comInc+comAh
+    return`<div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${op.cliente}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} - ${op.plan} - ${fmtD(op.fecha)}</div>
+        </div>
+        <div style="text-align:right">
+          ${totCom>0?`<div class="at" style="font-size:16px;font-weight:600">${fmt(totCom)}</div><div style="font-size:11px;color:var(--text3)">total comision</div>`:'<div style="font-size:12px;color:var(--text3)">sin comision aun</div>'}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:var(--bg3);border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Incremento de cuota</div>
+          ${op.ob_incremento>0?`
+            <div class="am" style="font-size:15px;font-weight:600">${fmt(op.ob_incremento)}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">${horasInc}hs despues - ${pctInc}% = <span class="at">${fmt(comInc)}</span></div>
+            <span style="font-size:11px;color:var(--text3);margin-top:6px;display:block">Bloqueado</span>
+          `:`<div style="font-size:12px;color:var(--text3)">Sin incremento</div>
+            <button class="bg" onclick="editOBInc('${op.id}')" style="font-size:11px;padding:3px 8px;margin-top:8px">Cargar incremento</button>`}
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Ahorros del cliente</div>
+          ${op.ob_ahorros>0?`
+            <div class="am" style="font-size:15px;font-weight:600">${fmt(op.ob_ahorros)}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">10% = <span class="at">${fmt(comAh)}</span></div>
+            <button class="br" onclick="editOBAh('${op.id}')" style="font-size:11px;padding:3px 8px;margin-top:8px">Editar</button>
+          `:`<div style="font-size:12px;color:var(--text3)">Sin ahorros</div>
+            <button class="bg" onclick="editOBAh('${op.id}')" style="font-size:11px;padding:3px 8px;margin-top:8px">Cargar ahorros</button>`}
+        </div>
+      </div>
+    </div>`
+  }).join(''))
+}
+function rOBDisp(){
+  if(!obDisp.length){html('ob-dispb','<div class="es">No hay ventas disponibles para asignar</div>');return}
+  html('ob-dispb',`<table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Accion</th></tr></thead>
+  <tbody>${obDisp.map(op=>`<tr>
+    <td>${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td>
+    <td>${op.plan}</td><td class="am">${fmt(op.monto)}</td>
+    <td><button class="bg" onclick="asignOB('${op.id}')" style="font-size:12px;padding:4px 10px">Tomar cliente</button></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function asignOB(opId){
+  await db.from('operaciones').update({ob_id:CU.id,ob_nombre:CU.nombre}).eq('id',opId)
+  await loadOBData();rOBStats();rOBMis();rOBDisp()
+}
+
+let obEditId=null,obEditType=null
+function editOBInc(id){
+  obEditId=id;obEditType='inc'
+  const op=obOps.find(x=>x.id===id)
+  const modal=document.createElement('div')
+  modal.id='ob-modal'
+  modal.className='modal-bg'
+  modal.innerHTML=`<div class="modal">
+    <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text)">Cargar incremento - ${op.cliente}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Monto del incremento ($)</label><input id="ob-inc-val" type="number" value="${op.ob_incremento||''}" placeholder="Ej: 50000"></div>
+      <div><label>Fecha del incremento</label><input id="ob-inc-fecha" type="date" value="${op.ob_fecha_incremento||''}"></div>
+      <div id="ob-inc-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">
+        Ingresa los datos para ver la comision estimada
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="document.getElementById('ob-modal').remove()" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarOBInc('${id}')" style="flex:2">Guardar</button>
+      </div>
+    </div>
+  </div>`
+  document.body.appendChild(modal)
+  document.getElementById('ob-inc-val').addEventListener('input',previewOBInc)
+  document.getElementById('ob-inc-fecha').addEventListener('change',previewOBInc)
+}
+function previewOBInc(){
+  const m=parseFloat(document.getElementById('ob-inc-val').value)
+  const f=document.getElementById('ob-inc-fecha').value
+  const el=document.getElementById('ob-inc-prev')
+  if(!m||!f){el.textContent='Ingresa los datos para ver la comision estimada';return}
+  const hrs=Math.round((new Date(f+'T12:00:00')-new Date(obOps.find(x=>x.id===obEditId).fecha+'T12:00:00'))/(1000*3600))
+  const pct=hrs<=72?55:27.5
+  el.innerHTML=`${hrs}hs desde la venta - Tasa: <strong style="color:var(--teal)">${pct}%</strong> - Comision: <span class="at">${fmt(Math.round(m*(pct/100)))}</span>`
+}
+async function guardarOBInc(id){
+  const m=parseFloat(document.getElementById('ob-inc-val').value)
+  const f=document.getElementById('ob-inc-fecha').value
+  if(!m||!f)return
+  const op=obOps.find(x=>x.id===id)
+  const hrs=Math.round((new Date(f+'T12:00:00')-new Date(op.fecha+'T12:00:00'))/(1000*3600))
+  const pct=hrs<=72?55:27.5
+  const comision=Math.round(m*(pct/100))
+  const confirmar=confirm('Confirmas el incremento de '+new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(m)+' para '+op.cliente+'?\n\nFecha: '+f+' ('+hrs+'hs desde la venta)\nTasa aplicada: '+pct+'%\nTu comision: '+new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(comision)+'\n\nEste dato no se puede modificar una vez guardado.')
+  if(!confirmar)return
+  await db.from('operaciones').update({ob_incremento:m,ob_fecha_incremento:f,ob_hrs_incremento:hrs}).eq('id',id)
+  document.getElementById('ob-modal').remove()
+  await loadOBData();rOBStats();rOBMis()
+}
+function editOBAh(id){
+  const op=obOps.find(x=>x.id===id)
+  const modal=document.createElement('div')
+  modal.id='ob-modal'
+  modal.className='modal-bg'
+  modal.innerHTML=`<div class="modal">
+    <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text)">Cargar ahorros - ${op.cliente}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Monto de ahorros del cliente ($)</label><input id="ob-ah-val" type="number" value="${op.ob_ahorros||''}" placeholder="Ej: 30000" oninput="previewOBAh()"></div>
+      <div id="ob-ah-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">
+        Ingresa el monto para ver la comision
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="document.getElementById('ob-modal').remove()" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarOBAh('${id}')" style="flex:2">Guardar</button>
+      </div>
+    </div>
+  </div>`
+  document.body.appendChild(modal)
+}
+function previewOBAh(){
+  const m=parseFloat(document.getElementById('ob-ah-val').value)
+  const el=document.getElementById('ob-ah-prev')
+  if(!m){el.textContent='Ingresa el monto para ver la comision';return}
+  el.innerHTML=`Comision: <span class="at">${fmt(Math.round(m*0.10))}</span> (10%)`
+}
+async function guardarOBAh(id){
+  const m=parseFloat(document.getElementById('ob-ah-val').value)
+  if(!m)return
+  await db.from('operaciones').update({ob_ahorros:m}).eq('id',id)
+  document.getElementById('ob-modal').remove()
+  await loadOBData();rOBStats();rOBMis()
+}
+function rOBCom(){
+  const desde=document.getElementById('obc-desde')?.value||''
+  const hasta=document.getElementById('obc-hasta')?.value||''
+  let ops=[...obOps]
+  if(desde)ops=ops.filter(x=>x.fecha>=desde)
+  if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
+  const byP={}
+  ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  const ks=Object.keys(byP).sort().reverse()
+  const calcCI=op=>op.ob_incremento>0&&op.ob_hrs_incremento!=null?Math.round(op.ob_incremento*(op.ob_hrs_incremento<=72?0.55:0.275)):0
+  const calcCA=op=>op.ob_ahorros>0?Math.round(op.ob_ahorros*0.10):0
+  const totalGralInc=ops.reduce((a,x)=>a+calcCI(x),0)
+  const totalGralAh=ops.reduce((a,x)=>a+calcCA(x),0)
+  const totalGral=totalGralInc+totalGralAh
+  const filtros=`<div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--text2)">Filtrar:</span>
+      <input type="date" id="obc-desde" value="${desde}" onchange="rOBCom()" style="width:auto;font-size:13px;padding:7px 12px">
+      <span style="color:var(--text3);font-size:13px">hasta</span>
+      <input type="date" id="obc-hasta" value="${hasta}" onchange="rOBCom()" style="width:auto;font-size:13px;padding:7px 12px">
+      ${desde||hasta?`<button onclick="document.getElementById('obc-desde').value='';document.getElementById('obc-hasta').value='';rOBCom()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
+      <div style="margin-left:auto;display:flex;gap:16px">
+        <div style="text-align:right"><div class="at" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">Inc: ${fmt(totalGralInc)} + Ah: ${fmt(totalGralAh)}</div></div>
+      </div>
+    </div>
+  </div>`
+  if(!ks.length){html('ob-cob',filtros+'<div class="card"><div class="es">Sin comisiones en ese periodo</div></div>');return}
+  html('ob-cob',filtros+ks.map(k=>{
+    const p=byP[k]
+    const totInc=p.ops.reduce((a,x)=>a+calcCI(x),0)
+    const totAh=p.ops.reduce((a,x)=>a+calcCA(x),0)
+    const tot=totInc+totAh
+    return`<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Semana: ${p.label}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.ops.length} cliente${p.ops.length!==1?'s':''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="at" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Inc: ${fmt(totInc)} &nbsp;+&nbsp; Ah: ${fmt(totAh)}</div>
+        </div>
+      </div>
+      <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Incremento</th><th>Hs</th><th>Tasa</th><th>Com. inc.</th><th>Ahorros</th><th>Com. ah.</th><th>Total</th></tr></thead>
+      <tbody>${p.ops.map(op=>{
+        const hrs=op.ob_hrs_incremento
+        const pct=hrs!=null?(hrs<=72?55:27.5):null
+        const ci=calcCI(op),ca=calcCA(op)
+        return`<tr>
+          <td style="font-size:12px">${fmtD(op.fecha)}</td>
+          <td style="color:var(--text)">${op.cliente}</td>
+          <td class="am">${op.ob_incremento>0?fmt(op.ob_incremento):'-'}</td>
+          <td style="font-size:12px">${hrs!=null?hrs+'hs':'-'}</td>
+          <td style="font-size:12px;color:${pct===55?'var(--green)':'var(--amber)'}">${pct!=null?pct+'%':'-'}</td>
+          <td class="at">${ci>0?fmt(ci):'-'}</td>
+          <td class="am">${op.ob_ahorros>0?fmt(op.ob_ahorros):'-'}</td>
+          <td class="at">${ca>0?fmt(ca):'-'}</td>
+          <td class="at" style="font-weight:600">${fmt(ci+ca)}</td>
+        </tr>`}).join('')}</tbody>
+      <tfoot><tr><td colspan="8" style="font-weight:600;color:var(--text)">Total semana</td><td class="at" style="font-weight:600">${fmt(tot)}</td></tr></tfoot>
+    </table></div>`
+  }).join(''))
+}
+function obTab(t,btn){
+  hi('ob-tmis');hi('ob-tdisp');hi('ob-tco')
+  sh(t==='mis'?'ob-tmis':t==='disp'?'ob-tdisp':'ob-tco')
+  document.querySelectorAll('#SOB .nav button').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  if(t==='disp')rOBDisp()
+  if(t==='co')rOBCom()
+}
+
+// ═══ ADMIN ═══
+async function showAdm(){
+  showOnly('SADM')
+  await loadAll()
+  rAdmStats()
+  rAdmCarp()
+  try{
+    await Promise.all([loadIncentivos(),loadLiquidaciones(),loadRolesCustom()])
+    poblarRolCustomSelect()
+    rRoles()
+  }catch(e){
+    console.warn('Tablas adicionales no encontradas:',e.message)
+  }
+}
+function rAdmStats(){
+  const vn=allOps.filter(x=>categ(x.monto).isVenta),rs=allOps.filter(x=>!categ(x.monto).isVenta),acp=vn.filter(x=>x.carpeta_tesoreria==='aceptada')
+  const totComAsesores=vn.reduce((a,x)=>a+calcC(x.monto),0)
+  html('adm-stats',`<div class="sc"><div class="sv">${vn.length}</div><div class="sl">Ventas totales</div></div>
+    <div class="sc"><div class="sv">${rs.length}</div><div class="sl">Reservas</div></div>
+    <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Aceptadas tesoreria</div></div>
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(totComAsesores)}</div><div class="sl">Comisiones asesores</div></div>`)
+}
+function rAdmCarp(){
+  const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
+  vn.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[],ll:allLl.includes(p.key)};byP[p.key].ops.push(op)})
+  const ks=Object.keys(byP).sort().reverse()
+  if(!ks.length){html('adm-cpb','<div class="card"><div class="es">No hay carpetas aun</div></div>');return}
+  html('adm-cpb',ks.map(k=>{
+    const p=byP[k]
+    const opAcp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
+    const totAcp=opAcp.reduce((a,x)=>a+calcC(x.monto),0)
+    const totJV=opAcp.reduce((a,x)=>a+calcJV(x.monto),0)
+    const totPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*74000
+    const totJPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*35000
+    const grandTotal=totAcp+totJV+totPres+totJPres
+    const counts={acp:p.ops.filter(x=>x.carpeta_tesoreria==='aceptada').length,pend:p.ops.filter(x=>!x.carpeta_tesoreria||x.carpeta_tesoreria==='pendiente').length,den:p.ops.filter(x=>x.carpeta_tesoreria==='denegada').length}
+    return`<div class="card" style="margin-bottom:14px;${p.ll?'border-left:3px solid var(--blue)':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Carpeta: ${p.label}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">Llevar viernes ${fmtD(p.vie.toISOString().slice(0,10))} - Cobro: ${fmtD(p.cob.toISOString().slice(0,10))}</div>
+          <div style="font-size:12px;margin-top:4px;display:flex;gap:8px">
+            <span style="color:var(--green)">${counts.acp} aceptadas</span>
+            ${counts.pend>0?`<span style="color:var(--amber)">${counts.pend} pendientes</span>`:''}
+            ${counts.den>0?`<span style="color:var(--red)">${counts.den} denegadas</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="text-align:right">
+            <div class="ag" style="font-size:16px;font-weight:600">${fmt(grandTotal)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Asesores: ${fmt(totAcp)} · Jefes: ${fmt(totJV)}</div>
+          </div>
+          ${p.ll?'<span class="badge" style="background:var(--blue-bg);color:var(--blue)">Llevada</span>':`<button class="bp" onclick="markLL('${k}')" style="font-size:12px;padding:5px 12px">Marcar como llevada</button>`}
+        </div>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Accion</th></tr></thead>
+        <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
+          <td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
+          <td>${op.unidad||'-'}</td><td class="am">${fmt(op.monto)}</td>
+          <td><span class="badge ${c.cls}">${c.label}</span></td>
+          <td class="ag">${op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente'}</td>
+          <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td>
+          ${ddMenu('dd-c-'+op.id,[{label:'✓ Aceptar',action:"setTes('"+op.id+"','aceptada')"},{label:'✗ Denegar',action:"setTes('"+op.id+"','denegada')"},{label:'↺ Pendiente',action:"setTes('"+op.id+"','pendiente')"},{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar operacion',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
+        </tr>`}).join('')}</tbody>
+      </table></div>
+    </div>`
+  }).join(''))
+}
+async function setTes(id,estado){
+  await db.from('operaciones').update({carpeta_tesoreria:estado,fecha_tesoreria:new Date().toISOString().slice(0,10)}).eq('id',id)
+  await loadAll();rAdmCarp();rAdmStats()
+}
+async function markLL(key){
+  await db.from('carpetas_llevadas').upsert({periodo_key:key,fecha_llevada:new Date().toISOString().slice(0,10)})
+  await loadAll();rAdmCarp()
+}
+function rAdmPres(){
+  const filtro=gv('adm-fpr'),vn=allOps.filter(x=>categ(x.monto).isVenta),pres=allUsers.filter(x=>x.rol==='presentador')
+  let ops=vn
+  if(filtro==='sin')ops=vn.filter(x=>!x.presentador_id)
+  else if(filtro==='pendiente')ops=vn.filter(x=>x.presentador_id&&x.pago_presentador==='pendiente')
+  else if(filtro==='aceptado')ops=vn.filter(x=>x.pago_presentador==='aceptado')
+  else if(filtro==='denegado')ops=vn.filter(x=>x.pago_presentador==='denegado')
+  if(!ops.length){html('adm-prb','<div class="es">Sin operaciones</div>');return}
+  html('adm-prb',`<table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Presentador</th><th>Estado</th><th>Accion</th></tr></thead>
+  <tbody>${ops.map(op=>`<tr>
+    <td>${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
+    <td><select onchange="asignPres('${op.id}',this.value)" style="width:auto;min-width:150px;font-size:12px;padding:5px 28px 5px 8px">
+      <option value="">Sin presentador</option>
+      ${pres.map(p=>`<option value="${p.id}"${op.presentador_id===p.id?' selected':''}>${p.nombre}</option>`).join('')}
+    </select></td>
+    <td>${op.presentador_id?badgeE(op.pago_presentador||'pendiente'):'<span style="color:var(--text3);font-size:12px">Sin asignar</span>'}</td>
+    <td><div style="display:flex;gap:4px">
+      ${op.presentador_id&&op.pago_presentador!=='aceptado'?`<button class="bg" onclick="setPagoPres('${op.id}','aceptado')" style="font-size:11px;padding:3px 8px">Aceptar</button>`:''}
+      ${op.presentador_id&&op.pago_presentador!=='denegado'?`<button class="br" onclick="setPagoPres('${op.id}','denegado')" style="font-size:11px;padding:3px 8px">Denegar</button>`:''}
+    </div></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function asignPres(opId,presId){
+  const pres=allUsers.find(x=>x.id===presId)
+  await db.from('operaciones').update({presentador_id:presId||null,presentador_nombre:pres?pres.nombre:null,pago_presentador:presId?'pendiente':null}).eq('id',opId)
+  await loadAll();rAdmPres()
+}
+async function setPagoPres(opId,estado){
+  await db.from('operaciones').update({pago_presentador:estado}).eq('id',opId)
+  await loadAll();rAdmPres();rAdmStats()
+}
+let admComSort={field:"total",dir:"desc"}
+function rAdmCom(){
+  const filtro=gv('adm-fp'),vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
+  vn.forEach(op=>{const p=getPer(op.fecha);if(filtro&&p.key!==filtro)return;if(!byP[p.key])byP[p.key]={label:p.label,cob:p.cob,ops:[]};byP[p.key].ops.push(op)})
+  const ks=Object.keys(byP).sort().reverse()
+  if(!ks.length){html('adm-cob','<div class="es">Sin datos</div>');return}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
+  html('adm-cob',ks.map(k=>{
+    const p=byP[k]
+    const porAs={}
+    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,ops:0};porAs[op.asesor_id].com+=calcC(op.monto);porAs[op.asesor_id].ops+=1})
+    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),comJA=opAh.reduce((a,x)=>a+calcJV(x.monto),0)
+    const opPo=p.ops.filter(x=>x.plan==='Pozo'),comJP=opPo.reduce((a,x)=>a+calcJV(x.monto),0)
+    const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id)
+    const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
+    // OB
+    const obMap={}
+    allOps.filter(x=>x.ob_id&&getPer(x.fecha).key===k).forEach(op=>{
+      if(!obMap[op.ob_id])obMap[op.ob_id]={nombre:op.ob_nombre,comInc:0,comAh:0}
+      const ci=op.ob_incremento>0&&op.ob_hrs_incremento!=null?Math.round(op.ob_incremento*(op.ob_hrs_incremento<=72?0.55:0.275)):0
+      const ca=op.ob_ahorros>0?Math.round(op.ob_ahorros*0.10):0
+      obMap[op.ob_id].comInc+=ci;obMap[op.ob_id].comAh+=ca
+    })
+    const comOBTotal=Object.values(obMap).reduce((a,x)=>a+x.comInc+x.comAh,0)
+    const totGen=Object.values(porAs).reduce((a,x)=>a+x.com,0)+comJA+comJP+comPres+comJPres+comOBTotal
+    const jefeAh=allUsers.find(x=>x.rol==='jefe_ahorro'),jefePo=allUsers.find(x=>x.rol==='jefe_pozo'),jefeJP=allUsers.find(x=>x.rol==='jefe_presentaciones')
+    return`<div style="margin-bottom:28px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${p.label}</div>
+        <div style="font-size:12px;color:var(--text2)">Cobro: ${fmtD(p.cob.toISOString().slice(0,10))}</div>
+        <div class="ag" style="font-weight:600">${fmt(totGen)} total</div>
+      </div>
+      <table><thead><tr><th style="cursor:pointer" onclick="admComSort.field='nombre';rAdmCom()">Persona ↕</th><th>Rol</th><th>Detalle</th><th>Estado carpeta</th><th style="cursor:pointer" onclick="admComSort.field='total';rAdmCom()">Total a cobrar ↕</th></tr></thead>
+      <tbody>
+        ${(()=>{
+          const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentadores',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
+          let rows=[
+            ...Object.values(porAs).map(r=>{
+              const acpCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesoreria==='aceptada').length
+              const pendCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesoreria!=='aceptada').length
+              const status=acpCount>0&&pendCount===0?'<span class="badge b-acp">'+acpCount+' aceptadas</span>':
+                acpCount>0?'<span class="badge b-acp">'+acpCount+' acept.</span> <span class="badge b-pend">'+pendCount+' pend.</span>':
+                '<span class="badge b-pend">'+pendCount+' pendientes</span>'
+              return{nombre:r.nombre,rolKey:'asesor',total:r.com,det:r.ops+' venta'+(r.ops!==1?'s':'')+' - 50% c/tope $250k',colorCls:'ag',carpetaStatus:status}
+            }),
+            ...(comJA>0?[{nombre:jefeAh?jefeAh.nombre:'Jefe Ahorro',rolKey:'jefe_ahorro',total:comJA,det:opAh.length+' ventas ahorro - 16.5%',colorCls:'ag'}]:[]),
+            ...(comJP>0?[{nombre:jefePo?jefePo.nombre:'Jefe Pozo',rolKey:'jefe_pozo',total:comJP,det:opPo.length+' ventas pozo - 16.5%',colorCls:'ag'}]:[]),
+            ...(()=>{
+              // Desglosar por presentador individual
+              const porPres={}
+              presAcp.forEach(op=>{
+                if(!porPres[op.presentador_id])porPres[op.presentador_id]={nombre:op.presentador_nombre,cnt:0}
+                porPres[op.presentador_id].cnt++
+              })
+              const rowsPres=Object.values(porPres).map(pr=>({nombre:pr.nombre,rolKey:'presentador',total:pr.cnt*74000,det:pr.cnt+' venta'+(pr.cnt!==1?'s':'')+' - $74.000 c/u',colorCls:'ag'}))
+              const rowJPres=presAcp.length>0?[{nombre:jefeJP?jefeJP.nombre:'Jefe Pres.',rolKey:'jefe_presentaciones',total:comJPres,det:presAcp.length+' venta'+(presAcp.length!==1?'s':'')+' - $35.000 c/u',colorCls:'ag'}]:[]
+              return[...rowsPres,...rowJPres]
+            })(),
+            ...Object.values(obMap).map(ob=>({nombre:ob.nombre,rolKey:'on_boarding',total:ob.comInc+ob.comAh,det:'Inc: '+fmt(ob.comInc)+' + Ah: '+fmt(ob.comAh),colorCls:'at'}))
+          ]
+          if(admComSort.field==='nombre')rows.sort((a,b)=>admComSort.dir==='asc'?a.nombre.localeCompare(b.nombre):b.nombre.localeCompare(a.nombre))
+          else rows.sort((a,b)=>admComSort.dir==='asc'?a.total-b.total:b.total-a.total)
+          return rows.map(r=>`<tr>
+            <td style="color:var(--text)">${r.nombre}</td>
+            <td><span class="badge b-${r.rolKey}">${rl[r.rolKey]}</span></td>
+            <td style="font-size:12px;color:var(--text3)">${r.det}</td>
+            <td>${r.carpetaStatus||''}</td>
+            <td class="${r.colorCls}">${fmt(r.total)}</td></tr>`).join('')
+        })()}
+      </tbody>
+      <tfoot><tr><td colspan="3" style="font-weight:600;color:var(--text)">Total del periodo</td><td class="ag" style="font-weight:600">${fmt(totGen)}</td></tr></tfoot>
+      </table>${!filtro?'<div style="border-top:1px solid var(--border);margin-top:16px"></div>':''}
+    </div>`
+  }).join(''))
+}
+function rAdmTodas(){
+  const fa=gv('adm-fa'),fe=gv('adm-fe')
+  let ops=allOps.slice()
+  if(fa)ops=ops.filter(x=>x.asesor_id===fa)
+  if(fe==='reserva')ops=ops.filter(x=>!categ(x.monto).isVenta)
+  else if(fe==='venta_completa')ops=ops.filter(x=>x.monto>=200000)
+  else if(fe==='venta_bonificada')ops=ops.filter(x=>x.monto>=100000&&x.monto<200000)
+  if(!ops.length){html('adm-tob','<div class="es">Sin operaciones</div>');return}
+  // sorting for todas
+  let sorted=ops.slice()
+  const sf=admTodasSort.field,sd2=admTodasSort.dir
+  if(sf)sorted.sort((a,b)=>{
+    let va=a[sf]||'',vb=b[sf]||''
+    if(sf==='monto'){va=a.monto;vb=b.monto}
+    if(typeof va==='number')return sd2==='asc'?va-vb:vb-va
+    return sd2==='asc'?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va))
+  })
+  const thA=(f,lbl)=>`<th style="cursor:pointer;user-select:none" onclick="sortAdmTodas('${f}')">${lbl}${admTodasSort.field===f?(admTodasSort.dir==='asc'?' ↑':' ↓'):' ↕'}</th>`
+  html('adm-tob',`<table><thead><tr>
+    ${thA('fecha','Fecha')}${thA('asesor_nombre','Asesor')}${thA('cliente','Cliente')}
+    <th>Celular</th>${thA('plan','Plan')}<th>Pago</th>
+    ${thA('monto','Monto')}${thA('estado','Categoria')}
+    <th>Tesoreria</th><th>Obs</th><th>Accion</th>
+  </tr></thead>
+  <tbody>${sorted.map(op=>{const c=categ(op.monto);return`<tr>
+    <td>${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.asesor_nombre}</td>
+    <td>${op.cliente}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${op.celular||'-'}</td>
+    <td>${op.plan}</td><td>${op.metodo_pago||'-'}</td>
+    <td class="am">${fmt(op.monto)}</td>
+    <td><span class="badge ${c.cls}">${c.label}</span></td>
+    <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td>
+    <td style="max-width:100px;font-size:12px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(op.obs||'').replace(/"/g,"'")}">${op.obs||'-'}</td>
+    ${ddMenu('dd-t-'+op.id,[...(c.isVenta&&op.carpeta_tesoreria!=='aceptada'?[{label:'✓ Aceptar',action:"setTes('"+op.id+"','aceptada')"}]:[]),...(c.isVenta&&op.carpeta_tesoreria!=='denegada'?[{label:'✗ Denegar',action:"setTes('"+op.id+"','denegada')"}]:[]),{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
+  </tr>`}).join('')}</tbody></table>`)
+}
+let admTodasSort={field:'fecha',dir:'desc'}
+function sortAdmTodas(f){
+  if(admTodasSort.field===f)admTodasSort.dir=admTodasSort.dir==='asc'?'desc':'asc'
+  else{admTodasSort.field=f;admTodasSort.dir='asc'}
+  rAdmTodas()
+}
+function rAdmUsers(){
+  if(!allUsers.length){html('adm-usb','<div class="es">No hay usuarios aun</div>');return}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Presentaciones',on_boarding:'On Boarding'}
+  html('adm-usb',allUsers.map(u=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:500;color:var(--text)">${u.nombre}</span>
+          <span class="badge b-${u.rol}" style="font-size:10px">${rl[u.rol]||u.rol}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace">@${u.username}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <select onchange="cambiarRol('${u.id}',this.value)" style="width:auto;font-size:12px;padding:4px 28px 4px 8px;border-radius:6px">${getRolSelectOptions(u.rol,u.rol_custom_id)}</select>
+        <button class="bb" onclick="openPass('${u.id}','${u.nombre}')" style="font-size:12px;padding:5px 10px">Cambiar pass</button>
+        <button class="br" onclick="delUser('${u.id}')" style="font-size:12px;padding:5px 10px">Eliminar</button>
+      </div>
+    </div>`).join(''))
+}
+async function addUsuario(){
+  hi('adm-uerr');hi('adm-uok')
+  const nom=gv('u-nom').trim(),usr=gv('u-usr').trim(),pas=gv('u-pas'),rolVal=gv('u-rol')
+  if(!nom||!usr||!pas||!rolVal){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Completa todos los campos.';return}
+  if(allUsers.find(x=>x.username===usr)){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Ese usuario ya existe.';return}
+  let insertData={nombre:nom,username:usr,password:pas,password_visible:pas}
+  if(rolVal.startsWith('custom_')){
+    insertData.rol='custom'
+    insertData.rol_custom_id=rolVal.replace('custom_','')
+  } else {
+    insertData.rol=rolVal
+  }
+  const{error}=await db.from('usuarios').insert(insertData)
+  if(error){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Error al guardar.';return}
+  sv('u-nom','');sv('u-usr','');sv('u-pas','');sv('u-rol','')
+  sh('adm-uok');setTimeout(()=>hi('adm-uok'),3000)
+  await loadAll();rAdmUsers();rAdmStats()
+}
+async function cambiarRol(id,nuevoRol){
+  let upd={}
+  if(nuevoRol.startsWith('custom_')){
+    upd={rol:'custom',rol_custom_id:nuevoRol.replace('custom_','')}
+  } else {
+    upd={rol:nuevoRol,rol_custom_id:null}
+  }
+  await db.from('usuarios').update(upd).eq('id',id)
+  await loadAll();rAdmUsers()
+  const ok=document.createElement('div')
+  ok.textContent='Rol actualizado'
+  ok.className='aok'
+  ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'
+  document.body.appendChild(ok)
+  setTimeout(()=>ok.remove(),2500)
+}
+async function delUser(id){
+  if(!confirm('Eliminar este usuario?'))return
+  await db.from('usuarios').delete().eq('id',id)
+  await loadAll();rAdmUsers();rAdmStats()
+}
+function pobPer(){
+  const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
+  vn.forEach(op=>{const p=getPer(op.fecha);byP[p.key]=p.label})
+  const ks=Object.keys(byP).sort().reverse(),sel=document.getElementById('adm-fp'),cur=sel.value
+  sel.innerHTML='<option value="">Todos los periodos</option>'+ks.map(k=>`<option value="${k}">${byP[k]}</option>`).join('')
+  if(cur)sel.value=cur
+}
+function admTab(t,btn){
+  ['cp','pr','co','to','us','inc','liq'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
+  document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  if(t==='co'){pobPer();rAdmCom()}
+  if(t==='to'){document.getElementById('adm-fa').innerHTML='<option value="">Todos los asesores</option>'+allUsers.filter(x=>x.rol==='asesor').map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('');rAdmTodas()}
+  if(t==='us'){rAdmUsers();rRoles();poblarRolCustomSelect()}
+  if(t==='pr')rAdmPres()
+  if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
+  if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
+}
+
+// ═══ CAMBIAR FECHA ═══
+let fechaEditId=null
+function openEditFecha(id,fechaActual){
+  fechaEditId=id
+  const op=allOps.find(x=>x.id===id)
+  document.getElementById('mf-info').textContent=(op?op.cliente+' — '+op.asesor_nombre:'')
+  document.getElementById('mf-fecha').value=fechaActual||''
+  const prev=document.getElementById('mf-prev')
+  const updatePrev=()=>{
+    const f=document.getElementById('mf-fecha').value
+    if(!f){prev.textContent='';return}
+    const p=getPer(f)
+    prev.innerHTML='Carpeta: <strong style="color:var(--text)">'+p.label+'</strong><br>Se lleva el viernes '+fmtD(p.vie.toISOString().slice(0,10))+' — Cobro: '+fmtD(p.cob.toISOString().slice(0,10))
+  }
+  document.getElementById('mf-fecha').oninput=updatePrev
+  updatePrev()
+  hi('mf-err');sh('modal-fecha')
+}
+function closeFecha(){hi('modal-fecha');fechaEditId=null}
+async function guardarFecha(){
+  hi('mf-err')
+  const f=document.getElementById('mf-fecha').value
+  if(!f){sh('mf-err');document.getElementById('mf-err').textContent='Selecciona una fecha.';return}
+  document.getElementById('mf-btn').textContent='Guardando...'
+  const{error}=await db.from('operaciones').update({fecha:f}).eq('id',fechaEditId)
+  document.getElementById('mf-btn').textContent='Guardar fecha'
+  if(error){sh('mf-err');document.getElementById('mf-err').textContent='Error al guardar.';return}
+  closeFecha()
+  await loadAll();rAdmCarp();rAdmStats()
+  if(!document.getElementById('adm-Tto').classList.contains('hidden'))rAdmTodas()
+}
+
+// ═══ CAMBIAR MI CONTRASEÑA (usuario propio) ═══
+async function guardarMyPass(){
+  hi('myp-err')
+  const p1=gv('myp-new'),p2=gv('myp-new2')
+  if(!p1||p1.length<4){sh('myp-err');document.getElementById('myp-err').textContent='Minimo 4 caracteres.';return}
+  if(p1!==p2){sh('myp-err');document.getElementById('myp-err').textContent='Las contrasenas no coinciden.';return}
+  document.getElementById('myp-btn').textContent='Guardando...'
+  const{error}=await db.from('usuarios').update({password:p1,password_visible:p1}).eq('id',CU.id)
+  document.getElementById('myp-btn').textContent='Guardar'
+  if(error){sh('myp-err');document.getElementById('myp-err').textContent='Error al guardar.';return}
+  hi('modal-mypass');sv('myp-new','');sv('myp-new2','')
+  CU.password=p1
+  const ok=document.createElement('div')
+  ok.textContent='Contrasena actualizada correctamente'
+  ok.className='aok'
+  ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'
+  document.body.appendChild(ok)
+  setTimeout(()=>ok.remove(),3000)
+}
+
+// ═══ INCENTIVOS ═══
+let allIncentivos=[]
+async function loadIncentivos(){
+  try{const{data}=await db.from('incentivos').select('*').order('fecha',{ascending:false});allIncentivos=data||[]}catch(e){allIncentivos=[]}
+}
+function poblarSelUsrIncentivos(){
+  const opts='<option value="">Todos</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+  document.getElementById('inc-f-usr').innerHTML=opts
+  document.getElementById('inc-usr').innerHTML='<option value="">Seleccionar...</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+  document.getElementById('liq-usr').innerHTML='<option value="">Seleccionar...</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+}
+async function cargarIncentivo(){
+  hi('inc-err');hi('inc-ok')
+  const uid=gv('inc-usr'),tipo=gv('inc-tipo'),monto=parseFloat(gv('inc-monto')),fecha=gv('inc-fecha'),desc=gv('inc-desc').trim()
+  if(!uid||!monto||!fecha){sh('inc-err');document.getElementById('inc-err').textContent='Completa los campos obligatorios.';return}
+  const usr=allUsers.find(x=>x.id===uid)
+  const periodo=tipo==='mensual'?fecha.slice(0,7):getPer(fecha).key
+  const{error}=await db.from('incentivos').insert({usuario_id:uid,usuario_nombre:usr.nombre,tipo,monto,descripcion:desc,periodo,fecha})
+  if(error){sh('inc-err');document.getElementById('inc-err').textContent='Error al guardar.';return}
+  sv('inc-usr','');sv('inc-monto','');sv('inc-fecha','');sv('inc-desc','')
+  sh('inc-ok');setTimeout(()=>hi('inc-ok'),3000)
+  await loadIncentivos();rIncentivos()
+}
+function rIncentivos(){
+  const fu=gv('inc-f-usr'),ft=gv('inc-f-tipo')
+  let items=allIncentivos.slice()
+  if(fu)items=items.filter(x=>x.usuario_id===fu)
+  if(ft)items=items.filter(x=>x.tipo===ft)
+  if(!items.length){html('inc-list','<div class="es">Sin incentivos cargados</div>');return}
+  const total=items.reduce((a,x)=>a+x.monto,0)
+  html('inc-list',`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-size:12px;color:var(--text2)">${items.length} registro${items.length!==1?'s':''}</span><span class="ag">${fmt(total)}</span></div>`+
+  `<table><thead><tr><th>Fecha</th><th>Empleado</th><th>Tipo</th><th>Monto</th><th>Descripcion</th><th></th></tr></thead>
+  <tbody>${items.map(i=>`<tr>
+    <td>${fmtD(i.fecha)}</td>
+    <td style="color:var(--text)">${i.usuario_nombre}</td>
+    <td><span class="badge ${i.tipo==='mensual'?'b-jefe_ahorro':'b-on_boarding'}">${i.tipo==='mensual'?'Mensual':'Semanal'}</span></td>
+    <td class="ag">${fmt(i.monto)}</td>
+    <td style="font-size:12px;color:var(--text3)">${i.descripcion||'-'}</td>
+    <td><button class="br" onclick="delIncentivo('${i.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function delIncentivo(id){
+  if(!confirm('Eliminar este incentivo?'))return
+  await db.from('incentivos').delete().eq('id',id)
+  await loadIncentivos();rIncentivos()
+}
+
+// ═══ LIQUIDACIONES ═══
+let allLiquidaciones=[]
+async function loadLiquidaciones(){
+  try{const{data}=await db.from('liquidaciones').select('*').order('fecha_liquidacion',{ascending:false});allLiquidaciones=data||[]}catch(e){allLiquidaciones=[]}
+}
+async function cargarLiquidacion(){
+  hi('liq-err');hi('liq-ok')
+  const uid=gv('liq-usr'),monto=parseFloat(gv('liq-monto')),fecha=gv('liq-fecha'),desc=gv('liq-desc').trim()
+  if(!uid||!monto||!fecha){sh('liq-err');document.getElementById('liq-err').textContent='Completa los campos obligatorios.';return}
+  const usr=allUsers.find(x=>x.id===uid)
+  const{error}=await db.from('liquidaciones').insert({usuario_id:uid,usuario_nombre:usr.nombre,monto,descripcion:desc,fecha_liquidacion:fecha,estado:'pendiente'})
+  if(error){sh('liq-err');document.getElementById('liq-err').textContent='Error al guardar.';return}
+  sv('liq-usr','');sv('liq-monto','');sv('liq-fecha','');sv('liq-desc','')
+  sh('liq-ok');setTimeout(()=>hi('liq-ok'),3000)
+  await loadLiquidaciones();rLiquidaciones()
+}
+function rLiquidaciones(){
+  if(!allLiquidaciones.length){html('liq-list','<div class="es">Sin liquidaciones registradas</div>');return}
+  html('liq-list',`<table><thead><tr><th>Empleado</th><th>Monto</th><th>Fecha liq.</th><th>Descripcion</th><th>Estado</th><th>Accion</th></tr></thead>
+  <tbody>${allLiquidaciones.map(l=>`<tr>
+    <td style="color:var(--text)">${l.usuario_nombre}</td>
+    <td class="ag">${fmt(l.monto)}</td>
+    <td>${fmtD(l.fecha_liquidacion)}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.descripcion||'-'}</td>
+    <td>${l.estado==='pagado'?`<span class="badge b-acp">Pagado RRHH</span><div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtD(l.fecha_pago)}</div>`:'<span class="badge b-pend">Pendiente</span>'}</td>
+    <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+      ${l.estado!=='pagado'?`<button class="bg" onclick="pagarLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Marcar pagado</button>`:''}
+      <button class="br" onclick="delLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button>
+    </div></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function pagarLiq(id){
+  const fecha=prompt('Fecha de pago por RRHH (AAAA-MM-DD):',new Date().toISOString().slice(0,10))
+  if(!fecha)return
+  await db.from('liquidaciones').update({estado:'pagado',fecha_pago:fecha}).eq('id',id)
+  await loadLiquidaciones();rLiquidaciones()
+}
+async function delLiq(id){
+  if(!confirm('Eliminar esta liquidacion?'))return
+  await db.from('liquidaciones').delete().eq('id',id)
+  await loadLiquidaciones();rLiquidaciones()
+}
+
+// ═══ ROLES PERSONALIZADOS ═══
+let allRolesCustom=[]
+async function loadRolesCustom(){
+  try{const{data}=await db.from('roles_custom').select('*').order('nombre');allRolesCustom=data||[]}catch(e){allRolesCustom=[]}
+}
+const PERMISOS_LABELS={ops:'Ver operaciones y comisiones',cargar:'Cargar ventas/reservas',pres:'Ver/cargar presentaciones',ob:'Ver/cargar on boarding',carp:'Ver carpetas',comtodo:'Ver comisiones del equipo',usrs:'Gestionar usuarios'}
+async function crearRol(){
+  hi('rol-err');hi('rol-ok')
+  const nom=gv('rol-nom').trim()
+  if(!nom){sh('rol-err');document.getElementById('rol-err').textContent='Ingresa un nombre para el rol.';return}
+  const permisos={}
+  Object.keys(PERMISOS_LABELS).forEach(k=>{permisos[k]=document.getElementById('p-'+k).checked})
+  if(!Object.values(permisos).some(Boolean)){sh('rol-err');document.getElementById('rol-err').textContent='Selecciona al menos un permiso.';return}
+  const{error}=await db.from('roles_custom').insert({nombre:nom,permisos})
+  if(error){sh('rol-err');document.getElementById('rol-err').textContent='Error al guardar.';return}
+  sv('rol-nom','')
+  Object.keys(PERMISOS_LABELS).forEach(k=>{document.getElementById('p-'+k).checked=false})
+  sh('rol-ok');setTimeout(()=>hi('rol-ok'),3000)
+  await loadRolesCustom();rRoles()
+  poblarRolCustomSelect()
+  rAdmUsers()
+}
+function rRoles(){
+  if(!allRolesCustom.length){html('roles-list','<div class="es">Sin roles personalizados aun</div>');return}
+  html('roles-list',allRolesCustom.map(r=>{
+    const perms=Object.entries(r.permisos||{}).filter(([k,v])=>v).map(([k])=>PERMISOS_LABELS[k]||k)
+    return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-weight:500;color:var(--text)">${r.nombre}</div>
+        <button class="br" onclick="delRol('${r.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button>
+      </div>
+      <div style="font-size:12px;color:var(--text3)">${perms.join(' · ')||'Sin permisos'}</div>
+    </div>`
+  }).join(''))
+}
+function poblarRolCustomSelect(){
+  // Populate optgroup in agregar usuario form
+  const grp=document.getElementById('u-rol-custom-group')
+  if(grp){
+    grp.innerHTML=allRolesCustom.map(r=>`<option value="custom_${r.id}">${r.nombre}</option>`).join('')
+  }
+}
+function getRolSelectOptions(currentRol, currentCustomId){
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
+  const base=[
+    {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'}
+  ]
+  const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
+  const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
+  const customGroup=allRolesCustom.length?`<optgroup label="— Personalizados —">${customOpts}</optgroup>`:''
+  return baseOpts+customGroup
+}
+function onRolChange(){
+  // nothing extra needed now - custom roles are in the main select
+}
+async function delRol(id){
+  if(!confirm('Eliminar este rol?'))return
+  await db.from('roles_custom').delete().eq('id',id)
+  await loadRolesCustom();rRoles();poblarRolCustomSelect();rAdmUsers()
+}
+
+
+// ═══ INCENTIVOS/LIQ EN PANEL EMPLEADO ═══
+async function rMisIncentivos(containerId,userId){
+  const{data}=await db.from('incentivos').select('*').eq('usuario_id',userId).order('fecha',{ascending:false})
+  const items=data||[]
+  if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin incentivos asignados</div>');return}
+  const total=items.reduce((a,x)=>a+x.monto,0)
+  html(containerId,`<div style="margin-bottom:10px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--text2)">${items.length} incentivo${items.length!==1?'s':''}</span><span class="ag">${fmt(total)}</span></div>`+
+  `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Descripcion</th></tr></thead>
+  <tbody>${items.map(i=>`<tr>
+    <td>${fmtD(i.fecha)}</td>
+    <td><span class="badge ${i.tipo==='mensual'?'b-jefe_ahorro':'b-on_boarding'}">${i.tipo==='mensual'?'Mensual':'Semanal'}</span></td>
+    <td class="ag">${fmt(i.monto)}</td>
+    <td style="font-size:12px;color:var(--text3)">${i.descripcion||'-'}</td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function rMisLiquidaciones(containerId,userId){
+  const{data}=await db.from('liquidaciones').select('*').eq('usuario_id',userId).order('fecha_liquidacion',{ascending:false})
+  const items=data||[]
+  if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin liquidaciones registradas</div>');return}
+  html(containerId,`<table><thead><tr><th>Fecha</th><th>Monto</th><th>Descripcion</th><th>Estado</th></tr></thead>
+  <tbody>${items.map(l=>`<tr>
+    <td>${fmtD(l.fecha_liquidacion)}</td>
+    <td class="ag">${fmt(l.monto)}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.descripcion||'-'}</td>
+    <td>${l.estado==='pagado'?`<span class="badge b-acp">Pagado</span><div style="font-size:11px;color:var(--text3)">${fmtD(l.fecha_pago)}</div>`:'<span class="badge b-pend">Pendiente</span>'}</td>
+  </tr>`).join('')}</tbody></table>`)
+}
+
+// ─── patch showAdm to load new data ───
+const _origShowAdm=showAdm
+showAdm=async function(){
+  await _origShowAdm()
+  await Promise.all([loadIncentivos(),loadLiquidaciones(),loadRolesCustom()])
+  poblarRolCustomSelect()
+}
+
+// ─── patch admTab to handle new tabs ───
+const _origAdmTab=admTab
+admTab=function(t,btn){
+  // hide new panels
+  hi('adm-Tinc');hi('adm-Tliq')
+  if(t==='inc'){
+    ['cp','pr','co','to','us'].forEach(x=>hi('adm-T'+x))
+    sh('adm-Tinc')
+    document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
+    if(btn)btn.classList.add('active')
+    poblarSelUsrIncentivos();rIncentivos()
+    return
+  }
+  if(t==='liq'){
+    ['cp','pr','co','to','us'].forEach(x=>hi('adm-T'+x))
+    sh('adm-Tliq')
+    document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
+    if(btn)btn.classList.add('active')
+    poblarSelUsrIncentivos();rLiquidaciones()
+    return
+  }
+  _origAdmTab(t,btn)
+  if(t==='us'){rRoles();poblarRolCustomSelect();rAdmUsers()}
+}
+
+// ─── patch addUsuario to handle custom rol ───
+const _origAddUsuario=addUsuario
+addUsuario=async function(){
+  // If custom rol selected, use rol_custom_id
+  const rolVal=gv('u-rol')
+  if(rolVal.startsWith('custom_')){
+    hi('adm-uerr');hi('adm-uok')
+    const nom=gv('u-nom').trim(),usr=gv('u-usr').trim(),pas=gv('u-pas')
+    const crid=rolVal.replace('custom_','')
+    if(!nom||!usr||!pas){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Completa todos los campos.';return}
+    if(allUsers.find(x=>x.username===usr)){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Ese usuario ya existe.';return}
+    const{error}=await db.from('usuarios').insert({nombre:nom,username:usr,password:pas,password_visible:pas,rol:'custom',rol_custom_id:crid})
+    if(error){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Error al guardar.';return}
+    sv('u-nom','');sv('u-usr','');sv('u-pas','');sv('u-rol','')
+    sh('adm-uok');setTimeout(()=>hi('adm-uok'),3000)
+    await loadAll();rAdmUsers();rAdmStats()
+    return
+  }
+  await _origAddUsuario()
+}
+
+// ─── patch addUsuario password_visible ───
+const _origAddUsuario2=addUsuario
+// already handled above via insert
+
+// ─── patch rAdmUsers to show password and custom roles ───
+const _origRAdmUsers=rAdmUsers
+rAdmUsers=function(){
+  if(!allUsers.length){html('adm-usb','<div class="es">No hay usuarios aun</div>');return}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
+  html('adm-usb',allUsers.map(u=>{
+    const rolNom=u.rol==='custom'?(allRolesCustom.find(x=>x.id===u.rol_custom_id)?.nombre||'Personalizado'):rl[u.rol]||u.rol
+    const pass=u.password_visible||u.password||'—'
+    return`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:14px;font-weight:500;color:var(--text)">${u.nombre}</span>
+            <span class="badge b-${u.rol}" style="font-size:10px">${rolNom}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace">@${u.username}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <div style="font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-family:'DM Mono',monospace;color:var(--text2)" title="Contrasena">🔑 ${pass}</div>
+          <select onchange="cambiarRol(\'${u.id}\',this.value)" style="width:auto;font-size:12px;padding:4px 28px 4px 8px;border-radius:6px">${getRolSelectOptions(u.rol,u.rol_custom_id)}</select>
+          <button class="bb" onclick="openPass('${u.id}','${u.nombre}')" style="font-size:12px;padding:5px 10px">Cambiar pass</button>
+          <button class="br" onclick="delUser('${u.id}')" style="font-size:12px;padding:5px 10px">Eliminar</button>
+        </div>
+      </div>
+    </div>`
+  }).join(''))
+}
+async function addUsuario(){
+  hi('adm-uerr');hi('adm-uok')
+  const nom=gv('u-nom').trim(),usr=gv('u-usr').trim(),pas=gv('u-pas'),rolVal=gv('u-rol')
+  if(!nom||!usr||!pas||!rolVal){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Completa todos los campos.';return}
+  if(allUsers.find(x=>x.username===usr)){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Ese usuario ya existe.';return}
+  let insertData={nombre:nom,username:usr,password:pas,password_visible:pas}
+  if(rolVal.startsWith('custom_')){
+    insertData.rol='custom'
+    insertData.rol_custom_id=rolVal.replace('custom_','')
+  } else {
+    insertData.rol=rolVal
+  }
+  const{error}=await db.from('usuarios').insert(insertData)
+  if(error){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Error al guardar.';return}
+  sv('u-nom','');sv('u-usr','');sv('u-pas','');sv('u-rol','')
+  sh('adm-uok');setTimeout(()=>hi('adm-uok'),3000)
+  await loadAll();rAdmUsers();rAdmStats()
+}
+async function delUser(id){
+  if(!confirm('Eliminar este usuario?'))return
+  await db.from('usuarios').delete().eq('id',id)
+  await loadAll();rAdmUsers();rAdmStats()
+}
+
+function poblarRolCustomSelect(){
+  const grp=document.getElementById('u-rol-custom-group')
+  if(grp){grp.innerHTML=allRolesCustom.map(r=>`<option value="custom_${r.id}">${r.nombre}</option>`).join('')}
+}
+function getRolSelectOptions(currentRol,currentCustomId){
+  const base=[
+    {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'}
+  ]
+  const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
+  const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
+  const customGroup=allRolesCustom.length?`<optgroup label="Personalizados">${customOpts}</optgroup>`:''
+  return baseOpts+customGroup
+}
+
+// ═══ DROPDOWN MENU ═══
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ddmenu'))
+    document.querySelectorAll('.ddmenu-list.open').forEach(m=>m.classList.remove('open'))
+})
+function toggleDD(id){
+  document.querySelectorAll('.ddmenu-list.open').forEach(m=>{if(m.id!==id)m.classList.remove('open')})
+  const el=document.getElementById(id);if(el)el.classList.toggle('open')
+}
+function toggleDD(id){
+  document.querySelectorAll('.ddmenu-list.open').forEach(function(m){if(m.id!==id)m.classList.remove('open')})
+  var el=document.getElementById(id);if(el)el.classList.toggle('open')
+}
+function ddMenu(id,items){
+  var btns=items.map(function(i){
+    if(i.sep)return '<div class="dd-sep"></div>'
+    var cls=i.danger?'dd-danger':''
+    return '<button class="'+cls+'" onclick="event.stopPropagation();ddExec('+JSON.stringify(id)+','+JSON.stringify(i.action)+')">'+i.label+'</button>'
+  }).join('')
+  return '<div class="ddmenu"><button class="ddmenu-btn" onclick="event.stopPropagation();toggleDD('+JSON.stringify(id)+')">&#x22EF;</button><div class="ddmenu-list" id="'+id+'">'+btns+'</div></div>'
+}
+function ddExec(id,action){
+  var el=document.getElementById(id)
+  if(el)el.classList.remove('open')
+  try{eval(action)}catch(e){console.error('ddExec error:',e)}
+}
+async function deleteOp(id,source){
+  var op=(source==='asesor'?aOps:allOps).find(function(x){return x.id===id})
+  if(!op)return
+  if(!confirm('Eliminar la operacion de '+op.cliente+'?\n\nEsta accion no se puede deshacer.'))return
+  var res=await db.from('operaciones').delete().eq('id',id)
+  if(res.error){alert('Error al eliminar.');return}
+  if(source==='asesor'){
+    var d=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+    aOps=d.data||[];rAStats();rAOps()
+  } else {
+    await loadAll();rAdmCarp();rAdmStats()
+    if(!document.getElementById('adm-Tto').classList.contains('hidden'))rAdmTodas()
+  }
+}
+</script>
+</body>
+</html>

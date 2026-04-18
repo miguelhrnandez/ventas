@@ -113,6 +113,23 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 </div>
 </div>
 
+
+<!-- MODAL DENEGAR CON MOTIVO -->
+<div id="modal-denegar" class="modal-bg hidden">
+  <div class="modal">
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Denegar operacion</div>
+    <div id="md-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Motivo de denegacion (opcional)</label><textarea id="md-motivo" rows="3" style="resize:vertical" placeholder="Ej: Documentacion incompleta, cuota insuficiente..."></textarea></div>
+      <div id="md-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="closeDenegar()" style="flex:1">Cancelar</button>
+        <button class="br" onclick="confirmarDenegar()" id="md-btn" style="flex:2">Denegar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EDITAR OPERACION -->
 <div id="modal-edit" class="modal-bg hidden">
   <div class="modal">
@@ -573,6 +590,29 @@ async function guardarEdit(){
   aOps=data||[];rAStats();rAOps()
 }
 
+
+// ═══ MODAL DENEGAR CON MOTIVO ═══
+let denegarId=null
+function openDenegar(id){
+  denegarId=id
+  const op=allOps.find(x=>x.id===id)
+  document.getElementById('md-info').textContent=op?op.cliente+' — '+op.asesor_nombre:''
+  sv('md-motivo','');hi('md-err')
+  sh('modal-denegar')
+}
+function closeDenegar(){hi('modal-denegar');denegarId=null}
+async function confirmarDenegar(){
+  hi('md-err')
+  const motivo=gv('md-motivo').trim()
+  document.getElementById('md-btn').textContent='Denegando...'
+  const{error}=await db.from('operaciones').update({carpeta_tesoreria:'denegada',fecha_tesoreria:new Date().toISOString().slice(0,10),motivo_denegacion:motivo||null}).eq('id',denegarId)
+  document.getElementById('md-btn').textContent='Denegar'
+  if(error){sh('md-err');document.getElementById('md-err').textContent='Error al guardar.';return}
+  closeDenegar()
+  await loadAll();rAdmCarp();rAdmStats()
+  if(!document.getElementById('adm-Tto').classList.contains('hidden'))rAdmTodas()
+}
+
 // ═══ MODAL CONTRASENA ═══
 function openPass(uid,nombre){
   passUserId=uid
@@ -616,12 +656,21 @@ function rAStats(){
 }
 function rAOps(){
   if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciones</div>');return}
-  html('a-ob',`<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Monto</th><th>Categoria</th><th>Tesoreria</th><th>Accion</th></tr></thead>
-  <tbody>${aOps.map(op=>{const c=categ(op.monto);return`<tr>
+  html('a-ob',`<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Monto</th><th>Categoria</th><th>Tesoreria</th><th>Llevada</th><th>Accion</th></tr></thead>
+  <tbody>${aOps.map(op=>{const c=categ(op.monto);
+    const tes=op.carpeta_tesoreria||'pendiente'
+    const tesBadge=tes==='aceptada'
+      ?'<span class="badge b-acp">Aceptada</span>'
+      :tes==='denegada'
+        ?'<div><span class="badge b-den">Denegada</span>'+(op.motivo_denegacion?`<div style="font-size:11px;color:var(--red);margin-top:3px;max-width:160px">💬 ${op.motivo_denegacion}</div>`:'')+'</div>'
+        :'<span class="badge b-pend">Pendiente</span>'
+    const ll=op.carpeta_llevada?'<span style="font-size:11px;color:var(--blue)">✓ Llevada</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'
+    return`<tr>
     <td>${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td><td>${op.unidad||'-'}</td>
     <td class="am">${fmt(op.monto)}</td>
     <td><span class="badge ${c.cls}">${c.label}</span></td>
-    <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td>
+    <td>${tesBadge}</td>
+    <td>${ll}</td>
     ${ddMenu('dd-a-'+op.id,[{label:'Editar',action:"openEdit('"+op.id+"')"},{sep:true},{label:'Eliminar',action:"deleteOp('"+op.id+"','asesor')",danger:true}])}
   </tr>`}).join('')}</tbody></table>`)
 }
@@ -1208,14 +1257,15 @@ function rAdmCarp(){
         </div>
       </div>
       <div style="overflow-x:auto"><table>
-        <thead><tr><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Accion</th></tr></thead>
+        <thead><tr><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Llevada</th><th>Accion</th></tr></thead>
         <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
           <td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
           <td>${op.unidad||'-'}</td><td class="am">${fmt(op.monto)}</td>
           <td><span class="badge ${c.cls}">${c.label}</span></td>
           <td class="ag">${op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente'}</td>
-          <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td>
-          ${ddMenu('dd-c-'+op.id,[{label:'✓ Aceptar',action:"setTes('"+op.id+"','aceptada')"},{label:'✗ Denegar',action:"setTes('"+op.id+"','denegada')"},{label:'↺ Pendiente',action:"setTes('"+op.id+"','pendiente')"},{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar operacion',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
+          <td>${op.carpeta_tesoreria==='denegada'&&op.motivo_denegacion?`<div><span class="badge b-den">Denegada</span><div style="font-size:11px;color:var(--red);margin-top:3px;max-width:150px">💬 ${op.motivo_denegacion}</div></div>`:badgeE(op.carpeta_tesoreria||'pendiente')}</td>
+          <td>${op.carpeta_llevada?'<span style="font-size:11px;color:var(--blue)">✓ Llevada</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'}</td>
+          ${ddMenu('dd-c-'+op.id,[{label:'✓ Aceptar',action:"setTes('"+op.id+"','aceptada')"},{label:'✗ Denegar',action:"openDenegar('"+op.id+"')"},{label:'↺ Pendiente',action:"setTes('"+op.id+"','pendiente')"},{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar operacion',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
         </tr>`}).join('')}</tbody>
       </table></div>
     </div>`
@@ -1227,6 +1277,12 @@ async function setTes(id,estado){
 }
 async function markLL(key){
   await db.from('carpetas_llevadas').upsert({periodo_key:key,fecha_llevada:new Date().toISOString().slice(0,10)})
+  // Marcar todas las ops de ese periodo como llevadas
+  const opsDelPeriodo=allOps.filter(x=>categ(x.monto).isVenta&&getPer(x.fecha).key===key)
+  if(opsDelPeriodo.length){
+    const ids=opsDelPeriodo.map(x=>x.id)
+    await db.from('operaciones').update({carpeta_llevada:true}).in('id',ids)
+  }
   await loadAll();rAdmCarp()
 }
 function rAdmPres(){
@@ -1369,7 +1425,7 @@ function rAdmTodas(){
     <td><span class="badge ${c.cls}">${c.label}</span></td>
     <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td>
     <td style="max-width:100px;font-size:12px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(op.obs||'').replace(/"/g,"'")}">${op.obs||'-'}</td>
-    ${ddMenu('dd-t-'+op.id,[...(c.isVenta&&op.carpeta_tesoreria!=='aceptada'?[{label:'✓ Aceptar',action:"setTes('"+op.id+"','aceptada')"}]:[]),...(c.isVenta&&op.carpeta_tesoreria!=='denegada'?[{label:'✗ Denegar',action:"setTes('"+op.id+"','denegada')"}]:[]),{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
+    ${ddMenu('dd-t-'+op.id,[...(c.isVenta&&op.carpeta_tesoreria!=='aceptada'?[{label:'✓ Aceptar',action:"setTes('"+op.id+"','aceptada')"}]:[]),...(c.isVenta&&op.carpeta_tesoreria!=='denegada'?[{label:'✗ Denegar',action:"openDenegar('"+op.id+"')"}]:[]),{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
   </tr>`}).join('')}</tbody></table>`)
 }
 let admTodasSort={field:'fecha',dir:'desc'}

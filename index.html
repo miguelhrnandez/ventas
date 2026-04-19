@@ -1158,7 +1158,7 @@ function rOBMis(isAdmin=false){
         <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Datos del cliente</div>
-            <button class="bb" onclick="event.stopPropagation();openOBDatos('${op.id}','${clienteEsc}','${(op.ob_telefono||'').replace(/'/g,'\\'')}',...)" style="font-size:10px;padding:2px 8px">✏ Editar</button>
+            <button class="bb" onclick="event.stopPropagation();openOBDatosById('${op.id}')" style="font-size:10px;padding:2px 8px">✏ Editar</button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
             <div><span style="color:var(--text3)">Tel. OB: </span><span style="color:var(--text)">${op.ob_telefono||'—'}</span></div>
@@ -1265,6 +1265,11 @@ async function delOBPago(pagoId){
   await db.from('ob_pagos_cuota').delete().eq('id',pagoId)
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
   else{await loadOBData();rOBStats();rOBMis()}
+}
+function openOBDatosById(opId){
+  const op=obOps.find(x=>x.id===opId)
+  if(!op)return
+  openOBDatos(opId,op.cliente,op.ob_telefono||'',op.ob_email||'',op.ob_notas||'',op.celular||'',op.unidad||'')
 }
 function openOBDatos(opId,cliente,tel,email,notas,celVenta,unidad){
   const modal=document.createElement('div')

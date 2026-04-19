@@ -2134,10 +2134,6 @@ document.addEventListener('click',e=>{
     document.querySelectorAll('.ddmenu-list.open').forEach(m=>m.classList.remove('open'))
 })
 function toggleDD(id){
-  document.querySelectorAll('.ddmenu-list.open').forEach(m=>{if(m.id!==id)m.classList.remove('open')})
-  const el=document.getElementById(id);if(el)el.classList.toggle('open')
-}
-function toggleDD(id){
   document.querySelectorAll('.ddmenu-list.open').forEach(function(m){if(m.id!==id)m.classList.remove('open')})
   var el=document.getElementById(id);if(el)el.classList.toggle('open')
 }

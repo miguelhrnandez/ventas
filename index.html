@@ -1072,7 +1072,7 @@ let obPagos=[]
 async function loadOBData(){
   const[mis,disp,movs,pagos]=await Promise.all([
     db.from('operaciones').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
-    db.from('operaciones').select('*').is('ob_id',null).eq('estado','venta').order('fecha',{ascending:false}),
+    db.from('operaciones').select('*').is('ob_id',null).eq('estado','venta').eq('plan','Ahorro').order('fecha',{ascending:false}),
     db.from('ob_movimientos').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
     db.from('ob_pagos_cuota').select('*').eq('ob_id',CU.id).order('fecha_pago',{ascending:true})
   ])
@@ -1149,10 +1149,25 @@ function rOBMis(isAdmin=false){
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
           <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">CUOTAS</div><div style="font-size:15px;font-weight:600;color:${pagos.length>=6?'var(--teal)':'var(--text)'}">${pagos.length}/6</div></div>
           ${totCom>0?`<div style="text-align:right"><div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div><div style="font-size:10px;color:var(--text3)">total com.</div></div>`:''}
+          ${op.ob_baja?'<span class="badge b-den">Baja</span>':''}
           ${op.pago_ob==='aceptado'?'<span class="badge b-acp">✓</span>':op.pago_ob==='denegado'?'<span class="badge b-den">✗</span>':''}
         </div>
       </div>
       ${abierto?`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+        <!-- Datos personales -->
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Datos del cliente</div>
+            <button class="bb" onclick="event.stopPropagation();openOBDatos('${op.id}','${clienteEsc}','${(op.ob_telefono||'').replace(/'/g,'\\'')}',...)" style="font-size:10px;padding:2px 8px">✏ Editar</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+            <div><span style="color:var(--text3)">Tel. OB: </span><span style="color:var(--text)">${op.ob_telefono||'—'}</span></div>
+            <div><span style="color:var(--text3)">Email: </span><span style="color:var(--text)">${op.ob_email||'—'}</span></div>
+            <div><span style="color:var(--text3)">Celular venta: </span><span style="color:var(--text)">${op.celular||'—'}</span></div>
+            <div><span style="color:var(--text3)">Unidad: </span><span style="color:var(--text)">${op.unidad||'—'}</span></div>
+            ${op.ob_notas?`<div style="grid-column:1/-1"><span style="color:var(--text3)">Notas: </span><span style="color:var(--text2)">${op.ob_notas}</span></div>`:''}
+          </div>
+        </div>
         <div style="margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div style="font-size:12px;font-weight:600;color:var(--text)">Pagos de cuota</div>
@@ -1184,6 +1199,13 @@ function rOBMis(isAdmin=false){
             </div>
             ${movs.filter(x=>x.tipo==='ahorro').length?renderMovHistorial(movs.filter(x=>x.tipo==='ahorro'),isAdmin):'<div style="font-size:12px;color:var(--text3)">Sin ahorros</div>'}
           </div>
+        </div>
+        <!-- Baja -->
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          ${op.ob_baja?`<div style="background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red)">
+            <strong>Dado de baja</strong>${op.ob_motivo_baja?' — '+op.ob_motivo_baja:''}
+            <button onclick="event.stopPropagation();reactivarOBCliente('${op.id}')" style="margin-left:10px;font-size:10px;padding:2px 7px;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:4px;cursor:pointer">Reactivar</button>
+          </div>`:`<button class="br" onclick="event.stopPropagation();openOBBaja('${op.id}','${clienteEsc}')" style="font-size:11px;padding:4px 12px">Dar de baja</button>`}
         </div>
       </div>`:''}
     </div>`
@@ -1241,6 +1263,77 @@ async function guardarOBPago(opId,numeroCuota){
 async function delOBPago(pagoId){
   if(!confirm('Eliminar este pago registrado?'))return
   await db.from('ob_pagos_cuota').delete().eq('id',pagoId)
+  if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
+  else{await loadOBData();rOBStats();rOBMis()}
+}
+function openOBDatos(opId,cliente,tel,email,notas,celVenta,unidad){
+  const modal=document.createElement('div')
+  modal.id='ob-modal'
+  modal.className='modal-bg'
+  modal.innerHTML=`<div class="modal" style="max-width:440px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)">Datos del cliente</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px">${cliente}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="g2">
+        <div><label>Teléfono OB</label><input id="obd-tel" type="tel" value="${tel}" placeholder="Ej: 11 1234-5678"></div>
+        <div><label>Email</label><input id="obd-email" type="email" value="${email}" placeholder="Ej: cliente@gmail.com"></div>
+      </div>
+      <div class="g2">
+        <div><label>Celular venta</label><input id="obd-cel" type="tel" value="${celVenta}" placeholder="Ej: 11 1234-5678"></div>
+        <div><label>Unidad / Lote</label><input id="obd-unidad" value="${unidad}" placeholder="Ej: 3B"></div>
+      </div>
+      <div><label>Notas</label><textarea id="obd-notas" rows="2" style="resize:vertical" placeholder="Observaciones del cliente...">${notas}</textarea></div>
+      <div id="obd-err" style="display:none;font-size:12px;color:var(--red)"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="document.getElementById('ob-modal').remove()" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarOBDatos('${opId}')" style="flex:2">Guardar</button>
+      </div>
+    </div>
+  </div>`
+  document.body.appendChild(modal)
+}
+async function guardarOBDatos(opId){
+  const tel=document.getElementById('obd-tel')?.value.trim()
+  const email=document.getElementById('obd-email')?.value.trim()
+  const notas=document.getElementById('obd-notas')?.value.trim()
+  const cel=document.getElementById('obd-cel')?.value.trim()
+  const unidad=document.getElementById('obd-unidad')?.value.trim()
+  const{error}=await db.from('operaciones').update({ob_telefono:tel||null,ob_email:email||null,ob_notas:notas||null,celular:cel||null,unidad:unidad||null}).eq('id',opId)
+  if(error){const e=document.getElementById('obd-err');if(e){e.textContent='Error: '+error.message;e.style.display='block'}return}
+  document.getElementById('ob-modal').remove()
+  if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
+  else{await loadOBData();rOBStats();rOBMis()}
+}
+function openOBBaja(opId,cliente){
+  const modal=document.createElement('div')
+  modal.id='ob-modal'
+  modal.className='modal-bg'
+  modal.innerHTML=`<div class="modal" style="max-width:420px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)">Dar de baja</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px">${cliente}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Motivo de baja</label><textarea id="ob-baja-motivo" rows="3" style="resize:vertical" placeholder="Ej: El cliente no pudo continuar por razones economicas..."></textarea></div>
+      <div id="ob-baja-err" style="display:none;font-size:12px;color:var(--red)"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="document.getElementById('ob-modal').remove()" style="flex:1">Cancelar</button>
+        <button class="br" onclick="guardarOBBaja('${opId}')" style="flex:2">Confirmar baja</button>
+      </div>
+    </div>
+  </div>`
+  document.body.appendChild(modal)
+}
+async function guardarOBBaja(opId){
+  const motivo=document.getElementById('ob-baja-motivo')?.value.trim()
+  const{error}=await db.from('operaciones').update({ob_baja:true,ob_motivo_baja:motivo||null}).eq('id',opId)
+  if(error){const e=document.getElementById('ob-baja-err');if(e){e.textContent='Error: '+error.message;e.style.display='block'}return}
+  document.getElementById('ob-modal').remove()
+  obClienteAbierto=null
+  if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
+  else{await loadOBData();rOBStats();rOBMis()}
+}
+async function reactivarOBCliente(opId){
+  if(!confirm('Reactivar este cliente?'))return
+  await db.from('operaciones').update({ob_baja:false,ob_motivo_baja:null}).eq('id',opId)
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
   else{await loadOBData();rOBStats();rOBMis()}
 }

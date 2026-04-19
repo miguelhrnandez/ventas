@@ -1268,6 +1268,7 @@ function rOBMis(isAdmin=false){
             <strong>Dado de baja</strong>${op.ob_motivo_baja?' — '+op.ob_motivo_baja:''}
             <button onclick="event.stopPropagation();reactivarOBCliente('${op.id}')" style="margin-left:10px;font-size:10px;padding:2px 7px;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:4px;cursor:pointer">Reactivar</button>
           </div>`:`<button class="br" onclick="event.stopPropagation();openOBBaja('${op.id}','${clienteEsc}')" style="font-size:11px;padding:4px 12px">Dar de baja</button>`}
+          <button onclick="event.stopPropagation();devolverOBCliente('${op.id}','${clienteEsc}')" style="font-size:11px;padding:4px 12px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);border-radius:8px;cursor:pointer">↩ Devolver al pool</button>
         </div>
       </div>`:''}
     </div>`
@@ -1370,6 +1371,12 @@ async function guardarOBDatos(opId){
   document.getElementById('ob-modal').remove()
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
   else{await loadOBData();rOBStats();rOBMis()}
+}
+async function devolverOBCliente(opId,cliente){
+  if(!confirm('Devolver a '+cliente+' al pool de clientes disponibles?\nSe quitará de tu lista pero se mantendrán todos los datos cargados.'))return
+  await db.from('operaciones').update({ob_id:null,ob_nombre:null}).eq('id',opId)
+  obClienteAbierto=null
+  await loadOBData();rOBStats();rOBMis();rOBDisp()
 }
 function openOBBaja(opId,cliente){
   const modal=document.createElement('div')

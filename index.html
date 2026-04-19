@@ -310,8 +310,50 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
     <button onclick="obTab('disp',this)">Ventas disponibles</button>
     <button onclick="obTab('co',this)">Mis comisiones</button>
   </div>
-  <div id="ob-tmis"><div id="ob-misb"></div></div>
-  <div id="ob-tdisp" class="hidden"><div class="card ox"><div id="ob-dispb"></div></div></div>
+  <div id="ob-tmis">
+    <div class="card" style="margin-bottom:14px;padding:14px 16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input id="ob-mis-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBMis()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
+        <select id="ob-mis-orden" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
+          <option value="fecha-desc">Más recientes primero</option>
+          <option value="fecha-asc">Más antiguos primero</option>
+          <option value="nombre-asc">A → Z (cliente)</option>
+          <option value="nombre-desc">Z → A (cliente)</option>
+          <option value="cuotas-asc">Menos cuotas pagas</option>
+          <option value="cuotas-desc">Más cuotas pagas</option>
+        </select>
+        <select id="ob-mis-filtro" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
+          <option value="">Todos</option>
+          <option value="activos">Activos</option>
+          <option value="baja">Dados de baja</option>
+          <option value="completos">Seguimiento completo</option>
+          <option value="pendientes">Con cuotas pendientes</option>
+        </select>
+      </div>
+    </div>
+    <div id="ob-misb"></div>
+  </div>
+  <div id="ob-tdisp" class="hidden">
+    <div class="card" style="margin-bottom:14px;padding:14px 16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input id="ob-disp-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBDisp()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
+        <select id="ob-disp-orden" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
+          <option value="fecha-desc">Más recientes primero</option>
+          <option value="fecha-asc">Más antiguos primero</option>
+          <option value="nombre-asc">A → Z (cliente)</option>
+          <option value="nombre-desc">Z → A (cliente)</option>
+          <option value="monto-desc">Mayor monto</option>
+          <option value="monto-asc">Menor monto</option>
+        </select>
+        <select id="ob-disp-plan" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
+          <option value="">Todos los planes</option>
+          <option value="Ahorro">Plan Ahorro</option>
+          <option value="Pozo">Plan Pozo</option>
+        </select>
+      </div>
+    </div>
+    <div class="card ox"><div id="ob-dispb"></div></div>
+  </div>
   <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
 </div>
 
@@ -1128,7 +1170,27 @@ function calcComCuota(nro,dia){const t=OB_CUOTAS[nro];if(!t)return 0;return dia<
 function getPagosCuota(opId){return obPagos.filter(x=>x.operacion_id===opId)}
 function rOBMis(isAdmin=false){
   if(!obOps.length){html('ob-misb','<div class="card"><div class="es">No tenes clientes asignados aun</div></div>');return}
-  html('ob-misb',obOps.map(op=>{
+  // Búsqueda y filtros
+  const busq=(document.getElementById('ob-mis-search')?.value||'').toLowerCase()
+  const orden=document.getElementById('ob-mis-orden')?.value||'fecha-desc'
+  const filtro=document.getElementById('ob-mis-filtro')?.value||''
+  let ops=[...obOps]
+  // Filtro texto
+  if(busq)ops=ops.filter(x=>x.cliente.toLowerCase().includes(busq)||( x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq)))
+  // Filtro estado
+  if(filtro==='activos')ops=ops.filter(x=>!x.ob_baja)
+  else if(filtro==='baja')ops=ops.filter(x=>x.ob_baja)
+  else if(filtro==='completos')ops=ops.filter(x=>getPagosCuota(x.id).length>=6)
+  else if(filtro==='pendientes')ops=ops.filter(x=>!x.ob_baja&&getPagosCuota(x.id).length<6)
+  // Ordenar
+  if(orden==='fecha-desc')ops.sort((a,b)=>b.fecha.localeCompare(a.fecha))
+  else if(orden==='fecha-asc')ops.sort((a,b)=>a.fecha.localeCompare(b.fecha))
+  else if(orden==='nombre-asc')ops.sort((a,b)=>a.cliente.localeCompare(b.cliente))
+  else if(orden==='nombre-desc')ops.sort((a,b)=>b.cliente.localeCompare(a.cliente))
+  else if(orden==='cuotas-asc')ops.sort((a,b)=>getPagosCuota(a.id).length-getPagosCuota(b.id).length)
+  else if(orden==='cuotas-desc')ops.sort((a,b)=>getPagosCuota(b.id).length-getPagosCuota(a.id).length)
+  if(!ops.length){html('ob-misb',`<div class="card"><div class="es">Sin resultados${busq?' para "'+busq+'"':''}</div></div>`);return}
+  html('ob-misb',ops.map(op=>{
     const movs=getMovsOp(op.id)
     const pagos=getPagosCuota(op.id)
     const totComMovs=calcComOBMovs(movs)
@@ -1344,11 +1406,28 @@ async function reactivarOBCliente(opId){
 }
 
 function rOBDisp(){
-  if(!obDisp.length){html('ob-dispb','<div class="es">No hay ventas disponibles para asignar</div>');return}
-  html('ob-dispb',`<table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Accion</th></tr></thead>
-  <tbody>${obDisp.map(op=>`<tr>
-    <td><div>${fmtD(op.fecha)}</div>${op.fecha_carga&&op.fecha_carga!==op.fecha?'<div style="font-size:10px;color:var(--amber);margin-top:1px">cargada '+fmtD(op.fecha_carga)+'</div>':''}</td><td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td>
-    <td>${op.plan}</td><td class="am">${fmt(op.monto)}</td>
+  const busq=(document.getElementById('ob-disp-search')?.value||'').toLowerCase()
+  const orden=document.getElementById('ob-disp-orden')?.value||'fecha-desc'
+  const plan=document.getElementById('ob-disp-plan')?.value||''
+  let ops=[...obDisp]
+  if(busq)ops=ops.filter(x=>x.cliente.toLowerCase().includes(busq)||(x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq)))
+  if(plan)ops=ops.filter(x=>x.plan===plan)
+  if(orden==='fecha-desc')ops.sort((a,b)=>b.fecha.localeCompare(a.fecha))
+  else if(orden==='fecha-asc')ops.sort((a,b)=>a.fecha.localeCompare(b.fecha))
+  else if(orden==='nombre-asc')ops.sort((a,b)=>a.cliente.localeCompare(b.cliente))
+  else if(orden==='nombre-desc')ops.sort((a,b)=>b.cliente.localeCompare(a.cliente))
+  else if(orden==='monto-desc')ops.sort((a,b)=>b.monto-a.monto)
+  else if(orden==='monto-asc')ops.sort((a,b)=>a.monto-b.monto)
+  if(!ops.length){html('ob-dispb',`<div class="es">Sin resultados${busq?' para "'+busq+'"':''}</div>`);return}
+  const total=ops.length
+  html('ob-dispb',`<div style="font-size:12px;color:var(--text2);margin-bottom:12px">${total} cliente${total!==1?'s':''} disponible${total!==1?'s':''}</div>
+  <table><thead><tr><th>Fecha alta</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Cuota</th><th>Accion</th></tr></thead>
+  <tbody>${ops.map(op=>`<tr>
+    <td style="font-size:12px">${fmtD(op.fecha)}</td>
+    <td style="color:var(--text)">${op.asesor_nombre}</td>
+    <td style="font-weight:500;color:var(--text)">${op.cliente}</td>
+    <td>${op.plan}</td>
+    <td class="am">${fmt(op.monto)}</td>
     <td><button class="bg" onclick="asignOB('${op.id}')" style="font-size:12px;padding:4px 10px">Tomar cliente</button></td>
   </tr>`).join('')}</tbody></table>`)
 }

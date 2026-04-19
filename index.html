@@ -1063,19 +1063,7 @@ function jpTab(t,btn){
 
 // ═══ ON BOARDING ═══
 let obOps=[],obDisp=[],obMovs=[]
-const OB_CUOTAS={
-  1:{antes:20000,despues:10000},
-  2:{antes:15000,despues:7500},
-  3:{antes:10000,despues:5000},
-  4:{antes:10000,despues:5000},
-  5:{antes:10000,despues:5000},
-  6:{antes:10000,despues:5000}
-}
-function calcComCuota(nro,dia){
-  const t=OB_CUOTAS[nro];if(!t)return 0
-  return dia<=10?t.antes:t.despues
-}
-function getPagosCuota(opId){return obPagos.filter(x=>x.operacion_id===opId)}
+
 async function showOB(){
   showOnly('SOB');document.getElementById('ob-nom').textContent=CU.nombre
   await loadOBData();rOBStats();rOBMis()

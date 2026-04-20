@@ -237,6 +237,25 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
   </div>
 </div>
 
+<!-- MODAL MOVER CARPETA -->
+<div id="modal-mover" class="modal-bg hidden">
+  <div class="modal">
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Mover a otra carpeta</div>
+    <div id="mmov-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Seleccionar carpeta destino</label>
+        <select id="mmov-sel" style="width:100%"></select>
+      </div>
+      <div id="mmov-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)"></div>
+      <div id="mmov-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-mover')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarMover()" id="mmov-btn" style="flex:2">Mover operacion</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EDITAR FECHA -->
 <div id="modal-fecha" class="modal-bg hidden">
   <div class="modal">
@@ -2170,7 +2189,9 @@ function rAdmCarp(){
         +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
         +'<td>'+tesCell+'</td>'
         +'<td>'+llevadaCell+'</td>'
-        +'<td><div style="display:flex;gap:4px;align-items:center">'+btnAceptar+btnDenegar+menu+'</div></td>'
+        +'<td><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+btnAceptar+btnDenegar+menu
+        +'<button onclick="openMoverById(\''+op.id+'\')" style="font-size:11px;padding:3px 7px;background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);border-radius:6px;color:var(--purple);cursor:pointer">↗ Mover</button>'
+        +'</div></td>'
         +'</tr>'
     })
 
@@ -2187,7 +2208,8 @@ function rAdmCarp(){
           +'<span class="carp-arrow" data-key="'+k+'" style="font-size:18px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:'+(abierta?'rotate(90deg)':'rotate(0deg)')+'">›</span>'
           +'<div>'
             +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-              +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+p.label+'</span>'
+              +'<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">C#'+(ks.indexOf(k)+1)+'</span>'
+      +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+p.label+'</span>'
               +badges
             +'</div>'
             +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Cobro: '+fmtD(p.cob.toISOString().slice(0,10))+' · <span style="color:var(--green)">'+counts.acp+' aceptadas</span> · '+p.ops.length+' total</div>'
@@ -2888,6 +2910,59 @@ async function deleteOp(id,source){
     if(!document.getElementById('adm-Tpr').classList.contains('hidden'))rAdmPres()
   }
 }
+// ═══ MOVER CARPETA ═══
+let moverOpId=null
+function openMoverById(opId){
+  const op=allOps.find(x=>x.id===opId)
+  openMover(opId, op?op.cliente:'')
+}
+function openMover(opId, cliente){
+  moverOpId=opId
+  document.getElementById('mmov-info').textContent=cliente
+  // Construir lista de carpetas numeradas
+  const vn=allOps.filter(x=>categ(x.monto).isVenta)
+  const byP={}
+  vn.forEach(op=>{
+    const p=getPer(op.fecha)
+    if(!byP[p.key])byP[p.key]={...p}
+  })
+  const ks=Object.keys(byP).sort().reverse()
+  const sel=document.getElementById('mmov-sel')
+  sel.innerHTML=ks.map((k,i)=>{
+    const p=byP[k]
+    return '<option value="'+k+'">#'+(i+1)+' — '+p.label+' (cobro '+fmtD(p.cob.toISOString().slice(0,10))+')</option>'
+  }).join('')
+  // Preseleccionar la carpeta actual de la operación
+  const op=allOps.find(x=>x.id===opId)
+  if(op){
+    const perActual=getPer(op.fecha_tesoreria||op.fecha).key
+    if(ks.includes(perActual))sel.value=perActual
+  }
+  sel.onchange=()=>{
+    const k=sel.value
+    const p=byP[k]
+    if(p)document.getElementById('mmov-prev').innerHTML='Carpeta destino: <strong style="color:var(--text)">#'+(ks.indexOf(k)+1)+' — '+p.label+'</strong><br>Cobro estimado: '+fmtD(p.cob.toISOString().slice(0,10))
+  }
+  sel.onchange()
+  hi('mmov-err')
+  sh('modal-mover')
+}
+async function guardarMover(){
+  hi('mmov-err')
+  const k=document.getElementById('mmov-sel').value
+  if(!k){sh('mmov-err');document.getElementById('mmov-err').textContent='Selecciona una carpeta.';return}
+  // Usar el lunes de esa semana como fecha_tesoreria
+  const p=getPer(k.split('_')[0])
+  const nuevaFecha=p.sat.toISOString().slice(0,10)
+  document.getElementById('mmov-btn').textContent='Moviendo...'
+  const{error}=await db.from('operaciones').update({fecha_tesoreria:nuevaFecha}).eq('id',moverOpId)
+  document.getElementById('mmov-btn').textContent='Mover operacion'
+  if(error){sh('mmov-err');document.getElementById('mmov-err').textContent='Error al guardar.';return}
+  hi('modal-mover')
+  moverOpId=null
+  await loadAll();rAdmCarp();rAdmStats()
+}
+
 // ═══ RETENCIONES OB ═══
 function poblarFiltrosRet(){
   const meses={}

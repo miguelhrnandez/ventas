@@ -1294,7 +1294,7 @@ function renderMovHistorial(movs, isAdmin=false){
         ?`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(80,80,80,0.3);color:var(--text3)">% pendiente</span>`
         :`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(96,165,250,0.15);color:var(--blue)">${m.antes_72hrs?'≤72hs (55%)':'>72hs (27.5%)'}</span>`)
       :`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(45,212,191,0.15);color:var(--teal)">Ahorro 10%</span>`
-    const notaGianluca=m.registrado_por&&m.registrado_por!==m.ob_nombre?`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(251,191,36,0.15);color:var(--amber);margin-left:4px">⚡ Registrado por ${m.registrado_por}</span>`:
+    const notaGianluca=m.registrado_por&&m.registrado_por!==m.ob_nombre?`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(251,191,36,0.15);color:var(--amber);margin-left:4px">⚡ Registrado por ${m.registrado_por}</span>`:''
     const adminBtns=isAdmin?`
       ${m.tipo==='incremento'?`<button onclick="toggleOB72('${m.id}',${!m.antes_72hrs})" style="font-size:10px;padding:2px 7px;border-radius:6px;background:var(--amber-bg);color:var(--amber);border:1px solid rgba(251,191,36,0.2);cursor:pointer">⇄ ${m.antes_72hrs?'Pasar a >72hs':'Pasar a ≤72hs'}</button>`:''}
       <button onclick="delOBMov('${m.id}')" style="font-size:10px;padding:2px 7px;border-radius:6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);cursor:pointer">✕ Borrar</button>

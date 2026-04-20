@@ -1128,24 +1128,42 @@ function rJVCarp(){
   jvOps.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   if(!ks.length){html('jv-cpb','<div class="card"><div class="es">Sin carpetas aun</div></div>');return}
-  html('jv-cpb',ks.map(k=>{
-    const p=byP[k],acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto),0),pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
-    return`<div class="card" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <div><div style="font-size:14px;font-weight:600;color:var(--text)">Periodo: ${p.label}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))}</div></div>
-        <div style="text-align:right"><div class="ag" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
-        ${pend>0?`<div style="font-size:11px;color:var(--amber)">${fmt(pend)} pendiente</div></div>
-      </div>
-      <table><thead><tr><th>Asesor</th><th>Cliente</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Mi cobro 16.5%</th><th>Tesoreria</th></tr></thead>
-      <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
-        <td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.unidad||'-'}</td>
-        <td class="am">${fmt(op.monto)}</td><td><span class="badge ${c.cls}">${c.label}</span></td>
-        <td class="ag">${op.carpeta_tesoreria==='aceptada'?fmt(calcJV(op.monto)):'pendiente'}</td>
-        <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td></tr>`}).join('')}</tbody></table>
-    </div>`
-  }).join(''))
+  let out=''
+  ks.forEach(k=>{
+    const p=byP[k]
+    const acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
+    const tot=acp.reduce((a,x)=>a+calcJV(x.monto),0)
+    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
+    let filas=''
+    p.ops.forEach(op=>{
+      const c=categ(op.monto)
+      filas+='<tr>'
+        +'<td style="color:var(--text)">'+op.asesor_nombre+'</td>'
+        +'<td>'+op.cliente+'</td>'
+        +'<td>'+(op.unidad||'-')+'</td>'
+        +'<td class="am">'+fmt(op.monto)+'</td>'
+        +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
+        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcJV(op.monto)):'pendiente')+'</td>'
+        +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
+        +'</tr>'
+    })
+    out+='<div class="card" style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">'
+        +'<div><div style="font-size:14px;font-weight:600;color:var(--text)">Periodo: '+p.label+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: '+fmtD(p.cob.toISOString().slice(0,10))+'</div></div>'
+        +'<div style="text-align:right"><div class="ag" style="font-size:18px;font-weight:600">'+fmt(tot)+'</div>'
+        +(pend>0?'<div style="font-size:11px;color:var(--amber)">'+fmt(pend)+' pendiente</div>':'')
+        +'</div>'
+      +'</div>'
+      +'<table><thead><tr><th>Asesor</th><th>Cliente</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Mi cobro 16.5%</th><th>Tesoreria</th></tr></thead>'
+      +'<tbody>'+filas+'</tbody>'
+      +'</table>'
+    +'</div>'
+  })
+  html('jv-cpb',out)
 }
+
+
 function rJVCob(){
   const desde=document.getElementById('jvc-desde')?.value||''
   const hasta=document.getElementById('jvc-hasta')?.value||''
@@ -1156,35 +1174,48 @@ function rJVCob(){
   ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   const totalGral=ops.reduce((a,x)=>a+calcJV(x.monto),0)
-  const filtros=`<div class="card" style="margin-bottom:16px">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span style="font-size:13px;color:var(--text2)">Filtrar:</span>
-      <input type="date" id="jvc-desde" value="${desde}" onchange="rJVCob()" style="width:auto;font-size:13px;padding:7px 12px">
-      <span style="color:var(--text3);font-size:13px">hasta</span>
-      <input type="date" id="jvc-hasta" value="${hasta}" onchange="rJVCob()" style="width:auto;font-size:13px;padding:7px 12px">
-      ${desde||hasta?`<button onclick="document.getElementById('jvc-desde').value='';document.getElementById('jvc-hasta').value='';rJVCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
-      <div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>
-    </div>
-  </div>`
+  let filtros='<div class="card" style="margin-bottom:16px">'
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+      +'<span style="font-size:13px;color:var(--text2)">Filtrar:</span>'
+      +'<input type="date" id="jvc-desde" value="'+desde+'" onchange="rJVCob()" style="width:auto;font-size:13px;padding:7px 12px">'
+      +'<span style="color:var(--text3);font-size:13px">hasta</span>'
+      +'<input type="date" id="jvc-hasta" value="'+hasta+'" onchange="rJVCob()" style="width:auto;font-size:13px;padding:7px 12px">'
+      +(desde||hasta?'<button onclick="document.getElementById('jvc-desde').value='';document.getElementById('jvc-hasta').value='';rJVCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +'<div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>'
+    +'</div>'
+  +'</div>'
   if(!ks.length){html('jv-cob',filtros+'<div class="card"><div class="es">Sin cobros en ese periodo</div></div>');return}
-  html('jv-cob',filtros+ks.map(k=>{
-    const p=byP[k],tot=p.ops.reduce((a,x)=>a+calcJV(x.monto),0)
-    return`<div class="card" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <div><div style="font-weight:600;color:var(--text)">Semana: ${p.label}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.ops.length} venta${p.ops.length!==1?'s':''}</div></div>
-        <div class="ag" style="font-size:16px;font-weight:600">${fmt(tot)}</div>
-      </div>
-      <table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Cuota</th><th>Mi cobro 16.5%</th></tr></thead>
-      <tbody>${p.ops.map(op=>`<tr>
-        <td style="font-size:12px">${fmtD(op.fecha)}</td><td>${op.asesor_nombre}</td>
-        <td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td>
-        <td class="am">${fmt(op.monto)}</td><td class="ag">${fmt(calcJV(op.monto))}</td></tr>`).join('')}
-      </tbody>
-      <tfoot><tr><td colspan="5" style="font-weight:600;color:var(--text)">Total semana</td><td class="ag" style="font-weight:600">${fmt(tot)}</td></tr></tfoot>
-    </table></div>`
-  }).join(''))
+  let out=filtros
+  ks.forEach(k=>{
+    const p=byP[k]
+    const tot=p.ops.reduce((a,x)=>a+calcJV(x.monto),0)
+    let filas=''
+    p.ops.forEach(op=>{
+      filas+='<tr>'
+        +'<td style="font-size:12px">'+fmtD(op.fecha)+'</td>'
+        +'<td>'+op.asesor_nombre+'</td>'
+        +'<td style="color:var(--text)">'+op.cliente+'</td>'
+        +'<td>'+op.plan+'</td>'
+        +'<td class="am">'+fmt(op.monto)+'</td>'
+        +'<td class="ag">'+fmt(calcJV(op.monto))+'</td>'
+        +'</tr>'
+    })
+    out+='<div class="card" style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">'
+        +'<div><div style="font-weight:600;color:var(--text)">Semana: '+p.label+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: '+fmtD(p.cob.toISOString().slice(0,10))+' &nbsp;·&nbsp; '+p.ops.length+' venta'+(p.ops.length!==1?'s':'')+'</div></div>'
+        +'<div class="ag" style="font-size:16px;font-weight:600">'+fmt(tot)+'</div>'
+      +'</div>'
+      +'<table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Cuota</th><th>Mi cobro 16.5%</th></tr></thead>'
+      +'<tbody>'+filas+'</tbody>'
+      +'<tfoot><tr><td colspan="5" style="font-weight:600;color:var(--text)">Total semana</td><td class="ag" style="font-weight:600">'+fmt(tot)+'</td></tr></tfoot>'
+      +'</table>'
+    +'</div>'
+  })
+  html('jv-cob',out)
 }
+
+
 function jvTab(t,btn){
   hi('jv-tcp');hi('jv-tco');sh(t==='cp'?'jv-tcp':'jv-tco')
   document.querySelectorAll('#SJV .nav button').forEach(b=>b.classList.remove('active'))
@@ -1218,44 +1249,52 @@ function rPrOps(){
   const ks=Object.keys(byP).sort().reverse()
   const totalAcp=ops.filter(x=>x.pago_presentador==='aceptado').length*74000
   const totalPend=ops.filter(x=>x.pago_presentador!=='aceptado').length
-  const filtros=`<div class="card" style="margin-bottom:16px">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span style="font-size:13px;color:var(--text2)">Filtrar:</span>
-      <input type="date" id="pr-desde" value="${desde}" onchange="rPrOps()" style="width:auto;font-size:13px;padding:7px 12px">
-      <span style="color:var(--text3);font-size:13px">hasta</span>
-      <input type="date" id="pr-hasta" value="${hasta}" onchange="rPrOps()" style="width:auto;font-size:13px;padding:7px 12px">
-      ${desde||hasta?`<button onclick="document.getElementById('pr-desde').value='';document.getElementById('pr-hasta').value='';rPrOps()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
-      <div style="margin-left:auto;display:flex;gap:16px">
-        <div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalAcp)}</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>
-        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${totalPend} pend.</div><div style="font-size:11px;color:var(--text2)">pendientes</div></div>
-      </div>
-    </div>
-  </div>`
+  let filtros='<div class="card" style="margin-bottom:16px">'
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+      +'<span style="font-size:13px;color:var(--text2)">Filtrar:</span>'
+      +'<input type="date" id="pr-desde" value="'+desde+'" onchange="rPrOps()" style="width:auto;font-size:13px;padding:7px 12px">'
+      +'<span style="color:var(--text3);font-size:13px">hasta</span>'
+      +'<input type="date" id="pr-hasta" value="'+hasta+'" onchange="rPrOps()" style="width:auto;font-size:13px;padding:7px 12px">'
+      +(desde||hasta?'<button onclick="document.getElementById('pr-desde').value='';document.getElementById('pr-hasta').value='';rPrOps()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +'<div style="margin-left:auto;display:flex;gap:16px">'
+        +'<div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalAcp)+'</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>'
+        +(totalPend>0?'<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">'+totalPend+' pend.</div><div style="font-size:11px;color:var(--text2)">pendientes</div></div>':'')
+      +'</div>'
+    +'</div>'
+  +'</div>'
   if(!ks.length){html('pr-ob',filtros+'<div class="es">Sin ventas en ese periodo</div>');return}
-  html('pr-ob',filtros+ks.map(k=>{
+  let out=filtros
+  ks.forEach(k=>{
     const p=byP[k]
     const acp=p.ops.filter(x=>x.pago_presentador==='aceptado')
     const tot=acp.length*74000
-    return`<div class="card" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <div><div style="font-weight:600;color:var(--text)">Semana: ${p.label}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${acp.length} de ${p.ops.length} aceptadas</div></div>
-        <div class="ag" style="font-size:16px;font-weight:600">${fmt(tot)}</div>
-      </div>
-      <table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Mi pago</th><th>Estado</th></tr></thead>
-      <tbody>${p.ops.map(op=>`<tr>
-        <td style="font-size:12px">${fmtD(op.fecha)}</td>
-        <td>${op.asesor_nombre}</td><td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td>
-        <td class="ag">${op.pago_presentador==='aceptado'?fmt(74000):'pendiente'}</td>
-        <td>${badgeE(op.pago_presentador||'pendiente')}</td></tr>`).join('')}
-      </tbody>
-      ${tot>0?`<tfoot><tr><td colspan="4" style="font-weight:600;color:var(--text)">Total semana confirmado</td><td class="ag" style="font-weight:600">${fmt(tot)}</td><td></td></tr></tfoot>`:''}
-    </table></div>`
-  }).join(''))
+    let filas=''
+    p.ops.forEach(op=>{
+      filas+='<tr>'
+        +'<td style="font-size:12px">'+fmtD(op.fecha)+'</td>'
+        +'<td>'+op.asesor_nombre+'</td>'
+        +'<td style="color:var(--text)">'+op.cliente+'</td>'
+        +'<td>'+op.plan+'</td>'
+        +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(74000):'pendiente')+'</td>'
+        +'<td>'+badgeE(op.pago_presentador||'pendiente')+'</td>'
+        +'</tr>'
+    })
+    out+='<div class="card" style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">'
+        +'<div><div style="font-weight:600;color:var(--text)">Semana: '+p.label+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: '+fmtD(p.cob.toISOString().slice(0,10))+' &nbsp;·&nbsp; '+acp.length+' de '+p.ops.length+' aceptadas</div></div>'
+        +'<div class="ag" style="font-size:16px;font-weight:600">'+fmt(tot)+'</div>'
+      +'</div>'
+      +'<table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Mi pago</th><th>Estado</th></tr></thead>'
+      +'<tbody>'+filas+'</tbody>'
+      +(tot>0?'<tfoot><tr><td colspan="4" style="font-weight:600;color:var(--text)">Total semana confirmado</td><td class="ag" style="font-weight:600">'+fmt(tot)+'</td><td></td></tr></tfoot>':'')
+      +'</table>'
+    +'</div>'
+  })
+  html('pr-ob',out)
 }
 
-// ═══ JEFE PRESENTACIONES ═══
-let jpOps=[]
+
 async function showJP(){
   showOnly('SJP')
   document.getElementById('SJP-sb').innerHTML=mkSidebar([
@@ -1273,14 +1312,23 @@ function rJPStats(){
 }
 function rJPOps(){
   if(!jpOps.length){html('jp-ob','<div class="es">Sin operaciones del equipo</div>');return}
-  html('jp-ob',`<table><thead><tr><th>Fecha</th><th>Presentador</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Pago pres.</th><th>Mi cobro</th><th>Estado</th></tr></thead>
-  <tbody>${jpOps.map(op=>`<tr>
-    <td>${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.presentador_nombre||'-'}</td>
-    <td>${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
-    <td class="ag">${op.pago_presentador==='aceptado'?fmt(74000):'pendiente'}</td>
-    <td class="ag">${op.pago_presentador==='aceptado'?fmt(35000):'pendiente'}</td>
-    <td>${badgeE(op.pago_presentador||'pendiente')}</td></tr>`).join('')}</tbody></table>`)
+  let filas=''
+  jpOps.forEach(op=>{
+    filas+='<tr>'
+      +'<td>'+fmtD(op.fecha)+'</td>'
+      +'<td style="color:var(--text)">'+(op.presentador_nombre||'-')+'</td>'
+      +'<td>'+op.asesor_nombre+'</td>'
+      +'<td>'+op.cliente+'</td>'
+      +'<td>'+op.plan+'</td>'
+      +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(74000):'pendiente')+'</td>'
+      +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(35000):'pendiente')+'</td>'
+      +'<td>'+badgeE(op.pago_presentador||'pendiente')+'</td>'
+      +'</tr>'
+  })
+  html('jp-ob','<table><thead><tr><th>Fecha</th><th>Presentador</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Pago pres.</th><th>Mi cobro</th><th>Estado</th></tr></thead><tbody>'+filas+'</tbody></table>')
 }
+
+
 function rJPCob(){
   const desde=document.getElementById('jpc-desde')?.value||''
   const hasta=document.getElementById('jpc-hasta')?.value||''
@@ -1291,35 +1339,48 @@ function rJPCob(){
   ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   const totalGral=ops.length*35000
-  const filtros=`<div class="card" style="margin-bottom:16px">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span style="font-size:13px;color:var(--text2)">Filtrar:</span>
-      <input type="date" id="jpc-desde" value="${desde}" onchange="rJPCob()" style="width:auto;font-size:13px;padding:7px 12px">
-      <span style="color:var(--text3);font-size:13px">hasta</span>
-      <input type="date" id="jpc-hasta" value="${hasta}" onchange="rJPCob()" style="width:auto;font-size:13px;padding:7px 12px">
-      ${desde||hasta?`<button onclick="document.getElementById('jpc-desde').value='';document.getElementById('jpc-hasta').value='';rJPCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
-      <div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>
-    </div>
-  </div>`
+  let filtros='<div class="card" style="margin-bottom:16px">'
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+      +'<span style="font-size:13px;color:var(--text2)">Filtrar:</span>'
+      +'<input type="date" id="jpc-desde" value="'+desde+'" onchange="rJPCob()" style="width:auto;font-size:13px;padding:7px 12px">'
+      +'<span style="color:var(--text3);font-size:13px">hasta</span>'
+      +'<input type="date" id="jpc-hasta" value="'+hasta+'" onchange="rJPCob()" style="width:auto;font-size:13px;padding:7px 12px">'
+      +(desde||hasta?'<button onclick="document.getElementById('jpc-desde').value='';document.getElementById('jpc-hasta').value='';rJPCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +'<div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>'
+    +'</div>'
+  +'</div>'
   if(!ks.length){html('jp-cob',filtros+'<div class="card"><div class="es">Sin cobros en ese periodo</div></div>');return}
-  html('jp-cob',filtros+ks.map(k=>{
-    const p=byP[k],tot=p.ops.length*35000
-    return`<div class="card" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <div><div style="font-weight:600;color:var(--text)">Semana: ${p.label}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.ops.length} pago${p.ops.length!==1?'s':''}</div></div>
-        <div class="ag" style="font-size:16px;font-weight:600">${fmt(tot)}</div>
-      </div>
-      <table><thead><tr><th>Fecha</th><th>Presentador</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Mi cobro</th></tr></thead>
-      <tbody>${p.ops.map(op=>`<tr>
-        <td style="font-size:12px">${fmtD(op.fecha)}</td><td style="color:var(--text)">${op.presentador_nombre}</td>
-        <td>${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
-        <td class="ag">${fmt(35000)}</td></tr>`).join('')}
-      </tbody>
-      <tfoot><tr><td colspan="5" style="font-weight:600;color:var(--text)">Total semana</td><td class="ag" style="font-weight:600">${fmt(tot)}</td></tr></tfoot>
-    </table></div>`
-  }).join(''))
+  let out=filtros
+  ks.forEach(k=>{
+    const p=byP[k]
+    const tot=p.ops.length*35000
+    let filas=''
+    p.ops.forEach(op=>{
+      filas+='<tr>'
+        +'<td style="font-size:12px">'+fmtD(op.fecha)+'</td>'
+        +'<td style="color:var(--text)">'+(op.presentador_nombre||'-')+'</td>'
+        +'<td>'+op.asesor_nombre+'</td>'
+        +'<td>'+op.cliente+'</td>'
+        +'<td>'+op.plan+'</td>'
+        +'<td class="ag">'+fmt(35000)+'</td>'
+        +'</tr>'
+    })
+    out+='<div class="card" style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">'
+        +'<div><div style="font-weight:600;color:var(--text)">Semana: '+p.label+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Cobro est.: '+fmtD(p.cob.toISOString().slice(0,10))+' &nbsp;·&nbsp; '+p.ops.length+' pago'+(p.ops.length!==1?'s':'')+'</div></div>'
+        +'<div class="ag" style="font-size:16px;font-weight:600">'+fmt(tot)+'</div>'
+      +'</div>'
+      +'<table><thead><tr><th>Fecha</th><th>Presentador</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Mi cobro</th></tr></thead>'
+      +'<tbody>'+filas+'</tbody>'
+      +'<tfoot><tr><td colspan="5" style="font-weight:600;color:var(--text)">Total semana</td><td class="ag" style="font-weight:600">'+fmt(tot)+'</td></tr></tfoot>'
+      +'</table>'
+    +'</div>'
+  })
+  html('jp-cob',out)
 }
+
+
 function jpTab(t,btn){
   hi('jp-top');hi('jp-tco');sh(t==='op'?'jp-top':'jp-tco')
   document.querySelectorAll('#SJP .nav button').forEach(b=>b.classList.remove('active'))
@@ -1780,63 +1841,72 @@ async function toggleOB72(movId,nuevoValor){
 function rOBCom(){
   const desde=document.getElementById('obc-desde')?.value||''
   const hasta=document.getElementById('obc-hasta')?.value||''
-  let movsFilt=[...obMovs]
-  if(desde)movsFilt=movsFilt.filter(x=>x.fecha>=desde)
-  if(hasta)movsFilt=movsFilt.filter(x=>x.fecha<=hasta)
+  const movsFilt=obMovs.filter(x=>x.ob_id===CU.id)
+  let movs=[...movsFilt]
+  if(desde)movs=movs.filter(x=>x.fecha>=desde)
+  if(hasta)movs=movs.filter(x=>x.fecha<=hasta)
   const byP={}
-  movsFilt.forEach(m=>{const p=getPer(m.fecha);if(!byP[p.key])byP[p.key]={...p,movs:[]};byP[p.key].movs.push(m)})
+  movs.forEach(m=>{const p=getPer(m.fecha);if(!byP[p.key])byP[p.key]={...p,movs:[]};byP[p.key].movs.push(m)})
   const ks=Object.keys(byP).sort().reverse()
-  const calcCI=m=>m.tipo==='incremento'?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):0
+  const calcCI=m=>m.tipo==='incremento'&&m.antes_72hrs!=null?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):0
   const calcCA=m=>m.tipo==='ahorro'?Math.round(m.monto*0.10):0
-  const totalGralInc=movsFilt.filter(x=>x.tipo==='incremento').reduce((a,x)=>a+calcCI(x),0)
-  const totalGralAh=movsFilt.filter(x=>x.tipo==='ahorro').reduce((a,x)=>a+calcCA(x),0)
+  const totalGralInc=movs.reduce((a,m)=>a+calcCI(m),0)
+  const totalGralAh=movs.reduce((a,m)=>a+calcCA(m),0)
   const totalGral=totalGralInc+totalGralAh
-  const filtros=`<div class="card" style="margin-bottom:16px">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span style="font-size:13px;color:var(--text2)">Filtrar:</span>
-      <input type="date" id="obc-desde" value="${desde}" onchange="rOBCom()" style="width:auto;font-size:13px;padding:7px 12px">
-      <span style="color:var(--text3);font-size:13px">hasta</span>
-      <input type="date" id="obc-hasta" value="${hasta}" onchange="rOBCom()" style="width:auto;font-size:13px;padding:7px 12px">
-      ${desde||hasta?`<button onclick="document.getElementById('obc-desde').value='';document.getElementById('obc-hasta').value='';rOBCom()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
-      <div style="margin-left:auto;display:flex;gap:16px">
-        <div style="text-align:right"><div class="at" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">Inc: ${fmt(totalGralInc)} + Ah: ${fmt(totalGralAh)}</div></div>
-      </div>
-    </div>
-  </div>`
+  let filtros='<div class="card" style="margin-bottom:16px">'
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+      +'<span style="font-size:13px;color:var(--text2)">Filtrar:</span>'
+      +'<input type="date" id="obc-desde" value="'+desde+'" onchange="rOBCom()" style="width:auto;font-size:13px;padding:7px 12px">'
+      +'<span style="color:var(--text3);font-size:13px">hasta</span>'
+      +'<input type="date" id="obc-hasta" value="'+hasta+'" onchange="rOBCom()" style="width:auto;font-size:13px;padding:7px 12px">'
+      +(desde||hasta?'<button onclick="document.getElementById('obc-desde').value='';document.getElementById('obc-hasta').value='';rOBCom()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +'<div style="margin-left:auto;display:flex;gap:16px">'
+        +'<div style="text-align:right"><div class="at" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">Inc: '+fmt(totalGralInc)+' + Ah: '+fmt(totalGralAh)+'</div></div>'
+      +'</div>'
+    +'</div>'
+  +'</div>'
   if(!ks.length){html('ob-cob',filtros+'<div class="card"><div class="es">Sin comisiones en ese periodo</div></div>');return}
-  html('ob-cob',filtros+ks.map(k=>{
+  let out=filtros
+  ks.forEach(k=>{
     const p=byP[k]
-    const totInc=p.movs.filter(x=>x.tipo==='incremento').reduce((a,x)=>a+calcCI(x),0)
-    const totAh=p.movs.filter(x=>x.tipo==='ahorro').reduce((a,x)=>a+calcCA(x),0)
+    const totInc=p.movs.reduce((a,m)=>a+calcCI(m),0)
+    const totAh=p.movs.reduce((a,m)=>a+calcCA(m),0)
     const tot=totInc+totAh
-    return`<div class="card" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--text)">Semana: ${p.label}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.movs.length} movimiento${p.movs.length!==1?'s':''}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="at" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Inc: ${fmt(totInc)} + Ah: ${fmt(totAh)}</div>
-        </div>
-      </div>
-      <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Monto</th><th>Tasa</th><th>Comision</th></tr></thead>
-      <tbody>${p.movs.map(m=>{
-        const op=obOps.find(x=>x.id===m.operacion_id)
-        const com=m.tipo==='incremento'?calcCI(m):calcCA(m)
-        const tasa=m.tipo==='incremento'?(m.antes_72hrs?'55% (≤72hs)':'27.5% (>72hs)'):'10%'
-        return`<tr>
-          <td style="font-size:12px">${fmtD(m.fecha)}</td>
-          <td style="color:var(--text)">${op?op.cliente:'-'}</td>
-          <td><span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${m.tipo==='incremento'?'rgba(96,165,250,0.15)':'rgba(45,212,191,0.15)'};color:${m.tipo==='incremento'?'var(--blue)':'var(--teal)'}">${m.tipo==='incremento'?'Incremento':'Ahorro'}</span></td>
-          <td class="am">${fmt(m.monto)}</td>
-          <td style="font-size:12px;color:var(--text2)">${tasa}</td>
-          <td class="at" style="font-weight:600">${fmt(com)}</td>
-        </tr>`}).join('')}</tbody>
-      <tfoot><tr><td colspan="5" style="font-weight:600;color:var(--text)">Total semana</td><td class="at" style="font-weight:600">${fmt(tot)}</td></tr></tfoot>
-    </table></div>`
-  }).join(''))
+    let filas=''
+    p.movs.forEach(m=>{
+      const op=allOps.find(x=>x.id===m.operacion_id)
+      const ci=calcCI(m),ca=calcCA(m)
+      const hrs=m.antes_72hrs!=null?(m.antes_72hrs?'≤72hs':'>72hs'):'-'
+      const pct=m.antes_72hrs!=null?(m.antes_72hrs?'55%':'27.5%'):'-'
+      filas+='<tr>'
+        +'<td style="font-size:12px">'+fmtD(m.fecha)+'</td>'
+        +'<td style="color:var(--text)">'+(op?op.cliente:'-')+'</td>'
+        +'<td class="am">'+(m.tipo==='incremento'?fmt(m.monto):'-')+'</td>'
+        +'<td style="font-size:12px">'+hrs+'</td>'
+        +'<td style="font-size:12px;color:'+(m.antes_72hrs?'var(--green)':'var(--amber)')+'">'+pct+'</td>'
+        +'<td class="at">'+(ci>0?fmt(ci):'-')+'</td>'
+        +'<td class="am">'+(m.tipo==='ahorro'?fmt(m.monto):'-')+'</td>'
+        +'<td class="at">'+(ca>0?fmt(ca):'-')+'</td>'
+        +'<td class="at" style="font-weight:600">'+fmt(ci+ca)+'</td>'
+        +'</tr>'
+    })
+    out+='<div class="card" style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">'
+        +'<div><div style="font-size:14px;font-weight:600;color:var(--text)">Semana: '+p.label+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: '+fmtD(p.cob.toISOString().slice(0,10))+' &nbsp;·&nbsp; '+p.movs.length+' movimiento'+(p.movs.length!==1?'s':'')+'</div></div>'
+        +'<div style="text-align:right"><div class="at" style="font-size:18px;font-weight:600">'+fmt(tot)+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Inc: '+fmt(totInc)+' &nbsp;+&nbsp; Ah: '+fmt(totAh)+'</div></div>'
+      +'</div>'
+      +'<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Incremento</th><th>Hs</th><th>Tasa</th><th>Com. inc.</th><th>Ahorros</th><th>Com. ah.</th><th>Total</th></tr></thead>'
+      +'<tbody>'+filas+'</tbody>'
+      +'<tfoot><tr><td colspan="8" style="font-weight:600;color:var(--text)">Total semana</td><td class="at" style="font-weight:600">'+fmt(tot)+'</td></tr></tfoot>'
+      +'</table>'
+    +'</div>'
+  })
+  html('ob-cob',out)
 }
+
+
 function obTab(t,btn){
   hi('ob-tmis');hi('ob-tdisp');hi('ob-tco')
   sh(t==='mis'?'ob-tmis':t==='disp'?'ob-tdisp':'ob-tco')

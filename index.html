@@ -1043,7 +1043,7 @@ function rACom(){
       </div>
       <div style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap">
         <div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>
-        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${fmt(totalPend)}</div><div style="font-size:11px;color:var(--text2)">pendiente</div></div>`:''}
+        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${fmt(totalPend)}</div><div style="font-size:11px;color:var(--text2)">pendiente</div></div>
       </div>
     </div>
   </div>`
@@ -1058,7 +1058,7 @@ function rACom(){
         </div>
         <div style="text-align:right">
           <div class="ag" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
-          ${pend>0?`<div style="font-size:11px;color:var(--amber);margin-top:2px">${fmt(pend)} pendiente</div>`:''}
+          ${pend>0?`<div style="font-size:11px;color:var(--amber);margin-top:2px">${fmt(pend)} pendiente</div>
         </div>
       </div>
       <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Categoria</th><th>Comision</th><th>Tesoreria</th></tr></thead>
@@ -1118,7 +1118,7 @@ function rJVCarp(){
         <div><div style="font-size:14px;font-weight:600;color:var(--text)">Periodo: ${p.label}</div>
         <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))}</div></div>
         <div style="text-align:right"><div class="ag" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
-        ${pend>0?`<div style="font-size:11px;color:var(--amber)">${fmt(pend)} pendiente</div>`:''}</div>
+        ${pend>0?`<div style="font-size:11px;color:var(--amber)">${fmt(pend)} pendiente</div></div>
       </div>
       <table><thead><tr><th>Asesor</th><th>Cliente</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Mi cobro 16.5%</th><th>Tesoreria</th></tr></thead>
       <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
@@ -1210,7 +1210,7 @@ function rPrOps(){
       ${desde||hasta?`<button onclick="document.getElementById('pr-desde').value='';document.getElementById('pr-hasta').value='';rPrOps()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
       <div style="margin-left:auto;display:flex;gap:16px">
         <div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalAcp)}</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>
-        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${totalPend} pend.</div><div style="font-size:11px;color:var(--text2)">pendientes</div></div>`:''}
+        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${totalPend} pend.</div><div style="font-size:11px;color:var(--text2)">pendientes</div></div>
       </div>
     </div>
   </div>`
@@ -1423,7 +1423,7 @@ function rOBMis(isAdmin=false){
         </div>
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
           <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">CUOTAS</div><div style="font-size:15px;font-weight:600;color:${pagos.length>=6?'var(--teal)':'var(--text)'}">${pagos.length}/6</div></div>
-          ${totCom>0?`<div style="text-align:right"><div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div><div style="font-size:10px;color:var(--text3)">total com.</div></div>`:''}
+          ${totCom>0?`<div style="text-align:right"><div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div><div style="font-size:10px;color:var(--text3)">total com.</div></div>
           ${op.ob_baja?'<span class="badge b-den">Baja</span>':''}
           ${op.pago_ob==='aceptado'?'<span class="badge b-acp">✓</span>':op.pago_ob==='denegado'?'<span class="badge b-den">✗</span>':''}
         </div>
@@ -1440,7 +1440,7 @@ function rOBMis(isAdmin=false){
             <div><span style="color:var(--text3)">Email: </span><span style="color:var(--text)">${op.ob_email||'—'}</span></div>
             <div><span style="color:var(--text3)">Celular venta: </span><span style="color:var(--text)">${op.celular||'—'}</span></div>
             <div><span style="color:var(--text3)">Unidad: </span><span style="color:var(--text)">${op.unidad||'—'}</span></div>
-            ${op.ob_notas?`<div style="grid-column:1/-1"><span style="color:var(--text3)">Notas: </span><span style="color:var(--text2)">${op.ob_notas}</span></div>`:''}
+            ${op.ob_notas?`<div style="grid-column:1/-1"><span style="color:var(--text3)">Notas: </span><span style="color:var(--text2)">${op.ob_notas}</span></div>
           </div>
         </div>
         <div style="margin-bottom:14px">
@@ -1483,7 +1483,7 @@ function rOBMis(isAdmin=false){
           </div>`:`<button class="br" onclick="event.stopPropagation();openOBBaja('${op.id}','${clienteEsc}')" style="font-size:11px;padding:4px 12px">Dar de baja</button>`}
           <button onclick="event.stopPropagation();devolverOBCliente('${op.id}','${clienteEsc}')" style="font-size:11px;padding:4px 12px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);border-radius:8px;cursor:pointer">↩ Devolver al pool</button>
         </div>
-      </div>`:''}
+      </div>
     </div>`
   }).join(''))
 }
@@ -1890,7 +1890,7 @@ async function adminVerClientesOB(){
           <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} · ${op.plan} · <span style="color:var(--teal)">OB: ${op.ob_nombre||'-'}</span></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          ${totCom>0?`<div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div>`:''}
+          ${totCom>0?`<div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div>
           ${pagoBadge}
           ${op.pago_ob!=='aceptado'?`<button class="bg" onclick="setOBPago('${op.id}','aceptado')" style="font-size:11px;padding:3px 8px">✓ Aceptar pago</button>`:''}
           ${op.pago_ob!=='denegado'?`<button class="br" onclick="setOBPago('${op.id}','denegado')" style="font-size:11px;padding:3px 8px">✗ Denegar pago</button>`:''}
@@ -2031,8 +2031,8 @@ function rAdmCarp(){
           </div>
         </div>
       </div>
-      <!-- DETALLE (se muestra solo si está abierta) -->
-      ${abierta?`<div class="carp-detalle" data-key="${k}" style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      <!-- DETALLE (siempre en DOM, show/hide con JS) -->
+      <div class="carp-detalle" data-key="${k}" style="display:${abierta?'block':'none'};margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
         <!-- Fila de acciones y SOP -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -2068,7 +2068,7 @@ function rAdmCarp(){
             </div></td>
           </tr>`}).join('')}</tbody>
         </table></div>
-      </div>`:''}
+      </div>
     </div>`
   }).join(''))
 }

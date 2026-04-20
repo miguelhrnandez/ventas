@@ -72,7 +72,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 .ddmenu{position:relative;display:inline-block}
 .ddmenu-btn{background:transparent;border:none;color:var(--text3);font-size:18px;padding:2px 6px;cursor:pointer;border-radius:4px;line-height:1}
 .ddmenu-btn:hover{background:var(--bg4);color:var(--text)}
-.ddmenu-list{position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;min-width:160px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.4);overflow:hidden;display:none}
+.ddmenu-list{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;min-width:160px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.4);overflow:hidden;display:none}
 .ddmenu-list.open{display:block}
 .ddmenu-list button{display:block;width:100%;text-align:left;border:none;border-radius:0;background:transparent;padding:9px 14px;font-size:13px;color:var(--text2)}
 .ddmenu-list button:hover{background:var(--bg3);color:var(--text)}
@@ -99,7 +99,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 .sb-item.active svg{opacity:1}
 .sb-sep{height:1px;background:var(--border);margin:6px 8px}
 .sb-bottom{padding:10px 8px;border-top:1px solid var(--border)}
-.sb-content{margin-left:220px;flex:1;padding:24px 20px;min-height:100vh}
+.sb-content{margin-left:220px;flex:1;padding:24px 20px;min-height:100vh;overflow-x:auto}
 .wrap{max-width:100%;margin:0;padding:0}
 .sb-wrap{margin-left:220px;padding:24px 20px;min-height:100vh;flex:1}
 @media(max-width:900px){.sb{transform:translateX(-100%)}.sb-content{margin-left:0}}
@@ -2635,9 +2635,21 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.ddmenu'))
     document.querySelectorAll('.ddmenu-list.open').forEach(m=>m.classList.remove('open'))
 })
-function toggleDD(id){
+function toggleDD(id,btnEl){
   document.querySelectorAll('.ddmenu-list.open').forEach(function(m){if(m.id!==id)m.classList.remove('open')})
-  var el=document.getElementById(id);if(el)el.classList.toggle('open')
+  var el=document.getElementById(id)
+  if(!el)return
+  if(!el.classList.contains('open')){
+    // Posicionar con fixed relativo al botón
+    var btn=btnEl||event.target.closest('.ddmenu-btn')
+    if(btn){
+      var rect=btn.getBoundingClientRect()
+      el.style.top=(rect.bottom+4)+'px'
+      el.style.right=(window.innerWidth-rect.right)+'px'
+      el.style.left='auto'
+    }
+  }
+  el.classList.toggle('open')
 }
 function ddMenu(id,items){
   var btns=items.map(function(i){
@@ -2645,7 +2657,7 @@ function ddMenu(id,items){
     var cls=i.danger?'dd-danger':''
     return '<button class="'+cls+'" onclick="event.stopPropagation();ddExec('+JSON.stringify(id)+','+JSON.stringify(i.action)+')">'+i.label+'</button>'
   }).join('')
-  return '<div class="ddmenu"><button class="ddmenu-btn" onclick="event.stopPropagation();toggleDD('+JSON.stringify(id)+')">&#x22EF;</button><div class="ddmenu-list" id="'+id+'">'+btns+'</div></div>'
+  return '<div class="ddmenu"><button class="ddmenu-btn" onclick="event.stopPropagation();toggleDD('+JSON.stringify(id)+',this)">&#x22EF;</button><div class="ddmenu-list" id="'+id+'">'+btns+'</div></div>'
 }
 function ddExec(id,action){
   var el=document.getElementById(id)

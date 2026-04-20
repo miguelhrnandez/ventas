@@ -1023,60 +1023,77 @@ let aComFiltro={desde:'',hasta:''}
 function rACom(){
   const desde=document.getElementById('ac-desde')?.value||''
   const hasta=document.getElementById('ac-hasta')?.value||''
-  // Solo mostrar aceptadas, agrupadas por fecha en que fueron aceptadas
-  let ops=aOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria)
+  let ops=aOps.filter(x=>categ(x.monto).isVenta)
   if(desde)ops=ops.filter(x=>x.fecha_tesoreria>=desde)
   if(hasta)ops=ops.filter(x=>x.fecha_tesoreria<=hasta)
   const byP={}
-  ops.forEach(op=>{const p=getPer(op.fecha_tesoreria);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  ops.forEach(op=>{const p=getPer(op.fecha_tesoreria||op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
-  const totalGral=ops.reduce((a,x)=>a+calcC(x.monto),0)
-  const totalPend=0
-  const filtros=`<div class="card" style="margin-bottom:16px">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span style="font-size:13px;color:var(--text2);white-space:nowrap">Filtrar por fecha:</span>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <input type="date" id="ac-desde" value="${desde}" onchange="rACom()" style="width:auto;font-size:13px;padding:7px 12px">
-        <span style="color:var(--text3);font-size:13px">hasta</span>
-        <input type="date" id="ac-hasta" value="${hasta}" onchange="rACom()" style="width:auto;font-size:13px;padding:7px 12px">
-        ${desde||hasta?`<button onclick="document.getElementById('ac-desde').value='';document.getElementById('ac-hasta').value='';rACom()" style="font-size:12px;padding:5px 10px">Limpiar</button>`:''}
-      </div>
-      <div style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap">
-        <div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>
-        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${fmt(totalPend)}</div><div style="font-size:11px;color:var(--text2)">pendiente</div></div>`:''}></div>
-      </div>
-    </div>
-  </div>`
+  const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+  const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+
+  let filtros='<div class="card" style="margin-bottom:16px">'
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+      +'<span style="font-size:13px;color:var(--text2);white-space:nowrap">Filtrar por fecha:</span>'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        +'<input type="date" id="ac-desde" value="'+desde+'" onchange="rACom()" style="width:auto;font-size:13px;padding:7px 12px">'
+        +'<span style="color:var(--text3);font-size:13px">hasta</span>'
+        +'<input type="date" id="ac-hasta" value="'+hasta+'" onchange="rACom()" style="width:auto;font-size:13px;padding:7px 12px">'
+        +(desde||hasta?'<button onclick="document.getElementById(\'ac-desde\').value=\'\';document.getElementById(\'ac-hasta\').value=\'\';rACom()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +'</div>'
+      +'<div style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap">'
+        +'<div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>'
+        +(totalPend>0?'<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">'+fmt(totalPend)+'</div><div style="font-size:11px;color:var(--text2)">pendiente</div></div>':'')
+      +'</div>'
+    +'</div>'
+  +'</div>'
+
   if(!ks.length){html('a-cb',filtros+'<div class="card"><div class="es">Sin ventas en ese periodo</div></div>');return}
-  html('a-cb',filtros+ks.map(k=>{
-    const p=byP[k],acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcC(x.monto),0),pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
-    return`<div class="card" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--text)">Semana: ${p.label}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: ${fmtD(p.cob.toISOString().slice(0,10))} &nbsp;·&nbsp; ${p.ops.length} venta${p.ops.length!==1?'s':''}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="ag" style="font-size:18px;font-weight:600">${fmt(tot)}</div>
-          ${pend>0?`<div style="font-size:11px;color:var(--amber);margin-top:2px">${fmt(pend)} pendiente</div>
-        </div>
-      </div>
-      <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Categoria</th><th>Comision</th><th>Tesoreria</th></tr></thead>
-      <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
-        <td style="font-size:12px">${fmtD(op.fecha)}</td>
-        <td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td><td class="am">${fmt(op.monto)}</td>
-        <td><span class="badge ${c.cls}">${c.label}</span></td>
-        <td class="ag">${fmt(calcC(op.monto))}</td>
-        <td><span class="badge b-acp">Aceptada</span></td></tr>`}).join('')}</tbody>
-      <tfoot><tr>
-        <td colspan="5" style="font-weight:500;color:var(--text)">Total semana</td>
-        <td class="ag" style="font-weight:600">${fmt(tot)}</td>
-        <td></td>
-      </tr></tfoot>
-      </table>
-    </div>`
-  }).join(''))
+
+  let out=filtros
+  ks.forEach(k=>{
+    const p=byP[k]
+    const acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
+    const tot=acp.reduce((a,x)=>a+calcC(x.monto),0)
+    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+    let filas=''
+    p.ops.forEach(op=>{
+      const c=categ(op.monto)
+      filas+='<tr>'
+        +'<td style="font-size:12px">'+fmtD(op.fecha)+'</td>'
+        +'<td style="color:var(--text)">'+op.cliente+'</td>'
+        +'<td>'+op.plan+'</td>'
+        +'<td class="am">'+fmt(op.monto)+'</td>'
+        +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
+        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
+        +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
+        +'</tr>'
+    })
+    out+='<div class="card" style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">'
+        +'<div>'
+          +'<div style="font-size:14px;font-weight:600;color:var(--text)">Semana: '+p.label+'</div>'
+          +'<div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: '+fmtD(p.cob.toISOString().slice(0,10))+' &nbsp;·&nbsp; '+p.ops.length+' venta'+(p.ops.length!==1?'s':'')+'</div>'
+        +'</div>'
+        +'<div style="text-align:right">'
+          +'<div class="ag" style="font-size:18px;font-weight:600">'+fmt(tot)+'</div>'
+          +(pend>0?'<div style="font-size:11px;color:var(--amber);margin-top:2px">'+fmt(pend)+' pendiente</div>':'')
+        +'</div>'
+      +'</div>'
+      +'<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Categoria</th><th>Comision</th><th>Tesoreria</th></tr></thead>'
+      +'<tbody>'+filas+'</tbody>'
+      +'<tfoot><tr>'
+        +'<td colspan="5" style="font-weight:500;color:var(--text)">Total semana</td>'
+        +'<td class="ag" style="font-weight:600">'+fmt(tot)+'</td>'
+        +'<td></td>'
+      +'</tr></tfoot>'
+      +'</table>'
+    +'</div>'
+  })
+  html('a-cb',out)
 }
+
+
 function aTab(t,btn){
   hi('a-to');hi('a-tn');hi('a-tc');sh(t==='o'?'a-to':t==='n'?'a-tn':'a-tc')
   document.querySelectorAll('#SA .nav button').forEach(b=>b.classList.remove('active'))

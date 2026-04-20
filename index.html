@@ -167,6 +167,27 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
   </div>
 </div>
 
+<!-- SELECTOR DE ROL -->
+<div id="SRS" class="hidden" style="min-height:100vh;align-items:center;justify-content:center;padding:1rem">
+<div style="width:100%;max-width:400px">
+  <div style="text-align:center;margin-bottom:32px">
+    <div style="margin-bottom:20px">
+      <svg viewBox="0 0 200 60" width="160" height="48" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="60" rx="8" fill="#e8192c"/>
+        <path d="M18 38 L18 27 L28 19 L38 27 L38 38 Z" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M23 38 L23 32 L33 32 L33 38" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M14 29 L28 18 L42 29" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="52" y="37" font-family="DM Sans, Arial, sans-serif" font-size="18" font-weight="700" fill="white">MásDueños</text>
+      </svg>
+    </div>
+    <div style="font-size:16px;font-weight:600;color:var(--text)" id="srs-nombre"></div>
+    <div style="font-size:13px;color:var(--text2);margin-top:4px">¿Con qué rol querés ingresar?</div>
+  </div>
+  <div id="srs-opciones" style="display:flex;flex-direction:column;gap:10px"></div>
+  <button onclick="logout()" style="width:100%;margin-top:16px;color:var(--text2)">Cancelar</button>
+</div>
+</div>
+
 <!-- MODAL EDITAR OPERACION -->
 <div id="modal-edit" class="modal-bg hidden">
   <div class="modal">
@@ -250,7 +271,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 
 <!-- ASESOR -->
 <div id="SA" class="hidden wrap">
-  <div class="ph"><div><div class="pt" id="a-nom"></div><div class="ps">Panel de asesor</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="ph"><div><div class="pt" id="a-nom"></div><div class="ps">Panel de asesor</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button id="as-cambiar-rol" class="hidden" onclick="showRolPanel([CU.rol,...(CU.roles_extra||[])])">Cambiar rol</button><button onclick="logout()">Cerrar sesion</button></div></div>
   <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
   <div class="nav">
     <button class="active" onclick="aTab('o',this)">Mis operaciones</button>
@@ -323,7 +344,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 
 <!-- ON BOARDING -->
 <div id="SOB" class="hidden wrap">
-  <div class="ph"><div><div class="pt" id="ob-nom"></div><div class="ps">Panel de On Boarding</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="ph"><div><div class="pt" id="ob-nom"></div><div class="ps">Panel de On Boarding</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button id="ob-cambiar-rol" class="hidden" onclick="showRolPanel([CU.rol,...(CU.roles_extra||[])])">Cambiar rol</button><button onclick="logout()">Cerrar sesion</button></div></div>
   <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
   <div class="nav">
     <button class="active" onclick="obTab('mis',this)">Mis clientes</button>
@@ -659,7 +680,7 @@ const sv=(id,val)=>{document.getElementById(id).value=val}
 const sh=id=>document.getElementById(id).classList.remove('hidden')
 const hi=id=>document.getElementById(id).classList.add('hidden')
 const html=(id,h)=>{document.getElementById(id).innerHTML=h}
-const screens=['SL','SA','SJV','SPR','SJP','SOB','SADM']
+const screens=['SL','SRS','SA','SJV','SPR','SJP','SOB','SADM']
 
 function categ(m){
   if(m<100000)return{label:'Reserva',cls:'b-reserva',isVenta:false}
@@ -706,6 +727,34 @@ function calcOBCom(op){
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('SL').classList.contains('hidden'))doLogin()})
 
+const ROL_LABELS={asesor:'Asesor de ventas',jefe_ahorro:'Jefe de ventas Ahorro',jefe_pozo:'Jefe de ventas Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe de presentaciones',on_boarding:'On Boarding',admin:'Administrador'}
+const ROL_ICONS={asesor:'📊',jefe_ahorro:'👔',jefe_pozo:'👔',presentador:'🎤',jefe_presentaciones:'🎯',on_boarding:'🤝',admin:'⚙️'}
+async function showRolPanel(roles){
+  showOnly('SRS')
+  document.getElementById('srs-nombre').textContent=CU.nombre
+  const opciones=document.getElementById('srs-opciones')
+  opciones.innerHTML=roles.map(r=>`
+    <button onclick="elegirRol('${r}')" style="width:100%;padding:16px;border-radius:10px;background:var(--bg2);border:1px solid var(--border2);text-align:left;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
+      <span style="font-size:24px">${ROL_ICONS[r]||'👤'}</span>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${ROL_LABELS[r]||r}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Ingresar como ${ROL_LABELS[r]||r}</div>
+      </div>
+    </button>
+  `).join('')
+}
+async function elegirRol(rol){
+  CU.role=rol;CU.rol=rol
+  await enterPanel(rol)
+}
+async function enterPanel(r){
+  if(r==='admin')await showAdm()
+  else if(r==='asesor')await showAs()
+  else if(r==='jefe_ahorro'||r==='jefe_pozo')await showJV()
+  else if(r==='presentador')await showPr()
+  else if(r==='jefe_presentaciones')await showJP()
+  else if(r==='on_boarding')await showOB()
+}
 async function doLogin(){
   const u=gv('lu').trim(),p=gv('lp')
   hi('le');document.getElementById('lb').textContent='Ingresando...'
@@ -714,13 +763,14 @@ async function doLogin(){
   document.getElementById('lb').textContent='Ingresar'
   if(error||!data){sh('le');document.getElementById('le').textContent='Usuario o contrasena incorrectos';return}
   CU={...data,role:data.rol}
-  const r=data.rol
-  if(r==='admin')await showAdm()
-  else if(r==='asesor')await showAs()
-  else if(r==='jefe_ahorro'||r==='jefe_pozo')await showJV()
-  else if(r==='presentador')await showPr()
-  else if(r==='jefe_presentaciones')await showJP()
-  else if(r==='on_boarding')await showOB()
+  // Verificar si tiene roles extra
+  const rolesExtra=data.roles_extra||[]
+  const todosRoles=[data.rol,...rolesExtra].filter(Boolean)
+  if(todosRoles.length>1){
+    await showRolPanel(todosRoles)
+  } else {
+    await enterPanel(data.rol)
+  }
 }
 function logout(){CU=null;showOnly('SL');sv('lu','');sv('lp','');document.getElementById('lb').textContent='Ingresar'}
 
@@ -863,6 +913,7 @@ async function guardarPass(){
 let aOps=[]
 async function showAs(){
   showOnly('SA');document.getElementById('a-nom').textContent=CU.nombre
+  const tieneExtra=(CU.roles_extra||[]).length>0;if(document.getElementById('as-cambiar-rol'))document.getElementById('as-cambiar-rol').classList.toggle('hidden',!tieneExtra)
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps()
 }
@@ -1203,6 +1254,7 @@ let obOps=[],obDisp=[],obMovs=[]
 
 async function showOB(){
   showOnly('SOB');document.getElementById('ob-nom').textContent=CU.nombre
+  const tieneExtra=(CU.roles_extra||[]).length>0;document.getElementById('ob-cambiar-rol').classList.toggle('hidden',!tieneExtra)
   await loadOBData();rOBStats();rOBMis()
 }
 let obPagos=[]

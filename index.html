@@ -1967,6 +1967,20 @@ function rAdmStats(){
     <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(totComAsesores)}</div><div class="sl">Comisiones asesores</div></div>`)
 }
 let carpetaAbierta=null
+function toggleCarpeta(k){
+  carpetaAbierta=carpetaAbierta===k?null:k
+  // Toggle el detalle sin re-renderizar toda la lista
+  document.querySelectorAll('.carp-detalle').forEach(function(el){
+    var isThis=el.getAttribute('data-key')===k
+    var shouldShow=isThis&&carpetaAbierta===k
+    el.style.display=shouldShow?'block':'none'
+  })
+  // Rotar la flecha
+  document.querySelectorAll('.carp-arrow').forEach(function(el){
+    var isThis=el.getAttribute('data-key')===k
+    if(isThis)el.style.transform=carpetaAbierta===k?'rotate(90deg)':'rotate(0deg)'
+  })
+}
 async function guardarSOP(key,val){
   await db.from('carpetas_llevadas').upsert({periodo_key:key,nro_sop:val})
   // actualizar local
@@ -1996,9 +2010,9 @@ function rAdmCarp(){
     const counts={acp:p.ops.filter(x=>x.carpeta_tesoreria==='aceptada').length,pend:p.ops.filter(x=>!x.carpeta_tesoreria||x.carpeta_tesoreria==='pendiente').length,den:p.ops.filter(x=>x.carpeta_tesoreria==='denegada').length}
     return`<div class="card" style="margin-bottom:10px;${p.ll?'border-left:3px solid var(--blue)':''}">
       <!-- ENCABEZADO COLAPSABLE -->
-      <div onclick="carpetaAbierta=carpetaAbierta==='${k}'?null:'${k}';rAdmCarp()" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;flex-wrap:wrap;gap:8px">
+      <div onclick="toggleCarpeta('${k}')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;flex-wrap:wrap;gap:8px">
         <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:18px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:${abierta?'rotate(90deg)':'rotate(0deg)'}">›</span>
+          <span class="carp-arrow" data-key="${k}" style="font-size:18px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:${abierta?'rotate(90deg)':'rotate(0deg)'}">›</span>
           <div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
               <span style="font-size:14px;font-weight:600;color:var(--text)">${p.label}</span>
@@ -2018,7 +2032,7 @@ function rAdmCarp(){
         </div>
       </div>
       <!-- DETALLE (se muestra solo si está abierta) -->
-      ${abierta?`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      ${abierta?`<div class="carp-detalle" data-key="${k}" style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
         <!-- Fila de acciones y SOP -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">

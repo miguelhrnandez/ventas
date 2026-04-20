@@ -271,7 +271,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 
 <!-- ASESOR -->
 <div id="SA" class="hidden wrap">
-  <div class="ph"><div><div class="pt" id="a-nom"></div><div class="ps">Panel de asesor</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button id="as-cambiar-rol" class="hidden" onclick="showRolPanel([CU.rol,...(CU.roles_extra||[])])">Cambiar rol</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="ph"><div><div class="pt" id="a-nom"></div><div class="ps">Panel de asesor</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button id="as-cambiar-rol" class="hidden" onclick="showRolPanel([CU.rolOriginal||CU.rol,...(CU.roles_extra||[])])">Cambiar rol</button><button onclick="logout()">Cerrar sesion</button></div></div>
   <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
   <div class="nav">
     <button class="active" onclick="aTab('o',this)">Mis operaciones</button>
@@ -344,7 +344,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 
 <!-- ON BOARDING -->
 <div id="SOB" class="hidden wrap">
-  <div class="ph"><div><div class="pt" id="ob-nom"></div><div class="ps">Panel de On Boarding</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button id="ob-cambiar-rol" class="hidden" onclick="showRolPanel([CU.rol,...(CU.roles_extra||[])])">Cambiar rol</button><button onclick="logout()">Cerrar sesion</button></div></div>
+  <div class="ph"><div><div class="pt" id="ob-nom"></div><div class="ps">Panel de On Boarding</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button id="ob-cambiar-rol" class="hidden" onclick="showRolPanel([CU.rolOriginal||CU.rol,...(CU.roles_extra||[])])">Cambiar rol</button><button onclick="logout()">Cerrar sesion</button></div></div>
   <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
   <div class="nav">
     <button class="active" onclick="obTab('mis',this)">Mis clientes</button>
@@ -732,8 +732,13 @@ const ROL_ICONS={asesor:'📊',jefe_ahorro:'👔',jefe_pozo:'👔',presentador:'
 async function showRolPanel(roles){
   showOnly('SRS')
   document.getElementById('srs-nombre').textContent=CU.nombre
+  // Siempre usar los roles originales del usuario
+  const rolesReales=[CU.rolOriginal,...(CU.roles_extra||[])].filter(Boolean)
+  const rolesAMostrar=rolesReales.length>0?rolesReales:roles
   const opciones=document.getElementById('srs-opciones')
-  opciones.innerHTML=roles.map(r=>`
+  // Filtrar duplicados
+  const rolesUnicos=[...new Set(rolesAMostrar)]
+  opciones.innerHTML=rolesUnicos.map(r=>`
     <button onclick="elegirRol('${r}')" style="width:100%;padding:16px;border-radius:10px;background:var(--bg2);border:1px solid var(--border2);text-align:left;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
       <span style="font-size:24px">${ROL_ICONS[r]||'👤'}</span>
       <div>
@@ -744,7 +749,10 @@ async function showRolPanel(roles){
   `).join('')
 }
 async function elegirRol(rol){
-  CU.role=rol;CU.rol=rol
+  CU.role=rol
+  // NO pisamos CU.rol para mantener el rol original en DB
+  // Guardamos el rol activo por separado
+  CU.rolActivo=rol
   await enterPanel(rol)
 }
 async function enterPanel(r){
@@ -762,7 +770,7 @@ async function doLogin(){
   const{data,error}=await db.from('usuarios').select('*').eq('username',u).eq('password',p).single()
   document.getElementById('lb').textContent='Ingresar'
   if(error||!data){sh('le');document.getElementById('le').textContent='Usuario o contrasena incorrectos';return}
-  CU={...data,role:data.rol}
+  CU={...data,role:data.rol,rolOriginal:data.rol,rolActivo:data.rol}
   // Verificar si tiene roles extra
   const rolesExtra=data.roles_extra||[]
   const todosRoles=[data.rol,...rolesExtra].filter(Boolean)

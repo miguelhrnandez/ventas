@@ -1180,7 +1180,7 @@ function rJVCob(){
       +'<input type="date" id="jvc-desde" value="'+desde+'" onchange="rJVCob()" style="width:auto;font-size:13px;padding:7px 12px">'
       +'<span style="color:var(--text3);font-size:13px">hasta</span>'
       +'<input type="date" id="jvc-hasta" value="'+hasta+'" onchange="rJVCob()" style="width:auto;font-size:13px;padding:7px 12px">'
-      +(desde||hasta?'<button onclick="document.getElementById('jvc-desde').value='';document.getElementById('jvc-hasta').value='';rJVCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +(desde||hasta?'<button onclick="document.getElementById(\'jvc-desde\').value=\'\';document.getElementById(\'jvc-hasta\').value=\'\';rJVCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
       +'<div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>'
     +'</div>'
   +'</div>'
@@ -1255,7 +1255,7 @@ function rPrOps(){
       +'<input type="date" id="pr-desde" value="'+desde+'" onchange="rPrOps()" style="width:auto;font-size:13px;padding:7px 12px">'
       +'<span style="color:var(--text3);font-size:13px">hasta</span>'
       +'<input type="date" id="pr-hasta" value="'+hasta+'" onchange="rPrOps()" style="width:auto;font-size:13px;padding:7px 12px">'
-      +(desde||hasta?'<button onclick="document.getElementById('pr-desde').value='';document.getElementById('pr-hasta').value='';rPrOps()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +(desde||hasta?'<button onclick="document.getElementById(\"pr-desde\").value=\"\";document.getElementById(\"pr-hasta\").value=\"\";rPrOps()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
       +'<div style="margin-left:auto;display:flex;gap:16px">'
         +'<div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalAcp)+'</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>'
         +(totalPend>0?'<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">'+totalPend+' pend.</div><div style="font-size:11px;color:var(--text2)">pendientes</div></div>':'')
@@ -1345,7 +1345,7 @@ function rJPCob(){
       +'<input type="date" id="jpc-desde" value="'+desde+'" onchange="rJPCob()" style="width:auto;font-size:13px;padding:7px 12px">'
       +'<span style="color:var(--text3);font-size:13px">hasta</span>'
       +'<input type="date" id="jpc-hasta" value="'+hasta+'" onchange="rJPCob()" style="width:auto;font-size:13px;padding:7px 12px">'
-      +(desde||hasta?'<button onclick="document.getElementById('jpc-desde').value='';document.getElementById('jpc-hasta').value='';rJPCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +(desde||hasta?'<button onclick="document.getElementById(\"jpc-desde\").value=\"\";document.getElementById(\"jpc-hasta\").value=\"\";rJPCob()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
       +'<div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>'
     +'</div>'
   +'</div>'
@@ -1461,27 +1461,25 @@ function calcComCuota(nro,dia){const t=OB_CUOTAS[nro];if(!t)return 0;return dia<
 function getPagosCuota(opId){return obPagos.filter(x=>x.operacion_id===opId)}
 function rOBMis(isAdmin=false){
   if(!obOps.length){html('ob-misb','<div class="card"><div class="es">No tenes clientes asignados aun</div></div>');return}
-  // Búsqueda y filtros
   const busq=(document.getElementById('ob-mis-search')?.value||'').toLowerCase()
   const orden=document.getElementById('ob-mis-orden')?.value||'fecha-desc'
   const filtro=document.getElementById('ob-mis-filtro')?.value||''
   let ops=[...obOps]
-  // Filtro texto
-  if(busq)ops=ops.filter(x=>x.cliente.toLowerCase().includes(busq)||( x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq)))
-  // Filtro estado
+  if(busq)ops=ops.filter(x=>x.cliente.toLowerCase().includes(busq)||(x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq)))
   if(filtro==='activos')ops=ops.filter(x=>!x.ob_baja)
   else if(filtro==='baja')ops=ops.filter(x=>x.ob_baja)
   else if(filtro==='completos')ops=ops.filter(x=>getPagosCuota(x.id).length>=6)
   else if(filtro==='pendientes')ops=ops.filter(x=>!x.ob_baja&&getPagosCuota(x.id).length<6)
-  // Ordenar
   if(orden==='fecha-desc')ops.sort((a,b)=>b.fecha.localeCompare(a.fecha))
   else if(orden==='fecha-asc')ops.sort((a,b)=>a.fecha.localeCompare(b.fecha))
   else if(orden==='nombre-asc')ops.sort((a,b)=>a.cliente.localeCompare(b.cliente))
   else if(orden==='nombre-desc')ops.sort((a,b)=>b.cliente.localeCompare(a.cliente))
   else if(orden==='cuotas-asc')ops.sort((a,b)=>getPagosCuota(a.id).length-getPagosCuota(b.id).length)
   else if(orden==='cuotas-desc')ops.sort((a,b)=>getPagosCuota(b.id).length-getPagosCuota(a.id).length)
-  if(!ops.length){html('ob-misb',`<div class="card"><div class="es">Sin resultados${busq?' para "'+busq+'"':''}</div></div>`);return}
-  html('ob-misb',ops.map(op=>{
+  if(!ops.length){html('ob-misb','<div class="card"><div class="es">Sin resultados'+(busq?' para "'+busq+'"':'')+' </div></div>');return}
+
+  let out=''
+  ops.forEach(op=>{
     const movs=getMovsOp(op.id)
     const pagos=getPagosCuota(op.id)
     const totComMovs=calcComOBMovs(movs)
@@ -1490,81 +1488,130 @@ function rOBMis(isAdmin=false){
     const abierto=obClienteAbierto===op.id
     const pagosOrdenados=[...pagos].sort((a,b)=>a.numero_cuota-b.numero_cuota)
     const clienteEsc=op.cliente.replace(/'/g,"\\'")
-    return`<div class="card" style="margin-bottom:10px">
-      <div onclick="obClienteAbierto=obClienteAbierto==='${op.id}'?null:'${op.id}';rOBMis(${isAdmin})" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;flex-wrap:wrap;gap:10px;user-select:none">
-        <div style="display:flex;align-items:center;gap:12px">
-          <span style="font-size:18px;color:var(--text3);display:inline-block;transform:${abierto?'rotate(90deg)':'rotate(0deg)'}">›</span>
-          <div>
-            <div style="font-size:14px;font-weight:600;color:var(--text)">${op.cliente}</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:1px">${op.asesor_nombre} · ${op.plan} · Alta: ${fmtD(op.fecha)}</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">CUOTAS</div><div style="font-size:15px;font-weight:600;color:${pagos.length>=6?'var(--teal)':'var(--text)'}">${pagos.length}/6</div></div>
-          ${totCom>0?`<div style="text-align:right"><div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div><div style="font-size:10px;color:var(--text3)">total com.</div></div>
-          ${op.ob_baja?'<span class="badge b-den">Baja</span>':''}
-          ${op.pago_ob==='aceptado'?'<span class="badge b-acp">✓</span>':op.pago_ob==='denegado'?'<span class="badge b-den">✗</span>':''}
-        </div>
-      </div>
-      ${abierto?`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
-        <!-- Datos personales -->
-        <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Datos del cliente</div>
-            <button class="bb" onclick="event.stopPropagation();openOBDatosById('${op.id}')" style="font-size:10px;padding:2px 8px">✏ Editar</button>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
-            <div><span style="color:var(--text3)">Tel. OB: </span><span style="color:var(--text)">${op.ob_telefono||'—'}</span></div>
-            <div><span style="color:var(--text3)">Email: </span><span style="color:var(--text)">${op.ob_email||'—'}</span></div>
-            <div><span style="color:var(--text3)">Celular venta: </span><span style="color:var(--text)">${op.celular||'—'}</span></div>
-            <div><span style="color:var(--text3)">Unidad: </span><span style="color:var(--text)">${op.unidad||'—'}</span></div>
-            ${op.ob_notas?`<div style="grid-column:1/-1"><span style="color:var(--text3)">Notas: </span><span style="color:var(--text2)">${op.ob_notas}</span></div>
-          </div>
-        </div>
-        <div style="margin-bottom:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="font-size:12px;font-weight:600;color:var(--text)">Pagos de cuota</div>
-            ${pagos.length<6?`<button class="bg" onclick="event.stopPropagation();openOBPagoCuota('${op.id}','${clienteEsc}',${pagos.length+1})" style="font-size:11px;padding:4px 10px">+ Registrar M${pagos.length+1}</button>`:'<span style="font-size:11px;color:var(--teal)">Seguimiento completo ✓</span>'}
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
-            ${[1,2,3,4,5,6].map(n=>{
-              const p=pagosOrdenados.find(x=>x.numero_cuota===n)
-              const com=p?calcComCuota(p.numero_cuota,p.dia_del_mes):0
-              return`<div style="background:${p?'rgba(74,222,128,0.1)':'var(--bg3)'};border:1px solid ${p?'rgba(74,222,128,0.2)':'var(--border)'};border-radius:8px;padding:8px;text-align:center">
-                <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600">M${n}</div>
-                ${p?`<div style="font-size:12px;color:var(--green);font-weight:600">Día ${p.dia_del_mes}</div><div class="at" style="font-size:11px;margin-top:2px">${fmt(com)}</div><button onclick="event.stopPropagation();delOBPago('${p.id}')" style="font-size:9px;padding:1px 5px;margin-top:5px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:4px;cursor:pointer">✕</button>`:`<div style="font-size:12px;color:var(--text3)">—</div>`}
-              </div>`
-            }).join('')}
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div style="background:var(--bg3);border-radius:8px;padding:10px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Incrementos</div>
-              <button class="bb" onclick="event.stopPropagation();openOBMov('${op.id}','${clienteEsc}','incremento')" style="font-size:10px;padding:2px 8px">+ Agregar</button>
-            </div>
-            ${movs.filter(x=>x.tipo==='incremento').length?renderMovHistorial(movs.filter(x=>x.tipo==='incremento'),isAdmin):'<div style="font-size:12px;color:var(--text3)">Sin incrementos</div>'}
-          </div>
-          <div style="background:var(--bg3);border-radius:8px;padding:10px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Ahorros</div>
-              <button class="bb" onclick="event.stopPropagation();openOBMov('${op.id}','${clienteEsc}','ahorro')" style="font-size:10px;padding:2px 8px">+ Agregar</button>
-            </div>
-            ${movs.filter(x=>x.tipo==='ahorro').length?renderMovHistorial(movs.filter(x=>x.tipo==='ahorro'),isAdmin):'<div style="font-size:12px;color:var(--text3)">Sin ahorros</div>'}
-          </div>
-        </div>
-        <!-- Baja -->
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-          ${op.ob_baja?`<div style="background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red)">
-            <strong>Dado de baja</strong>${op.ob_motivo_baja?' — '+op.ob_motivo_baja:''}
-            <button onclick="event.stopPropagation();reactivarOBCliente('${op.id}')" style="margin-left:10px;font-size:10px;padding:2px 7px;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:4px;cursor:pointer">Reactivar</button>
-          </div>`:`<button class="br" onclick="event.stopPropagation();openOBBaja('${op.id}','${clienteEsc}')" style="font-size:11px;padding:4px 12px">Dar de baja</button>`}
-          <button onclick="event.stopPropagation();devolverOBCliente('${op.id}','${clienteEsc}')" style="font-size:11px;padding:4px 12px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);border-radius:8px;cursor:pointer">↩ Devolver al pool</button>
-        </div>
-      </div>
-    </div>`
-  }).join(''))
+
+    // Header del cliente
+    let cuotasBadge='<div style="text-align:center"><div style="font-size:10px;color:var(--text3)">CUOTAS</div>'
+      +'<div style="font-size:15px;font-weight:600;color:'+(pagos.length>=6?'var(--teal)':'var(--text)')+'">'+pagos.length+'/6</div></div>'
+    let comBadge=totCom>0?'<div style="text-align:right"><div class="at" style="font-size:15px;font-weight:600">'+fmt(totCom)+'</div><div style="font-size:10px;color:var(--text3)">total com.</div></div>':''
+    let bajaBadge=op.ob_baja?'<span class="badge b-den">Baja</span>':''
+    let pagoBadge=op.pago_ob==='aceptado'?'<span class="badge b-acp">✓</span>':(op.pago_ob==='denegado'?'<span class="badge b-den">✗</span>':'')
+
+    out+='<div class="card" style="margin-bottom:10px">'
+      +'<div onclick="obClienteAbierto=obClienteAbierto===\''+op.id+'\'?null:\''+op.id+'\';rOBMis('+isAdmin+')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;flex-wrap:wrap;gap:10px;user-select:none">'
+        +'<div style="display:flex;align-items:center;gap:12px">'
+          +'<span style="font-size:18px;color:var(--text3);display:inline-block;transform:'+(abierto?'rotate(90deg)':'rotate(0deg)')+'">›</span>'
+          +'<div>'
+            +'<div style="font-size:14px;font-weight:600;color:var(--text)">'+op.cliente+'</div>'
+            +'<div style="font-size:12px;color:var(--text2);margin-top:1px">'+op.asesor_nombre+' · '+op.plan+' · Alta: '+fmtD(op.fecha)+'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+          +cuotasBadge+comBadge+bajaBadge+pagoBadge
+        +'</div>'
+      +'</div>'
+
+    if(abierto){
+      // Datos personales
+      let datosGrid='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">'
+        +'<div><span style="color:var(--text3)">Tel. OB: </span><span style="color:var(--text)">'+(op.ob_telefono||'—')+'</span></div>'
+        +'<div><span style="color:var(--text3)">Email: </span><span style="color:var(--text)">'+(op.ob_email||'—')+'</span></div>'
+        +'<div><span style="color:var(--text3)">Celular venta: </span><span style="color:var(--text)">'+(op.celular||'—')+'</span></div>'
+        +'<div><span style="color:var(--text3)">Unidad: </span><span style="color:var(--text)">'+(op.unidad||'—')+'</span></div>'
+        +(op.ob_notas?'<div style="grid-column:1/-1"><span style="color:var(--text3)">Notas: </span><span style="color:var(--text2)">'+op.ob_notas+'</span></div>':'')
+      +'</div>'
+
+      // Cuotas grid
+      let cuotasGrid='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">'
+      for(let n=1;n<=6;n++){
+        const pago=pagosOrdenados.find(p=>p.numero_cuota===n)
+        const t=OB_CUOTAS[n]||{antes:0,despues:0}
+        if(pago){
+          const com=calcComCuota(n,pago.dia_del_mes)
+          cuotasGrid+='<div style="background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:10px;text-align:center">'
+            +'<div style="font-size:10px;color:var(--text3);margin-bottom:4px">M'+n+'</div>'
+            +'<div style="font-size:12px;color:var(--green);font-weight:600">Día '+pago.dia_del_mes+'</div>'
+            +'<div style="font-size:11px;color:var(--teal);margin-top:2px">'+fmt(com)+'</div>'
+            +(isAdmin?'<button onclick="event.stopPropagation();delPagoCuota(\''+pago.id+'\',\''+op.id+'\')" style="font-size:9px;padding:1px 5px;margin-top:4px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:4px;cursor:pointer">✕</button>':'')
+          +'</div>'
+        } else {
+          cuotasGrid+='<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">'
+            +'<div style="font-size:10px;color:var(--text3);margin-bottom:4px">M'+n+'</div>'
+            +'<div style="font-size:11px;color:var(--text3)">'+fmt(t.antes)+' / '+fmt(t.despues)+'</div>'
+            +(n===pagos.length+1?'<button onclick="event.stopPropagation();openOBPagoCuota(\''+op.id+'\',\''+clienteEsc+'\','+n+')" style="font-size:9px;padding:2px 6px;margin-top:4px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(96,165,250,0.2);border-radius:4px;cursor:pointer">Registrar</button>':'')
+          +'</div>'
+        }
+      }
+      cuotasGrid+='</div>'
+
+      // Movimientos historial
+      let historial=renderMovHistorial(movs,isAdmin)
+
+      // Admin pago OB buttons
+      let adminPago=''
+      if(isAdmin){
+        adminPago='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">'
+          +(op.pago_ob!=='aceptado'?'<button class="bg" onclick="event.stopPropagation();setPagoOB(\''+op.id+'\',\'aceptado\')" style="font-size:11px;padding:4px 10px">✓ Aceptar pago OB</button>':'')
+          +(op.pago_ob!=='denegado'?'<button class="br" onclick="event.stopPropagation();setPagoOB(\''+op.id+'\',\'denegado\')" style="font-size:11px;padding:4px 10px">✗ Denegar pago OB</button>':'')
+          +(op.pago_ob==='aceptado'||op.pago_ob==='denegado'?'<button onclick="event.stopPropagation();setPagoOB(\''+op.id+'\',\'pendiente\')" style="font-size:11px;padding:4px 10px">↺ Pendiente</button>':'')
+        +'</div>'
+      }
+
+      // Boton nueva mov
+      let btnNuevaMov='<div style="display:flex;gap:6px;margin-bottom:14px">'
+        +'<button class="bg" onclick="event.stopPropagation();openOBMov(\''+op.id+'\',\''+clienteEsc+'\',\'incremento\')" style="font-size:11px;padding:4px 10px">+ Incremento</button>'
+        +'<button class="bb" onclick="event.stopPropagation();openOBMov(\''+op.id+'\',\''+clienteEsc+'\',\'ahorro\')" style="font-size:11px;padding:4px 10px">+ Ahorro</button>'
+      +'</div>'
+
+      // Baja/reactivar
+      let bajaBtn=''
+      if(op.ob_baja){
+        bajaBtn='<div style="background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red)">'
+          +'<strong>Dado de baja</strong>'+(op.ob_motivo_baja?' — '+op.ob_motivo_baja:'')
+          +'<button onclick="event.stopPropagation();reactivarOBCliente(\''+op.id+'\')" style="margin-left:10px;font-size:10px;padding:2px 7px;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:4px;cursor:pointer">Reactivar</button>'
+        +'</div>'
+      } else {
+        bajaBtn='<button class="br" onclick="event.stopPropagation();openOBBaja(\''+op.id+'\',\''+clienteEsc+'\')" style="font-size:11px;padding:4px 12px">Dar de baja</button>'
+      }
+      let devolverBtn='<button onclick="event.stopPropagation();devolverOBCliente(\''+op.id+'\',\''+clienteEsc+'\')" style="font-size:11px;padding:4px 12px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);border-radius:8px;cursor:pointer">↩ Devolver al pool</button>'
+
+      out+='<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">'
+        // Datos personales
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:14px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+            +'<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Datos del cliente</div>'
+            +'<button class="bb" onclick="event.stopPropagation();openOBDatosById(\''+op.id+'\')" style="font-size:10px;padding:2px 8px">✏ Editar</button>'
+          +'</div>'
+          +datosGrid
+        +'</div>'
+        // Cuotas
+        +'<div style="margin-bottom:14px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+            +'<div style="font-size:12px;font-weight:600;color:var(--text)">Pagos de cuota</div>'
+          +'</div>'
+          +cuotasGrid
+        +'</div>'
+        // Admin pago
+        +adminPago
+        // Movimientos
+        +'<div style="margin-bottom:14px">'
+          +'<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px">Historial de movimientos</div>'
+          +btnNuevaMov
+          +historial
+        +'</div>'
+        // Baja/devolver
+        +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
+          +bajaBtn
+          +devolverBtn
+        +'</div>'
+      +'</div>'
+    }
+
+    out+='</div>'
+  })
+  html('ob-misb',out)
 }
+
+
 // ═══ OB PAGOS DE CUOTA ═══
 function openOBPagoCuota(opId,cliente,numeroCuota){
   const modal=document.createElement('div')
@@ -1859,7 +1906,7 @@ function rOBCom(){
       +'<input type="date" id="obc-desde" value="'+desde+'" onchange="rOBCom()" style="width:auto;font-size:13px;padding:7px 12px">'
       +'<span style="color:var(--text3);font-size:13px">hasta</span>'
       +'<input type="date" id="obc-hasta" value="'+hasta+'" onchange="rOBCom()" style="width:auto;font-size:13px;padding:7px 12px">'
-      +(desde||hasta?'<button onclick="document.getElementById('obc-desde').value='';document.getElementById('obc-hasta').value='';rOBCom()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
+      +(desde||hasta?'<button onclick="document.getElementById(\"obc-desde\").value=\"\";document.getElementById(\"obc-hasta\").value=\"\";rOBCom()" style="font-size:12px;padding:5px 10px">Limpiar</button>':'')
       +'<div style="margin-left:auto;display:flex;gap:16px">'
         +'<div style="text-align:right"><div class="at" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">Inc: '+fmt(totalGralInc)+' + Ah: '+fmt(totalGralAh)+'</div></div>'
       +'</div>'
@@ -1928,71 +1975,59 @@ function obAdmTab(t,btn){
   if(t==='asign')rAdmOBAsign()
 }
 async function adminVerClientesOB(){
-  const{data:opsOB}=await db.from('operaciones').select('*').not('ob_id','is',null).order('fecha',{ascending:false})
-  const{data:movs}=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false})
-  const{data:pagosAdm}=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
-  const ops=opsOB||[],allMovsAdm=movs||[]
-  obOps=ops;obMovs=allMovsAdm;obPagos=pagosAdm||[]
-
-  // Poblar filtro de OB
-  const selOB=document.getElementById('adm-ob-fob')
-  if(selOB){
-    const obUnicos={}
-    ops.forEach(op=>{if(op.ob_id&&op.ob_nombre)obUnicos[op.ob_id]=op.ob_nombre})
-    const curOB=selOB.value
-    selOB.innerHTML='<option value="">Todos los OB</option>'+Object.entries(obUnicos).map(([id,nom])=>`<option value="${id}"${curOB===id?' selected':''}>${nom}</option>`).join('')
-  }
-
-  const filtroOB=document.getElementById('adm-ob-fob')?.value||''
+  const filtroOb=document.getElementById('adm-ob-fob')?.value||''
   const filtroPago=document.getElementById('adm-ob-fpago')?.value||''
-  let opsFilt=ops
-  if(filtroOB)opsFilt=opsFilt.filter(x=>x.ob_id===filtroOB)
-  if(filtroPago==='pendiente')opsFilt=opsFilt.filter(x=>!x.pago_ob||x.pago_ob==='pendiente')
-  else if(filtroPago==='aceptado')opsFilt=opsFilt.filter(x=>x.pago_ob==='aceptado')
-  else if(filtroPago==='denegado')opsFilt=opsFilt.filter(x=>x.pago_ob==='denegado')
+  let ops=allOps.filter(x=>x.ob_id)
+  if(filtroOb)ops=ops.filter(x=>x.ob_id===filtroOb)
+  if(filtroPago)ops=ops.filter(x=>(x.pago_ob||'pendiente')===filtroPago)
+  if(!ops.length){html('adm-ob-content','<div class="es">Sin clientes OB</div>');return}
 
-  if(!opsFilt.length){html('adm-ob-content','<div class="es">Sin clientes OB con ese filtro</div>');return}
-
-  // Totales
-  const totComs=allMovsAdm.reduce((a,m)=>{
-    if(m.tipo==='incremento'&&m.antes_72hrs!==null)return a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275))
-    if(m.tipo==='ahorro')return a+Math.round(m.monto*0.10)
-    return a
-  },0)
-
-  html('adm-ob-content',opsFilt.map(op=>{
-    const movsOp=allMovsAdm.filter(x=>x.operacion_id===op.id)
-    const totCom=calcComOBMovs(movsOp)
+  let out=''
+  ops.forEach(op=>{
+    const movsOp=allObMovs.filter(x=>x.operacion_id===op.id)
     const incs=movsOp.filter(x=>x.tipo==='incremento')
     const ahs=movsOp.filter(x=>x.tipo==='ahorro')
-    const pagoBadge=op.pago_ob==='aceptado'
-      ?'<span class="badge b-acp">Pago aceptado</span>'
-      :op.pago_ob==='denegado'
-        ?'<span class="badge b-den">Pago denegado</span>'
-        :'<span class="badge b-pend">Pago pendiente</span>'
-    return`<div class="card" style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px">
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--text)">${op.cliente}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">${op.asesor_nombre} · ${op.plan} · <span style="color:var(--teal)">OB: ${op.ob_nombre||'-'}</span></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          ${totCom>0?`<div class="at" style="font-size:15px;font-weight:600">${fmt(totCom)}</div>
-          ${pagoBadge}
-          ${op.pago_ob!=='aceptado'?`<button class="bg" onclick="setOBPago('${op.id}','aceptado')" style="font-size:11px;padding:3px 8px">✓ Aceptar pago</button>`:''}
-          ${op.pago_ob!=='denegado'?`<button class="br" onclick="setOBPago('${op.id}','denegado')" style="font-size:11px;padding:3px 8px">✗ Denegar pago</button>`:''}
-          ${op.pago_ob?`<button onclick="setOBPago('${op.id}',null)" style="font-size:11px;padding:3px 8px">↺ Pendiente</button>`:''}
-          <button class="bb" onclick="adminAgregarMovOB('${op.id}','${op.cliente.replace(/'/g,"\'")}','${op.ob_id}','${op.ob_nombre||''}')" style="font-size:11px;padding:4px 10px">+ Mov.</button>
-        </div>
-      </div>
-      ${movsOp.length?`
-      <div style="background:var(--bg3);border-radius:8px;padding:12px">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">${incs.length} incremento${incs.length!==1?'s':''} · ${ahs.length} ahorro${ahs.length!==1?'s':''}</div>
-        ${renderMovHistorial(movsOp,true)}
-      </div>`:'<div style="font-size:12px;color:var(--text3);font-style:italic">Sin movimientos cargados</div>'}
-    </div>`
-  }).join(''))
+    const totInc=incs.reduce((a,m)=>a+(m.antes_72hrs!=null?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):0),0)
+    const totAh=ahs.reduce((a,m)=>a+Math.round(m.monto*0.10),0)
+    const totCom=totInc+totAh
+    const pago=op.pago_ob||'pendiente'
+    const pagoBadge=pago==='aceptado'?'<span class="badge b-acp">Pago aceptado</span>'
+      :pago==='denegado'?'<span class="badge b-den">Pago denegado</span>'
+      :'<span class="badge b-pend">Pago pendiente</span>'
+
+    const oid=op.id
+    const obn=op.ob_nombre||''
+    const ce=op.cliente.replace(/'/g,"\'")
+    const btnAceptar=op.pago_ob!=='aceptado'?'<button class="bg" onclick="setOBPago(\''+oid+'\',\'aceptado\')" style="font-size:11px;padding:3px 8px">✓ Aceptar pago</button>':''
+    const btnDenegar=op.pago_ob!=='denegado'?'<button class="br" onclick="setOBPago(\''+oid+'\',\'denegado\')" style="font-size:11px;padding:3px 8px">✗ Denegar pago</button>':''
+    const btnPend=op.pago_ob?'<button onclick="setOBPago(\''+oid+'\',null)" style="font-size:11px;padding:3px 8px">↺ Pendiente</button>':''
+    const btnMov='<button class="bb" onclick="adminAgregarMovOB(\''+oid+'\',\''+ce+'\',\''+op.ob_id+'\',\''+obn+'\')" style="font-size:11px;padding:4px 10px">+ Movimiento</button>'
+
+    const movsHtml=movsOp.length
+      ?'<div style="background:var(--bg3);border-radius:8px;padding:12px">'
+        +'<div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">'+incs.length+' incremento'+(incs.length!==1?'s':'')+' · '+ahs.length+' ahorro'+(ahs.length!==1?'s':'')+'</div>'
+        +renderMovHistorial(movsOp,true)
+      +'</div>'
+      :'<div style="font-size:12px;color:var(--text3);font-style:italic">Sin movimientos cargados</div>'
+
+    out+='<div class="card" style="margin-bottom:12px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px">'
+        +'<div>'
+          +'<div style="font-size:14px;font-weight:600;color:var(--text)">'+op.cliente+'</div>'
+          +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+op.asesor_nombre+' · '+op.plan+' · <span style="color:var(--teal)">OB: '+(op.ob_nombre||'-')+'</span></div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+          +(totCom>0?'<div class="at" style="font-size:15px;font-weight:600">'+fmt(totCom)+'</div>':'')
+          +pagoBadge+btnAceptar+btnDenegar+btnPend+btnMov
+        +'</div>'
+      +'</div>'
+      +movsHtml
+    +'</div>'
+  })
+  html('adm-ob-content',out)
 }
+
+
 async function setOBPago(opId,estado){
   await db.from('operaciones').update({pago_ob:estado}).eq('id',opId)
   await loadAll();adminVerClientesOB()
@@ -2878,6 +2913,16 @@ function poblarFiltrosRet(){
   }
 }
 const OB_COM={1:{a:20000,d:10000},2:{a:15000,d:7500},3:{a:10000,d:5000},4:{a:10000,d:5000},5:{a:10000,d:5000},6:{a:10000,d:5000}}
+function limpiarFiltro(id1,id2,fn){
+  var el1=document.getElementById(id1),el2=document.getElementById(id2)
+  if(el1)el1.value=''
+  if(el2)el2.value=''
+  if(fn==='rJVCob')rJVCob()
+  else if(fn==='rACom')rACom()
+  else if(fn==='rJPCob')rJPCob()
+  else if(fn==='rPrOps')rPrOps()
+  else if(fn==='rOBCom')rOBCom()
+}
 function calcRet(nro,dia){const t=OB_COM[nro];if(!t)return 0;return dia<=10?t.a:t.d}
 function rRetenciones(){
   const mes=document.getElementById('ret-mes')?.value||''

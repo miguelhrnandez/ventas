@@ -988,7 +988,8 @@ function rAOps(){
     <td><span class="badge ${c.cls}">${c.label}</span></td>
     <td>${tesBadge}</td>
     <td>${ll}</td>
-    ${ddMenu('dd-a-'+op.id,[{label:'Editar',action:"openEdit('"+op.id+"')"},{sep:true},{label:'Eliminar',action:"deleteOp('"+op.id+"','asesor')",danger:true}])}
+    ${'<button onclick="openEdit(\''+op.id+'\' )" style="font-size:11px;padding:3px 7px;background:var(--blue-bg);border:1px solid rgba(96,165,250,0.2);border-radius:6px;color:var(--blue);cursor:pointer">✏ Editar</button>'
+    +'<button onclick="deleteOp(\''+op.id+'\',\'asesor\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'}
   </tr>`}).join('')}</tbody></table>`)
 }
 function prevT(){
@@ -2157,12 +2158,8 @@ function rAdmCarp(){
         ?'<button class="bg" onclick="setTes(\''+op.id+'\',\'aceptada\')" style="font-size:11px;padding:3px 8px">✓ Aceptar</button>':''
       const btnDenegar=op.carpeta_tesoreria!=='denegada'
         ?'<button class="br" onclick="openDenegar(\''+op.id+'\')" style="font-size:11px;padding:3px 8px">✗ Denegar</button>':''
-      const menu=ddMenu('dd-c-'+op.id,[
-        {label:'↺ Pendiente',action:"setTes('"+op.id+"','pendiente')"},
-        {label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},
-        {sep:true},
-        {label:'Eliminar operacion',action:"deleteOp('"+op.id+"','admin')",danger:true}
-      ])
+      const menu='<button onclick="openEditFecha(\''+op.id+'\',\''+op.fecha+'\' )" style="font-size:11px;padding:3px 7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer">📅</button>'
+        +'<button onclick="deleteOp(\''+op.id+'\',\'admin\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'
       filas+='<tr>'
         +'<td style="color:var(--text)">'+op.asesor_nombre+'</td>'
         +'<td>'+op.cliente+'</td>'
@@ -2376,7 +2373,10 @@ function rAdmTodas(){
     <td><span class="badge ${c.cls}">${c.label}</span></td>
     <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td>
     <td style="max-width:100px;font-size:12px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(op.obs||'').replace(/"/g,"'")}">${op.obs||'-'}</td>
-    ${ddMenu('dd-t-'+op.id,[...(c.isVenta&&op.carpeta_tesoreria!=='aceptada'?[{label:'✓ Aceptar',action:"setTes('"+op.id+"','aceptada')"}]:[]),...(c.isVenta&&op.carpeta_tesoreria!=='denegada'?[{label:'✗ Denegar',action:"openDenegar('"+op.id+"')"}]:[]),{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
+    +(c.isVenta&&op.carpeta_tesoreria!=='aceptada'?'<button onclick="setTes(\''+op.id+'\',\'aceptada\'  )" style="font-size:11px;padding:3px 7px;background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:6px;color:var(--green);cursor:pointer">✓</button>':'')
+    +(c.isVenta&&op.carpeta_tesoreria!=='denegada'?'<button onclick="openDenegar(\''+op.id+'\'  )" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">✗</button>':'')
+    +'<button onclick="openEditFecha(\''+op.id+'\',\''+op.fecha+'\'  )" style="font-size:11px;padding:3px 7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer">📅</button>'
+    +'<button onclick="deleteOp(\''+op.id+'\',\'admin\'  )" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'
   </tr>`}).join('')}</tbody></table>`)
 }
 let admTodasSort={field:'fecha',dir:'desc'}

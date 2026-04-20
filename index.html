@@ -2676,20 +2676,23 @@ document.addEventListener('click',e=>{
     document.querySelectorAll('.ddmenu-list.open').forEach(m=>m.classList.remove('open'))
 })
 function toggleDD(id,btnEl){
-  document.querySelectorAll('.ddmenu-list.open').forEach(function(m){if(m.id!==id)m.classList.remove('open')})
+  var wasOpen=false
+  document.querySelectorAll('.ddmenu-list.open').forEach(function(m){
+    if(m.id===id)wasOpen=true
+    m.classList.remove('open')
+  })
+  if(wasOpen)return
   var el=document.getElementById(id)
   if(!el)return
-  if(!el.classList.contains('open')){
-    // Posicionar con fixed relativo al botón
-    var btn=btnEl||event.target.closest('.ddmenu-btn')
-    if(btn){
-      var rect=btn.getBoundingClientRect()
-      el.style.top=(rect.bottom+4)+'px'
-      el.style.right=(window.innerWidth-rect.right)+'px'
-      el.style.left='auto'
-    }
+  var btn=btnEl||(event&&event.target&&event.target.closest&&event.target.closest('.ddmenu-btn'))
+  if(btn){
+    var rect=btn.getBoundingClientRect()
+    el.style.top=(rect.bottom+4)+'px'
+    el.style.right=(window.innerWidth-rect.right)+'px'
+    el.style.left='auto'
+    el.style.minWidth='160px'
   }
-  el.classList.toggle('open')
+  el.classList.add('open')
 }
 function ddMenu(id,items){
   var btns=items.map(function(i){

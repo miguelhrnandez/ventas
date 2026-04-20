@@ -8,7 +8,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0f0f0f;--bg2:#171717;--bg3:#1f1f1f;--bg4:#2a2a2a;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#f0f0f0;--text2:#a0a0a0;--text3:#505050;--accent:#e8192c;--accent2:#c9121f;--green:#4ade80;--green-bg:rgba(74,222,128,0.1);--amber:#fbbf24;--amber-bg:rgba(251,191,36,0.1);--red:#f87171;--red-bg:rgba(248,113,113,0.1);--blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);--purple:#c084fc;--purple-bg:rgba(192,132,252,0.1);--teal:#2dd4bf;--teal-bg:rgba(45,212,191,0.1)}
+:root{--bg:#0f0f0f;--bg2:#171717;--bg3:#1f1f1f;--bg4:#2a2a2a;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#f0f0f0;--text2:#a0a0a0;--text3:#505050;--accent:#e8192c;--accent2:#c9121f;--green:#4ade80;--green-bg:rgba(74,222,128,0.1);--amber:#fbbf24;--amber-bg:rgba(251,191,36,0.1);--red:#f87171;--red-bg:rgba(248,113,113,0.1);--blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);--purple:#c084fc;--purple-bg:rgba(192,132,252,0.1);--teal:#2dd4bf;--teal-bg:rgba(45,212,191,0.1);--mono:'DM Mono',monospace}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
 .hidden{display:none!important}
 input,select,textarea{font-family:'DM Sans',sans-serif;font-size:14px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:10px 14px;width:100%;transition:border-color 0.15s}
@@ -82,6 +82,26 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 .modal-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;width:100%;max-width:480px}
 @media(max-width:700px){.g4{grid-template-columns:1fr 1fr}.g2,.g3{grid-template-columns:1fr}}
+/* SIDEBAR */
+.sb-layout{display:flex;min-height:100vh}
+.sb{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform 0.2s}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-logo svg{flex-shrink:0}
+.sb-logo-txt{font-size:13px;font-weight:600;color:var(--text)}
+.sb-user{padding:12px 16px;border-bottom:1px solid var(--border)}
+.sb-user-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:11px;color:var(--text3);margin-top:2px}
+.sb-nav{flex:1;padding:8px 8px;overflow-y:auto}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all 0.15s;border:none;background:transparent;width:100%;text-align:left;white-space:nowrap}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--bg4);color:var(--text)}
+.sb-item svg{flex-shrink:0;opacity:0.7}
+.sb-item.active svg{opacity:1}
+.sb-sep{height:1px;background:var(--border);margin:6px 8px}
+.sb-bottom{padding:10px 8px;border-top:1px solid var(--border)}
+.sb-content{margin-left:220px;flex:1;padding:24px 20px;min-height:100vh}
+.wrap{max-width:100%;margin:0;padding:0}
+@media(max-width:900px){.sb{transform:translateX(-100%)}.sb-content{margin-left:0}}
 </style>
 </head>
 <body>
@@ -358,19 +378,80 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 </div>
 
 <!-- ADMIN -->
-<div id="SADM" class="hidden wrap">
-  <div class="ph"><div><div class="pt" id="adm-nom-display">Panel de administracion</div><div class="ps">Control total</div></div><div style="display:flex;gap:8px"><button onclick="sh('modal-mypass')">Mi contrasena</button><button onclick="document.getElementById('adm-perfil-nom').value=CU&&CU.nombre?CU.nombre:'';sh('modal-adm-perfil')">Mi perfil</button><button onclick="logout()">Cerrar sesion</button></div></div>
-  <div class="g4" style="margin-bottom:24px" id="adm-stats"></div>
-  <div class="nav">
-    <button class="active" onclick="admTab('cp',this)">Ventas</button>
-    <button onclick="admTab('pr',this)">Presentaciones</button>
-    <button onclick="admTab('ob',this)">On Boarding</button>
-    <button onclick="admTab('co',this)">Comisiones</button>
-    <button onclick="admTab('to',this)">Todas las ops</button>
-    <button onclick="admTab('inc',this)">Incentivos</button>
-    <button onclick="admTab('liq',this)">Liquidaciones</button>
-    <button onclick="admTab('us',this)">Usuarios</button>
+<div id="SADM" class="hidden sb-layout">
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sb-logo">
+      <svg viewBox="0 0 200 60" width="130" height="40" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="60" rx="8" fill="#e8192c"/>
+        <path d="M18 38 L18 27 L28 19 L38 27 L38 38 Z" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M23 38 L23 32 L33 32 L33 38" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M14 29 L28 18 L42 29" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="52" y="37" font-family="DM Sans, Arial, sans-serif" font-size="18" font-weight="700" fill="white">MásDueños</text>
+      </svg>
+    </div>
+    <div class="sb-user">
+      <div class="sb-user-name" id="adm-nom-display">Administrador</div>
+      <div class="sb-user-role">Control total</div>
+    </div>
+    <div class="sb-nav">
+      <button class="sb-item active" onclick="admTab('cp',this)" id="sb-cp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Ventas
+      </button>
+      <button class="sb-item" onclick="admTab('pr',this)" id="sb-pr">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Presentaciones
+      </button>
+      <button class="sb-item" onclick="admTab('ob',this)" id="sb-ob">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        On Boarding
+      </button>
+      <div class="sb-sep"></div>
+      <button class="sb-item" onclick="admTab('co',this)" id="sb-co">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Comisiones
+      </button>
+      <button class="sb-item" onclick="admTab('ret',this)" id="sb-ret">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Retenciones OB
+      </button>
+      <button class="sb-item" onclick="admTab('to',this)" id="sb-to">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Todas las ops
+      </button>
+      <div class="sb-sep"></div>
+      <button class="sb-item" onclick="admTab('inc',this)" id="sb-inc">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Incentivos
+      </button>
+      <button class="sb-item" onclick="admTab('liq',this)" id="sb-liq">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Liquidaciones
+      </button>
+      <button class="sb-item" onclick="admTab('us',this)" id="sb-us">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Usuarios
+      </button>
+    </div>
+    <div class="sb-bottom">
+      <button class="sb-item" onclick="sh('modal-mypass')" style="color:var(--text2)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Mi contraseña
+      </button>
+      <button class="sb-item" onclick="document.getElementById('adm-perfil-nom').value=CU&&CU.nombre?CU.nombre:'';sh('modal-adm-perfil')" style="color:var(--text2)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Mi perfil
+      </button>
+      <button class="sb-item" onclick="logout()" style="color:var(--red)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
   </div>
+  <!-- CONTENIDO -->
+  <div class="sb-content">
+  <div class="g4" style="margin-bottom:24px" id="adm-stats"></div>
   <div id="adm-Tcp"><div id="adm-cpb"></div></div>
   <div id="adm-Tpr" class="hidden">
     <div class="card ox">
@@ -465,6 +546,19 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
     </div>
   </div>
 
+  <div id="adm-Tret" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div style="font-size:15px;font-weight:600">Retenciones On Boarding</div>
+        <div style="display:flex;gap:8px">
+          <select id="ret-mes" onchange="rRetenciones()" style="width:auto;min-width:160px"></select>
+          <select id="ret-ob" onchange="rRetenciones()" style="width:auto"><option value="">Todas las OB</option></select>
+        </div>
+      </div>
+      <div id="ret-content"></div>
+    </div>
+  </div>
+
   <div id="adm-Tliq" class="hidden">
     <div style="display:grid;grid-template-columns:400px 1fr;gap:16px;align-items:start">
       <div class="card">
@@ -545,6 +639,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
         <div id="roles-list"></div>
       </div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -1306,7 +1401,7 @@ function previewOBPago(numeroCuota){
   const dia=new Date(f+'T12:00:00').getDate()
   const com=calcComCuota(numeroCuota,dia)
   const color=dia<=10?'var(--teal)':'var(--amber)'
-  el.innerHTML=`Día <strong style="color:${color}">${dia}</strong> del mes — Comision: <span style="color:var(--teal);font-weight:600;font-family:'DM Mono',monospace">$${com.toLocaleString('es-AR')}</span>`
+  el.innerHTML=`Día <strong style="color:${color}">${dia}</strong> del mes — Comision: <span style="color:var(--teal);font-weight:600;font-family:var(--mono)">$${com.toLocaleString('es-AR')}</span>`
 }
 async function guardarOBPago(opId,numeroCuota){
   const f=document.getElementById('obp-fecha')?.value
@@ -1949,7 +2044,7 @@ function rAdmTodas(){
   <tbody>${sorted.map(op=>{const c=categ(op.monto);return`<tr>
     <td><div>${fmtD(op.fecha)}</div>${op.fecha_carga&&op.fecha_carga!==op.fecha?'<div style="font-size:10px;color:var(--amber);margin-top:1px">cargada '+fmtD(op.fecha_carga)+'</div>':''}</td><td style="color:var(--text)">${op.asesor_nombre}</td>
     <td>${op.cliente}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:12px">${op.celular||'-'}</td>
+    <td style="font-family:var(--mono);font-size:12px">${op.celular||'-'}</td>
     <td>${op.plan}</td><td>${op.metodo_pago||'-'}</td>
     <td class="am">${fmt(op.monto)}</td>
     <td><span class="badge ${c.cls}">${c.label}</span></td>
@@ -1974,7 +2069,7 @@ function rAdmUsers(){
           <span style="font-size:14px;font-weight:500;color:var(--text)">${u.nombre}</span>
           <span class="badge b-${u.rol}" style="font-size:10px">${rl[u.rol]||u.rol}</span>
         </div>
-        <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace">@${u.username}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:var(--mono)">@${u.username}</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <select onchange="cambiarRol('${u.id}',this.value)" style="width:auto;font-size:12px;padding:4px 28px 4px 8px;border-radius:6px">${getRolSelectOptions(u.rol,u.rol_custom_id)}</select>
@@ -2030,8 +2125,8 @@ function pobPer(){
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq','ob'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
-  document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
+  ['cp','pr','co','to','us','inc','liq','ob','ret'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   if(t==='co'){pobPer();rAdmCom()}
   if(t==='to'){document.getElementById('adm-fa').innerHTML='<option value="">Todos los asesores</option>'+allUsers.filter(x=>x.rol==='asesor').map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('');rAdmTodas()}
@@ -2291,7 +2386,7 @@ admTab=function(t,btn){
   if(t==='inc'){
     ['cp','pr','co','to','us'].forEach(x=>hi('adm-T'+x))
     sh('adm-Tinc')
-    document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
+    document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
     poblarSelUsrIncentivos();rIncentivos()
     return
@@ -2299,17 +2394,25 @@ admTab=function(t,btn){
   if(t==='liq'){
     ['cp','pr','co','to','us'].forEach(x=>hi('adm-T'+x))
     sh('adm-Tliq')
-    document.querySelectorAll('#SADM .nav button').forEach(b=>b.classList.remove('active'))
+    document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
     poblarSelUsrIncentivos();rLiquidaciones()
     return
   }
   if(t==='ob'){
-    ['cp','pr','co','to','us','inc','liq'].forEach(x=>hi('adm-T'+x))
+    ['cp','pr','co','to','us','inc','liq','ret'].forEach(x=>hi('adm-T'+x))
     sh('adm-Tob')
-    document.querySelectorAll('#SADM > .nav button').forEach(b=>b.classList.remove('active'))
+    document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
     adminVerClientesOB()
+    return
+  }
+  if(t==='ret'){
+    ['cp','pr','co','to','us','inc','liq','ob'].forEach(x=>hi('adm-T'+x))
+    sh('adm-Tret')
+    document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
+    if(btn)btn.classList.add('active')
+    poblarFiltrosRet();rRetenciones()
     return
   }
   _origAdmTab(t,btn)
@@ -2356,10 +2459,10 @@ rAdmUsers=function(){
             <span style="font-size:14px;font-weight:500;color:var(--text)">${u.nombre}</span>
             <span class="badge b-${u.rol}" style="font-size:10px">${rolNom}</span>
           </div>
-          <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace">@${u.username}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:var(--mono)">@${u.username}</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <div style="font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-family:'DM Mono',monospace;color:var(--text2)" title="Contrasena">🔑 ${pass}</div>
+          <div style="font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-family:var(--mono);color:var(--text2)" title="Contrasena">🔑 ${pass}</div>
           <select onchange="cambiarRol(\'${u.id}\',this.value)" style="width:auto;font-size:12px;padding:4px 28px 4px 8px;border-radius:6px">${getRolSelectOptions(u.rol,u.rol_custom_id)}</select>
           <button class="bb" onclick="openPass('${u.id}','${u.nombre}')" style="font-size:12px;padding:5px 10px">Cambiar pass</button>
           <button class="br" onclick="delUser('${u.id}')" style="font-size:12px;padding:5px 10px">Eliminar</button>
@@ -2444,6 +2547,101 @@ async function deleteOp(id,source){
     if(!document.getElementById('adm-Tpr').classList.contains('hidden'))rAdmPres()
   }
 }
+// ═══ RETENCIONES OB ═══
+function poblarFiltrosRet(){
+  const meses={}
+  allObPagos.forEach(p=>{
+    const d=new Date(p.fecha_pago+'T12:00:00')
+    const key=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')
+    const label=d.toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+    meses[key]=label
+  })
+  const selMes=document.getElementById('ret-mes')
+  const cur=selMes?.value||''
+  const ks=Object.keys(meses).sort().reverse()
+  if(selMes){
+    selMes.innerHTML=ks.map(k=>'<option value="'+k+'"'+(k===cur?' selected':'')+'>'+meses[k]+'</option>').join('')
+    if(!cur&&ks.length)selMes.value=ks[0]
+  }
+  const obs={}
+  allOps.filter(x=>x.ob_id).forEach(x=>{if(x.ob_id)obs[x.ob_id]=x.ob_nombre})
+  const selOB=document.getElementById('ret-ob')
+  const curOB=selOB?.value||''
+  if(selOB){
+    selOB.innerHTML='<option value="">Todas las OB</option>'+Object.entries(obs).map(([id,nom])=>'<option value="'+id+'"'+(id===curOB?' selected':'')+'>'+nom+'</option>').join('')
+  }
+}
+const OB_COM={1:{a:20000,d:10000},2:{a:15000,d:7500},3:{a:10000,d:5000},4:{a:10000,d:5000},5:{a:10000,d:5000},6:{a:10000,d:5000}}
+function calcRet(nro,dia){const t=OB_COM[nro];if(!t)return 0;return dia<=10?t.a:t.d}
+function rRetenciones(){
+  const mes=document.getElementById('ret-mes')?.value||''
+  const obFiltro=document.getElementById('ret-ob')?.value||''
+  if(!mes){html('ret-content','<div class="es">No hay datos de retenciones aun</div>');return}
+  const partes=mes.split('-')
+  const anio=parseInt(partes[0]),mesN=parseInt(partes[1])
+  let pagos=allObPagos.filter(p=>{
+    const d=new Date(p.fecha_pago+'T12:00:00')
+    return d.getFullYear()===anio&&(d.getMonth()+1)===mesN
+  })
+  if(obFiltro)pagos=pagos.filter(p=>p.ob_id===obFiltro)
+  if(!pagos.length){html('ret-content','<div class="es">Sin retenciones en este período</div>');return}
+  const porOB={}
+  pagos.forEach(p=>{
+    if(!porOB[p.ob_id])porOB[p.ob_id]={nombre:p.ob_nombre,antes:[],despues:[]}
+    const op=allOps.find(x=>x.id===p.operacion_id)
+    const entry={...p,op}
+    if(p.dia_del_mes<=10)porOB[p.ob_id].antes.push(entry)
+    else porOB[p.ob_id].despues.push(entry)
+  })
+  const totGral=pagos.reduce((a,p)=>a+calcRet(p.numero_cuota,p.dia_del_mes),0)
+  let rows=''
+  Object.values(porOB).forEach(ob=>{
+    const totAntes=ob.antes.reduce((a,p)=>a+calcRet(p.numero_cuota,p.dia_del_mes),0)
+    const totDespues=ob.despues.reduce((a,p)=>a+calcRet(p.numero_cuota,p.dia_del_mes),0)
+    const totOB=totAntes+totDespues
+    let antesRows=ob.antes.length?ob.antes.map(p=>{
+      const cli=p.op?p.op.cliente:'-'
+      const com=calcRet(p.numero_cuota,p.dia_del_mes)
+      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><div><span style="color:var(--text)">'+cli+'</span><span style="color:var(--text3);margin-left:6px">M'+p.numero_cuota+' · Día '+p.dia_del_mes+'</span></div><span class="at">'+fmt(com)+'</span></div>'
+    }).join('')+'<div style="display:flex;justify-content:flex-end;padding-top:8px;font-size:13px;font-weight:600"><span class="ag">'+fmt(totAntes)+'</span></div>':'<div style="font-size:12px;color:var(--text3)">Ninguno</div>'
+    let despuesRows=ob.despues.length?ob.despues.map(p=>{
+      const cli=p.op?p.op.cliente:'-'
+      const com=calcRet(p.numero_cuota,p.dia_del_mes)
+      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><div><span style="color:var(--text)">'+cli+'</span><span style="color:var(--text3);margin-left:6px">M'+p.numero_cuota+' · Día '+p.dia_del_mes+'</span></div><span style="color:var(--amber);font-family:var(--mono);font-weight:500">'+fmt(com)+'</span></div>'
+    }).join('')+'<div style="display:flex;justify-content:flex-end;padding-top:8px;font-size:13px;font-weight:600"><span style="color:var(--amber)">'+fmt(totDespues)+'</span></div>':'<div style="font-size:12px;color:var(--text3)">Ninguno</div>'
+    rows+=`<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--text)">${ob.nombre}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${ob.antes.length+ob.despues.length} clientes con pago registrado</div>
+        </div>
+        <div style="text-align:right">
+          <div class="at" style="font-size:18px;font-weight:700">${fmt(totOB)}</div>
+          <div style="font-size:11px;color:var(--text3)">total a pagar</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">Del 1 al 10 — ${ob.antes.length} clientes</div>
+          ${antesRows}
+        </div>
+        <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.15);border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:var(--amber);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">Del 11 al 30 — ${ob.despues.length} clientes</div>
+          ${despuesRows}
+        </div>
+      </div>
+    </div>`
+  })
+  html('ret-content',`
+    <div style="background:var(--bg3);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div style="font-size:13px;color:var(--text2)">${pagos.length} pagos registrados</div>
+      <div><div class="at" style="font-size:20px;font-weight:700">${fmt(totGral)}</div><div style="font-size:11px;color:var(--text3)">total retenciones del mes</div></div>
+    </div>
+    ${rows}
+  `)
+}
+
+
 </script>
 </body>
 </html>

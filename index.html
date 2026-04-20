@@ -1043,7 +1043,7 @@ function rACom(){
       </div>
       <div style="margin-left:auto;display:flex;gap:16px;flex-wrap:wrap">
         <div style="text-align:right"><div class="ag" style="font-size:16px;font-weight:600">${fmt(totalGral)}</div><div style="font-size:11px;color:var(--text2)">confirmado</div></div>
-        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${fmt(totalPend)}</div><div style="font-size:11px;color:var(--text2)">pendiente</div></div>
+        ${totalPend>0?`<div style="text-align:right"><div style="font-size:16px;font-weight:600;color:var(--amber)">${fmt(totalPend)}</div><div style="font-size:11px;color:var(--text2)">pendiente</div></div>`:''}></div>
       </div>
     </div>
   </div>`
@@ -1998,7 +1998,8 @@ function rAdmCarp(){
   })
   const ks=Object.keys(byP).sort().reverse()
   if(!ks.length){html('adm-cpb','<div class="card"><div class="es">No hay carpetas aun</div></div>');return}
-  html('adm-cpb',ks.map(k=>{
+  let out=''
+  ks.forEach(k=>{
     const p=byP[k]
     const abierta=carpetaAbierta===k
     const opAcp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
@@ -2007,71 +2008,100 @@ function rAdmCarp(){
     const totPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*74000
     const totJPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*35000
     const grandTotal=totAcp+totJV+totPres+totJPres
-    const counts={acp:p.ops.filter(x=>x.carpeta_tesoreria==='aceptada').length,pend:p.ops.filter(x=>!x.carpeta_tesoreria||x.carpeta_tesoreria==='pendiente').length,den:p.ops.filter(x=>x.carpeta_tesoreria==='denegada').length}
-    return`<div class="card" style="margin-bottom:10px;${p.ll?'border-left:3px solid var(--blue)':''}">
-      <!-- ENCABEZADO COLAPSABLE -->
-      <div onclick="toggleCarpeta('${k}')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;flex-wrap:wrap;gap:8px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="carp-arrow" data-key="${k}" style="font-size:18px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:${abierta?'rotate(90deg)':'rotate(0deg)'}">›</span>
-          <div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <span style="font-size:14px;font-weight:600;color:var(--text)">${p.label}</span>
-              ${p.ll?'<span class="badge" style="background:var(--blue-bg);color:var(--blue);font-size:10px">✓ Llevada</span>':''}
-              ${counts.pend>0?`<span class="badge" style="background:var(--amber-bg);color:var(--amber);font-size:10px">${counts.pend} pend.</span>`:''}
-              ${counts.den>0?`<span class="badge" style="background:var(--red-bg);color:var(--red);font-size:10px">${counts.den} den.</span>`:''}
-              ${p.nro_sop?`<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">SOP: ${p.nro_sop}</span>`:''}
-            </div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px">Cobro: ${fmtD(p.cob.toISOString().slice(0,10))} · <span style="color:var(--green)">${counts.acp} aceptadas</span> · ${p.ops.length} total</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="text-align:right">
-            <div class="ag" style="font-size:15px;font-weight:700">${fmt(grandTotal)}</div>
-            <div style="font-size:10px;color:var(--text3)">total semana</div>
-          </div>
-        </div>
-      </div>
-      <!-- DETALLE (siempre en DOM, show/hide con JS) -->
-      <div class="carp-detalle" data-key="${k}" style="display:${abierta?'block':'none'};margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
-        <!-- Fila de acciones y SOP -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <div style="font-size:12px;color:var(--text2)">Llevar: <strong>${fmtD(p.vie.toISOString().slice(0,10))}</strong> · Cobro: <strong>${fmtD(p.cob.toISOString().slice(0,10))}</strong></div>
-            <div style="font-size:11px;color:var(--text3)">Asesores: ${fmt(totAcp)} · Jefes: ${fmt(totJV)}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <!-- CAMPO SOP -->
-            <div style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:5px 10px" onclick="event.stopPropagation()">
-              <span style="font-size:11px;color:var(--text3);white-space:nowrap">N° SOP:</span>
-              <input id="sop-${k}" type="text" value="${p.nro_sop||''}" placeholder="Ej: 12345" onclick="event.stopPropagation()"
-                style="width:90px;font-size:12px;padding:2px 6px;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:var(--mono);outline:none"
-                onchange="event.stopPropagation();guardarSOP('${k}',this.value);this.style.color='var(--teal)'"
-                onblur="guardarSOP('${k}',this.value)">
-            </div>
-            ${p.ll?'<span class="badge" style="background:var(--blue-bg);color:var(--blue)">✓ Llevada</span>':`<button class="bp" onclick="event.stopPropagation();markLL('${k}')" style="font-size:12px;padding:5px 12px">Marcar como llevada</button>`};padding:5px 12px">Marcar como llevada</button>`}
-          </div>
-        </div>
-        <!-- TABLA -->
-        <div style="overflow-x:auto"><table>
-          <thead><tr><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Llevada</th><th>Acciones</th></tr></thead>
-          <tbody>${p.ops.map(op=>{const c=categ(op.monto);return`<tr>
-            <td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
-            <td>${op.unidad||'-'}</td><td class="am">${fmt(op.monto)}</td>
-            <td><span class="badge ${c.cls}">${c.label}</span></td>
-            <td class="ag">${op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente'}</td>
-            <td>${op.carpeta_tesoreria==='denegada'&&op.motivo_denegacion?`<div><span class="badge b-den">Denegada</span><div style="font-size:11px;color:var(--red);margin-top:3px;max-width:150px">💬 ${op.motivo_denegacion}</div></div>`:badgeE(op.carpeta_tesoreria||'pendiente')}</td>
-            <td>${op.carpeta_llevada?'<span style="font-size:11px;color:var(--blue)">✓ Llevada</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'}</td>
-            <td><div style="display:flex;gap:4px;align-items:center">
-              ${op.carpeta_tesoreria!=='aceptada'?`<button class="bg" onclick="setTes('${op.id}','aceptada')" style="font-size:11px;padding:3px 8px">✓ Aceptar</button>`:''}
-              ${op.carpeta_tesoreria!=='denegada'?`<button class="br" onclick="openDenegar('${op.id}')" style="font-size:11px;padding:3px 8px">✗ Denegar</button>`:''}
-              ${ddMenu('dd-c-'+op.id,[{label:'↺ Pendiente',action:"setTes('"+op.id+"','pendiente')"},{label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},{sep:true},{label:'Eliminar operacion',action:"deleteOp('"+op.id+"','admin')",danger:true}])}
-            </div></td>
-          </tr>`}).join('')}</tbody>
-        </table></div>
-      </div>
-    </div>`
-  }).join(''))
+    const counts={
+      acp:p.ops.filter(x=>x.carpeta_tesoreria==='aceptada').length,
+      pend:p.ops.filter(x=>!x.carpeta_tesoreria||x.carpeta_tesoreria==='pendiente').length,
+      den:p.ops.filter(x=>x.carpeta_tesoreria==='denegada').length
+    }
+
+    // Badges de encabezado
+    let badges=''
+    if(p.ll) badges+='<span class="badge" style="background:var(--blue-bg);color:var(--blue);font-size:10px">✓ Llevada</span>'
+    if(counts.pend>0) badges+='<span class="badge" style="background:var(--amber-bg);color:var(--amber);font-size:10px">'+counts.pend+' pend.</span>'
+    if(counts.den>0) badges+='<span class="badge" style="background:var(--red-bg);color:var(--red);font-size:10px">'+counts.den+' den.</span>'
+    if(p.nro_sop) badges+='<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">SOP: '+p.nro_sop+'</span>'
+
+    // Filas de tabla
+    let filas=''
+    p.ops.forEach(op=>{
+      const c=categ(op.monto)
+      const tesCell=op.carpeta_tesoreria==='denegada'&&op.motivo_denegacion
+        ?'<div><span class="badge b-den">Denegada</span><div style="font-size:11px;color:var(--red);margin-top:3px;max-width:150px">💬 '+op.motivo_denegacion+'</div></div>'
+        :badgeE(op.carpeta_tesoreria||'pendiente')
+      const llevadaCell=op.carpeta_llevada
+        ?'<span style="font-size:11px;color:var(--blue)">✓ Llevada</span>'
+        :'<span style="font-size:11px;color:var(--text3)">—</span>'
+      const btnAceptar=op.carpeta_tesoreria!=='aceptada'
+        ?'<button class="bg" onclick="setTes(\''+op.id+'\',\'aceptada\')" style="font-size:11px;padding:3px 8px">✓ Aceptar</button>':''
+      const btnDenegar=op.carpeta_tesoreria!=='denegada'
+        ?'<button class="br" onclick="openDenegar(\''+op.id+'\')" style="font-size:11px;padding:3px 8px">✗ Denegar</button>':''
+      const menu=ddMenu('dd-c-'+op.id,[
+        {label:'↺ Pendiente',action:"setTes('"+op.id+"','pendiente')"},
+        {label:'📅 Cambiar fecha',action:"openEditFecha('"+op.id+"','"+op.fecha+"')"},
+        {sep:true},
+        {label:'Eliminar operacion',action:"deleteOp('"+op.id+"','admin')",danger:true}
+      ])
+      filas+='<tr>'
+        +'<td style="color:var(--text)">'+op.asesor_nombre+'</td>'
+        +'<td>'+op.cliente+'</td>'
+        +'<td>'+op.plan+'</td>'
+        +'<td>'+(op.unidad||'-')+'</td>'
+        +'<td class="am">'+fmt(op.monto)+'</td>'
+        +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
+        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
+        +'<td>'+tesCell+'</td>'
+        +'<td>'+llevadaCell+'</td>'
+        +'<td><div style="display:flex;gap:4px;align-items:center">'+btnAceptar+btnDenegar+menu+'</div></td>'
+        +'</tr>'
+    })
+
+    const llBtn=p.ll
+      ?'<span class="badge" style="background:var(--blue-bg);color:var(--blue)">✓ Llevada</span>'
+      :'<button class="bp" onclick="event.stopPropagation();markLL(\''+k+'\')" style="font-size:12px;padding:5px 12px">Marcar como llevada</button>'
+
+    const borderLeft=p.ll?'border-left:3px solid var(--blue);':''
+
+    out+='<div class="card" style="margin-bottom:10px;'+borderLeft+'">'
+      // HEADER colapsable
+      +'<div onclick="toggleCarpeta(\''+k+'\')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;flex-wrap:wrap;gap:8px;padding:4px 0">'
+        +'<div style="display:flex;align-items:center;gap:10px">'
+          +'<span class="carp-arrow" data-key="'+k+'" style="font-size:18px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:'+(abierta?'rotate(90deg)':'rotate(0deg)')+'">›</span>'
+          +'<div>'
+            +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+              +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+p.label+'</span>'
+              +badges
+            +'</div>'
+            +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Cobro: '+fmtD(p.cob.toISOString().slice(0,10))+' · <span style="color:var(--green)">'+counts.acp+' aceptadas</span> · '+p.ops.length+' total</div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="text-align:right">'
+          +'<div class="ag" style="font-size:15px;font-weight:700">'+fmt(grandTotal)+'</div>'
+          +'<div style="font-size:10px;color:var(--text3)">total semana</div>'
+        +'</div>'
+      +'</div>'
+      // DETALLE siempre en DOM
+      +'<div class="carp-detalle" data-key="'+k+'" style="display:'+(abierta?'block':'none')+';margin-top:14px;border-top:1px solid var(--border);padding-top:14px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">'
+          +'<div style="font-size:12px;color:var(--text2)">Llevar: <strong>'+fmtD(p.vie.toISOString().slice(0,10))+'</strong> · Cobro: <strong>'+fmtD(p.cob.toISOString().slice(0,10))+'</strong> · Asesores: '+fmt(totAcp)+' · Jefes: '+fmt(totJV)+'</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+            +'<div style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:5px 10px" onclick="event.stopPropagation()">'
+              +'<span style="font-size:11px;color:var(--text3);white-space:nowrap">N° SOP:</span>'
+              +'<input id="sop-'+k+'" type="text" value="'+(p.nro_sop||'')+'" placeholder="Ej: 12345" onclick="event.stopPropagation()" style="width:90px;font-size:12px;padding:2px 6px;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:var(--mono);outline:none" onchange="event.stopPropagation();guardarSOP(\''+k+'\',this.value);this.style.color=\'var(--teal)\'" onblur="guardarSOP(\''+k+'\',this.value)">'
+            +'</div>'
+            +llBtn
+          +'</div>'
+        +'</div>'
+        +'<div style="overflow-x:auto"><table>'
+          +'<thead><tr><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Llevada</th><th>Acciones</th></tr></thead>'
+          +'<tbody>'+filas+'</tbody>'
+        +'</table></div>'
+      +'</div>'
+    +'</div>'
+  })
+  html('adm-cpb',out)
 }
+
+
 async function setTes(id,estado){
   await db.from('operaciones').update({carpeta_tesoreria:estado,fecha_tesoreria:new Date().toISOString().slice(0,10)}).eq('id',id)
   await loadAll();rAdmCarp();rAdmStats()

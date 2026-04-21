@@ -2208,7 +2208,7 @@ function rAdmCarp(){
           +'<span class="carp-arrow" data-key="'+k+'" style="font-size:18px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:'+(abierta?'rotate(90deg)':'rotate(0deg)')+'">›</span>'
           +'<div>'
             +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-              +'<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">C#'+(ks.indexOf(k)+1)+'</span>'
+              +'<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">C#'+(ks.length-ks.indexOf(k))+'</span>'
       +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+p.label+'</span>'
               +badges
             +'</div>'
@@ -2370,37 +2370,51 @@ function rAdmTodas(){
   else if(fe==='venta_completa')ops=ops.filter(x=>x.monto>=200000)
   else if(fe==='venta_bonificada')ops=ops.filter(x=>x.monto>=100000&&x.monto<200000)
   if(!ops.length){html('adm-tob','<div class="es">Sin operaciones</div>');return}
-  // sorting for todas
-  let sorted=ops.slice()
-  const sf=admTodasSort.field,sd2=admTodasSort.dir
-  if(sf)sorted.sort((a,b)=>{
+  const sf=admTodasSort.field,sd=admTodasSort.dir
+  ops.sort((a,b)=>{
     let va=a[sf]||'',vb=b[sf]||''
     if(sf==='monto'){va=a.monto;vb=b.monto}
-    if(typeof va==='number')return sd2==='asc'?va-vb:vb-va
-    return sd2==='asc'?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va))
+    if(typeof va==='number')return sd==='asc'?va-vb:vb-va
+    return sd==='asc'?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va))
   })
-  const thA=(f,lbl)=>`<th style="cursor:pointer;user-select:none" onclick="sortAdmTodas('${f}')">${lbl}${admTodasSort.field===f?(admTodasSort.dir==='asc'?' ↑':' ↓'):' ↕'}</th>`
-  html('adm-tob',`<table><thead><tr>
-    ${thA('fecha','Fecha')}${thA('asesor_nombre','Asesor')}${thA('cliente','Cliente')}
-    <th>Celular</th>${thA('plan','Plan')}<th>Pago</th>
-    ${thA('monto','Monto')}${thA('estado','Categoria')}
-    <th>Tesoreria</th><th>Obs</th><th>Accion</th>
-  </tr></thead>
-  <tbody>${sorted.map(op=>{const c=categ(op.monto);return`<tr>
-    <td><div>${fmtD(op.fecha)}</div>${op.fecha_carga&&op.fecha_carga!==op.fecha?'<div style="font-size:10px;color:var(--amber);margin-top:1px">cargada '+fmtD(op.fecha_carga)+'</div>':''}</td><td style="color:var(--text)">${op.asesor_nombre}</td>
-    <td>${op.cliente}</td>
-    <td style="font-family:var(--mono);font-size:12px">${op.celular||'-'}</td>
-    <td>${op.plan}</td><td>${op.metodo_pago||'-'}</td>
-    <td class="am">${fmt(op.monto)}</td>
-    <td><span class="badge ${c.cls}">${c.label}</span></td>
-    <td>${badgeE(op.carpeta_tesoreria||'pendiente')}</td>
-    <td style="max-width:100px;font-size:12px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(op.obs||'').replace(/"/g,"'")}">${op.obs||'-'}</td>
-    +(c.isVenta&&op.carpeta_tesoreria!=='aceptada'?'<button onclick="setTes(\''+op.id+'\',\'aceptada\'  )" style="font-size:11px;padding:3px 7px;background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:6px;color:var(--green);cursor:pointer">✓</button>':'')
-    +(c.isVenta&&op.carpeta_tesoreria!=='denegada'?'<button onclick="openDenegar(\''+op.id+'\'  )" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">✗</button>':'')
-    +'<button onclick="openEditFecha(\''+op.id+'\',\''+op.fecha+'\'  )" style="font-size:11px;padding:3px 7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer">📅</button>'
-    +'<button onclick="deleteOp(\''+op.id+'\',\'admin\'  )" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'
-  </tr>`}).join('')}</tbody></table>`)
+  const thA=function(f,lbl){
+    var arrow=admTodasSort.field===f?(admTodasSort.dir==='asc'?' ↑':' ↓'):' ↕'
+    return '<th style="cursor:pointer;user-select:none" onclick="sortAdmTodas(\''+f+'\')">'+lbl+arrow+'</th>'
+  }
+  let filas=''
+  ops.forEach(function(op){
+    const c=categ(op.monto)
+    const btnAceptar=c.isVenta&&op.carpeta_tesoreria!=='aceptada'
+      ?'<button onclick="setTes(\''+op.id+'\',\'aceptada\')" style="font-size:11px;padding:3px 7px;background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:6px;color:var(--green);cursor:pointer">✓</button>':''
+    const btnDenegar=c.isVenta&&op.carpeta_tesoreria!=='denegada'
+      ?'<button onclick="openDenegar(\''+op.id+'\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">✗</button>':''
+    const btnFecha='<button onclick="openEditFecha(\''+op.id+'\',\''+op.fecha+'\')" style="font-size:11px;padding:3px 7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer">📅</button>'
+    const btnMover='<button onclick="openMoverById(\''+op.id+'\')" style="font-size:11px;padding:3px 7px;background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);border-radius:6px;color:var(--purple);cursor:pointer">↗ Mover</button>'
+    const btnDel='<button onclick="deleteOp(\''+op.id+'\',\'admin\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'
+    const obsTitle=(op.obs||'').replace(/"/g,"'")
+    filas+='<tr>'
+      +'<td>'+fmtD(op.fecha)+'</td>'
+      +'<td style="color:var(--text)">'+op.asesor_nombre+'</td>'
+      +'<td>'+op.cliente+'</td>'
+      +'<td style="font-family:var(--mono);font-size:12px">'+(op.celular||'-')+'</td>'
+      +'<td>'+op.plan+'</td>'
+      +'<td>'+(op.metodo_pago||'-')+'</td>'
+      +'<td class="am">'+fmt(op.monto)+'</td>'
+      +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
+      +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
+      +'<td style="max-width:100px;font-size:12px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+obsTitle+'">'+(op.obs||'-')+'</td>'
+      +'<td><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+btnAceptar+btnDenegar+btnFecha+btnMover+btnDel+'</div></td>'
+      +'</tr>'
+  })
+  html('adm-tob','<table><thead><tr>'
+    +thA('fecha','Fecha')+thA('asesor_nombre','Asesor')+thA('cliente','Cliente')
+    +'<th>Celular</th>'+thA('plan','Plan')+'<th>Pago</th>'
+    +thA('monto','Monto')+thA('estado','Categoria')
+    +'<th>Tesoreria</th><th>Obs</th><th>Acciones</th>'
+    +'</tr></thead><tbody>'+filas+'</tbody></table>')
 }
+
+
 let admTodasSort={field:'fecha',dir:'desc'}
 function sortAdmTodas(f){
   if(admTodasSort.field===f)admTodasSort.dir=admTodasSort.dir==='asc'?'desc':'asc'
@@ -2930,7 +2944,7 @@ function openMover(opId, cliente){
   const sel=document.getElementById('mmov-sel')
   sel.innerHTML=ks.map((k,i)=>{
     const p=byP[k]
-    return '<option value="'+k+'">#'+(i+1)+' — '+p.label+' (cobro '+fmtD(p.cob.toISOString().slice(0,10))+')</option>'
+    return '<option value="'+k+'">#'+(ks.length-i)+' — '+p.label+' (cobro '+fmtD(p.cob.toISOString().slice(0,10))+')</option>'
   }).join('')
   // Preseleccionar la carpeta actual de la operación
   const op=allOps.find(x=>x.id===opId)
@@ -2941,7 +2955,7 @@ function openMover(opId, cliente){
   sel.onchange=()=>{
     const k=sel.value
     const p=byP[k]
-    if(p)document.getElementById('mmov-prev').innerHTML='Carpeta destino: <strong style="color:var(--text)">#'+(ks.indexOf(k)+1)+' — '+p.label+'</strong><br>Cobro estimado: '+fmtD(p.cob.toISOString().slice(0,10))
+    if(p)document.getElementById('mmov-prev').innerHTML='Carpeta destino: <strong style="color:var(--text)">#'+(ks.length-ks.indexOf(k))+' — '+p.label+'</strong><br>Cobro estimado: '+fmtD(p.cob.toISOString().slice(0,10))
   }
   sel.onchange()
   hi('mmov-err')

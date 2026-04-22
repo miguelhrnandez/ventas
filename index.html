@@ -239,12 +239,18 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 
 <!-- MODAL MOVER CARPETA -->
 <div id="modal-mover" class="modal-bg hidden">
-  <div class="modal">
+  <div class="modal" style="max-width:500px">
     <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Mover a otra carpeta</div>
     <div id="mmov-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div><label>Seleccionar carpeta destino</label>
-        <select id="mmov-sel" style="width:100%"></select>
+        <select id="mmov-sel" style="width:100%" onchange="onMoverSelChange()"></select>
+      </div>
+      <!-- Fecha personalizada (solo si elige "nueva carpeta") -->
+      <div id="mmov-fecha-custom" class="hidden">
+        <label>Fecha de la operación en la nueva carpeta</label>
+        <input id="mmov-fecha" type="date" oninput="onMoverFechaChange()">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">La carpeta se calculará automáticamente según la semana de esa fecha</div>
       </div>
       <div id="mmov-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)"></div>
       <div id="mmov-err" class="hidden em"></div>
@@ -2977,58 +2983,80 @@ async function deleteOp(id,source){
   }
 }
 // ═══ MOVER CARPETA ═══
-let moverOpId=null
+let moverOpId=null,moverCarpetasKs=[],moverCarpetasByP={}
 function openMoverById(opId){
-  const op=allOps.find(x=>x.id===opId)
+  var op=allOps.find(function(x){return x.id===opId})
   openMover(opId, op?op.cliente:'')
 }
 function openMover(opId, cliente){
   moverOpId=opId
   document.getElementById('mmov-info').textContent=cliente
-  // Construir lista de carpetas numeradas
-  const vn=allOps.filter(x=>categ(x.monto).isVenta)
-  const byP={}
-  vn.forEach(op=>{
-    const p=getPer(op.fecha)
-    if(!byP[p.key])byP[p.key]={...p}
+  var vn=allOps.filter(function(x){return categ(x.monto).isVenta})
+  moverCarpetasByP={}
+  vn.forEach(function(op){
+    var p=getPer(op.fecha)
+    if(!moverCarpetasByP[p.key])moverCarpetasByP[p.key]=Object.assign({},p)
   })
-  const ks=Object.keys(byP).sort().reverse()
-  const sel=document.getElementById('mmov-sel')
-  sel.innerHTML=ks.map((k,i)=>{
-    const p=byP[k]
-    return '<option value="'+k+'">#'+(ks.length-i)+' — '+p.label+' (cobro '+fmtD(p.cob.toISOString().slice(0,10))+')</option>'
-  }).join('')
-  // Preseleccionar la carpeta actual de la operación
-  const op=allOps.find(x=>x.id===opId)
+  moverCarpetasKs=Object.keys(moverCarpetasByP).sort().reverse()
+  var sel=document.getElementById('mmov-sel')
+  sel.innerHTML=moverCarpetasKs.map(function(k,i){
+    var p=moverCarpetasByP[k]
+    return '<option value="'+k+'">#'+(moverCarpetasKs.length-i)+' — '+p.label+' (cobro '+fmtD(p.cob.toISOString().slice(0,10))+')</option>'
+  }).join('')+'<option value="__nueva__">+ Nueva carpeta con fecha personalizada...</option>'
+  var op=allOps.find(function(x){return x.id===opId})
   if(op){
-    const perActual=getPer(op.fecha_tesoreria||op.fecha).key
-    if(ks.includes(perActual))sel.value=perActual
+    var perActual=getPer(op.fecha_tesoreria||op.fecha).key
+    if(moverCarpetasKs.includes(perActual))sel.value=perActual
   }
-  sel.onchange=()=>{
-    const k=sel.value
-    const p=byP[k]
-    if(p)document.getElementById('mmov-prev').innerHTML='Carpeta destino: <strong style="color:var(--text)">#'+(ks.length-ks.indexOf(k))+' — '+p.label+'</strong><br>Cobro estimado: '+fmtD(p.cob.toISOString().slice(0,10))
-  }
-  sel.onchange()
+  onMoverSelChange()
   hi('mmov-err')
   sh('modal-mover')
 }
+function onMoverSelChange(){
+  var k=document.getElementById('mmov-sel').value
+  var prev=document.getElementById('mmov-prev')
+  if(k==='__nueva__'){
+    sh('mmov-fecha-custom')
+    var hoy=new Date().toISOString().slice(0,10)
+    document.getElementById('mmov-fecha').value=hoy
+    onMoverFechaChange()
+  } else {
+    hi('mmov-fecha-custom')
+    var p=moverCarpetasByP[k]
+    if(p){
+      var num=moverCarpetasKs.length-moverCarpetasKs.indexOf(k)
+      prev.innerHTML='Carpeta destino: <strong style="color:var(--text)">#'+num+' — '+p.label+'</strong><br>Cobro estimado: <strong>'+fmtD(p.cob.toISOString().slice(0,10))+'</strong>'
+    }
+  }
+}
+function onMoverFechaChange(){
+  var f=document.getElementById('mmov-fecha').value
+  var prev=document.getElementById('mmov-prev')
+  if(!f){prev.textContent='';return}
+  var p=getPer(f)
+  prev.innerHTML='Se creará en carpeta: <strong style="color:var(--text)">'+p.label+'</strong><br>Llevar viernes: <strong>'+fmtD(p.vie.toISOString().slice(0,10))+'</strong> — Cobro: <strong>'+fmtD(p.cob.toISOString().slice(0,10))+'</strong>'
+}
 async function guardarMover(){
   hi('mmov-err')
-  const k=document.getElementById('mmov-sel').value
+  var k=document.getElementById('mmov-sel').value
   if(!k){sh('mmov-err');document.getElementById('mmov-err').textContent='Selecciona una carpeta.';return}
-  // Usar el lunes de esa semana como fecha_tesoreria
-  const p=getPer(k.split('_')[0])
-  const nuevaFecha=p.sat.toISOString().slice(0,10)
+  var nuevaFecha=''
+  if(k==='__nueva__'){
+    var f=document.getElementById('mmov-fecha').value
+    if(!f){sh('mmov-err');document.getElementById('mmov-err').textContent='Ingresa una fecha.';return}
+    nuevaFecha=f
+  } else {
+    var p=moverCarpetasByP[k]
+    nuevaFecha=p.sat.toISOString().slice(0,10)
+  }
   document.getElementById('mmov-btn').textContent='Moviendo...'
-  const{error}=await db.from('operaciones').update({fecha_tesoreria:nuevaFecha}).eq('id',moverOpId)
+  var res=await db.from('operaciones').update({fecha_tesoreria:nuevaFecha}).eq('id',moverOpId)
   document.getElementById('mmov-btn').textContent='Mover operacion'
-  if(error){sh('mmov-err');document.getElementById('mmov-err').textContent='Error al guardar.';return}
+  if(res.error){sh('mmov-err');document.getElementById('mmov-err').textContent='Error al guardar.';return}
   hi('modal-mover')
   moverOpId=null
   await loadAll();rAdmCarp();rAdmStats()
 }
-
 // ═══ RETENCIONES OB ═══
 function poblarFiltrosRet(){
   const meses={}

@@ -234,7 +234,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 
 <!-- MODAL EDITAR OPERACION -->
 <div id="modal-edit" class="modal-bg hidden">
-  <div class="modal">
+  <div class="modal" style="max-width:520px">
     <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Editar operacion</div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div><label>Nombre del cliente</label><input id="me-cliente" placeholder="Apellido y nombre"></div>
@@ -251,7 +251,24 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
           </div>
         </div>
       </div>
-      <div><label>Unidad / lote</label><input id="me-unidad" placeholder="Ej: 3B"></div>
+      <div class="g2">
+        <div><label>ID Reserva</label><input id="me-unidad" placeholder="Ej: 12345"></div>
+        <div><label>Celular del cliente</label><input id="me-celular" type="tel" placeholder="Ej: 11 1234-5678"></div>
+      </div>
+      <div>
+        <label>Forma de pago</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+          <div>
+            <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
+            <input id="me-ef" type="number" placeholder="0" oninput="prevEditPago()">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
+            <input id="me-tr" type="number" placeholder="0" oninput="prevEditPago()">
+          </div>
+        </div>
+        <div id="me-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
+      </div>
       <div><label>Observaciones</label><textarea id="me-obs" rows="2" style="resize:vertical"></textarea></div>
       <div id="me-prev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
       <div id="me-err" class="hidden em"></div>
@@ -998,7 +1015,25 @@ function openEdit(id){
   editId=id
   const esVenta=categ(op.monto).isVenta
   sv('me-cliente',op.cliente);sv('me-plan',op.plan);sv('me-monto',op.monto);sv('me-unidad',op.unidad||'')
-  sv('me-obs',op.obs||'')
+  sv('me-celular',op.celular||'');sv('me-obs',op.obs||'')
+  // Cargar forma de pago
+  var mpago=op.metodo_pago||''
+  var meEf=document.getElementById('me-ef'),meTr=document.getElementById('me-tr')
+  var mePrev=document.getElementById('me-pago-prev')
+  if(meEf)meEf.value=''
+  if(meTr)meTr.value=''
+  if(mePrev)mePrev.textContent=''
+  if(mpago){
+    if(mpago.includes('+')){ // "Efectivo $X + Transferencia $Y"
+      var partes=mpago.split('+')
+      if(meEf&&partes[0])meEf.value=partes[0].replace(/[^0-9]/g,'')
+      if(meTr&&partes[1])meTr.value=partes[1].replace(/[^0-9]/g,'')
+    } else if(mpago.toLowerCase().includes('efectivo')&&meEf){
+      meEf.value=op.monto||''
+    } else if(meTr){
+      meTr.value=op.monto||''
+    }
+  }
   const montoEl=document.getElementById('me-monto')
   const planEl=document.getElementById('me-plan')
   const lockEl=document.getElementById('me-monto-lock')
@@ -1015,6 +1050,16 @@ function openEdit(id){
   sh('modal-edit')
 }
 function closeEdit(){hi('modal-edit');editId=null}
+function prevEditPago(){
+  const ef=parseFloat(document.getElementById('me-ef')?.value)||0
+  const tr=parseFloat(document.getElementById('me-tr')?.value)||0
+  const el=document.getElementById('me-pago-prev')
+  if(!el)return
+  if(ef>0&&tr>0)el.innerHTML='<span style="color:var(--text2)">💵 Efectivo: <strong>'+fmt(ef)+'</strong> + 🏦 Transferencia: <strong>'+fmt(tr)+'</strong></span>'
+  else if(ef>0)el.innerHTML='<span style="color:var(--text2)">💵 Solo efectivo: <strong>'+fmt(ef)+'</strong></span>'
+  else if(tr>0)el.innerHTML='<span style="color:var(--text2)">🏦 Solo transferencia: <strong>'+fmt(tr)+'</strong></span>'
+  else el.textContent=''
+}
 function prevEditTipo(){
   const m=parseInt(gv('me-monto')),el=document.getElementById('me-prev')
   if(!m||isNaN(m)){hi('me-prev');return}sh('me-prev')
@@ -1024,6 +1069,13 @@ function prevEditTipo(){
 async function guardarEdit(){
   hi('me-err')
   const cl=gv('me-cliente').trim(),pl=gv('me-plan'),mo=parseInt(gv('me-monto')),un=gv('me-unidad').trim(),ob=gv('me-obs').trim()
+  const mecel=document.getElementById('me-celular')?.value?.trim()||''
+  const meef=parseFloat(document.getElementById('me-ef')?.value)||0
+  const metr=parseFloat(document.getElementById('me-tr')?.value)||0
+  let mepago=''
+  if(meef>0&&metr>0)mepago='Efectivo $'+Math.round(meef)+' + Transferencia $'+Math.round(metr)
+  else if(meef>0)mepago='Efectivo'
+  else if(metr>0)mepago='Transferencia'
   if(!cl||!pl||!mo||isNaN(mo)||mo<=0){sh('me-err');document.getElementById('me-err').textContent='Completa todos los campos.';return}
   const opActual=aOps.find(x=>x.id===editId)
   const c=categ(mo)
@@ -1033,7 +1085,7 @@ async function guardarEdit(){
     if(!ok)return
   }
   document.getElementById('me-btn').textContent='Guardando...'
-  const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
+  const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:mecel,metodo_pago:mepago||null,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
   document.getElementById('me-btn').textContent='Guardar cambios'
   if(error){sh('me-err');document.getElementById('me-err').textContent='Error al guardar.';return}
   closeEdit()

@@ -584,6 +584,10 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         Usuarios
       </button>
+      <button class="sb-item" onclick="admTab('cl',this)" id="sb-cl">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Clientes
+      </button>
     </div>
     <div class="sb-bottom">
       <button class="sb-item" onclick="sh('modal-mypass')" style="color:var(--text2)">
@@ -795,6 +799,36 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       </div>
     </div>
   </div>
+  <div id="adm-Tcl" class="hidden">
+    <div class="card" style="margin-bottom:14px;padding:14px 16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input id="cl-search" type="text" placeholder="Buscar cliente, asesor, OB..." oninput="rAdmClientes()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
+        <select id="cl-estado" onchange="rAdmClientes()" style="width:auto;font-size:13px">
+          <option value="">Todos los estados</option>
+          <option value="venta">Ventas</option>
+          <option value="reserva">Reservas</option>
+        </select>
+        <select id="cl-asesor" onchange="rAdmClientes()" style="width:auto;font-size:13px">
+          <option value="">Todos los asesores</option>
+        </select>
+        <select id="cl-ob" onchange="rAdmClientes()" style="width:auto;font-size:13px">
+          <option value="">Todas las OB</option>
+          <option value="sin">Sin OB</option>
+          <option value="con">Con OB</option>
+        </select>
+        <select id="cl-orden" onchange="rAdmClientes()" style="width:auto;font-size:13px">
+          <option value="fecha-desc">Más recientes</option>
+          <option value="fecha-asc">Más antiguos</option>
+          <option value="nombre-asc">A → Z</option>
+          <option value="monto-desc">Mayor cuota</option>
+          <option value="monto-asc">Menor cuota</option>
+        </select>
+      </div>
+    </div>
+    <div id="cl-count" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
+    <div id="cl-list"></div>
+  </div>
+
   </div>
 </div>
 
@@ -2754,7 +2788,7 @@ function pobPer(){
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq','ob','ret'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
+  ['cp','pr','co','to','us','inc','liq','ob','ret','cl'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   if(t==='co'){pobPer();rAdmCom()}
@@ -2763,6 +2797,7 @@ function admTab(t,btn){
   if(t==='pr')rAdmPres()
   if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
   if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
+  if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
 }
 
 // ═══ CAMBIAR FECHA ═══
@@ -3417,6 +3452,132 @@ function rRetenciones(){
     </div>
     ${rows}
   `)
+}
+
+
+// ═══ CLIENTES (ADMIN) ═══
+function toggleClienteAdmin(id){
+  clienteAbierto=clienteAbierto===id?null:id
+  rAdmClientes()
+}
+let clienteAbierto=null
+function poblarFiltrosClientes(){
+  const selAs=document.getElementById('cl-asesor')
+  if(selAs){
+    const asesores=[...new Set(allOps.map(x=>x.asesor_nombre).filter(Boolean))].sort()
+    selAs.innerHTML='<option value="">Todos los asesores</option>'+asesores.map(a=>'<option value="'+a+'">'+a+'</option>').join('')
+  }
+}
+function rAdmClientes(){
+  const busq=(document.getElementById('cl-search')?.value||'').toLowerCase()
+  const estado=document.getElementById('cl-estado')?.value||''
+  const asesor=document.getElementById('cl-asesor')?.value||''
+  const ob=document.getElementById('cl-ob')?.value||''
+  const orden=document.getElementById('cl-orden')?.value||'fecha-desc'
+  let ops=[...allOps]
+  if(busq)ops=ops.filter(x=>
+    x.cliente.toLowerCase().includes(busq)||
+    (x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq))||
+    (x.ob_nombre&&x.ob_nombre.toLowerCase().includes(busq))
+  )
+  if(estado)ops=ops.filter(x=>x.estado===estado)
+  if(asesor)ops=ops.filter(x=>x.asesor_nombre===asesor)
+  if(ob==='sin')ops=ops.filter(x=>!x.ob_id)
+  else if(ob==='con')ops=ops.filter(x=>x.ob_id)
+  if(orden==='fecha-desc')ops.sort((a,b)=>b.fecha.localeCompare(a.fecha))
+  else if(orden==='fecha-asc')ops.sort((a,b)=>a.fecha.localeCompare(b.fecha))
+  else if(orden==='nombre-asc')ops.sort((a,b)=>a.cliente.localeCompare(b.cliente))
+  else if(orden==='monto-desc')ops.sort((a,b)=>b.monto-a.monto)
+  else if(orden==='monto-asc')ops.sort((a,b)=>a.monto-b.monto)
+  var countEl=document.getElementById('cl-count')
+  if(countEl)countEl.textContent=ops.length+' cliente'+(ops.length!==1?'s':'')+' encontrado'+(ops.length!==1?'s':'')
+  if(!ops.length){html('cl-list','<div class="card"><div class="es">Sin resultados</div></div>');return}
+  var out=''
+  ops.forEach(function(op){
+    var c=categ(op.monto)
+    var abierto=clienteAbierto===op.id
+    var movs=allObMovs.filter(function(m){return m.operacion_id===op.id})
+    var pagos=allObPagos.filter(function(p){return p.operacion_id===op.id})
+    // Badges resumen
+    var badgeEstado='<span class="badge '+c.cls+'">'+c.label+'</span>'
+    var badgeTes=badgeE(op.carpeta_tesoreria||'pendiente')
+    var badgeOB=op.ob_nombre?'<span class="badge b-on_boarding">OB: '+op.ob_nombre+'</span>':''
+    var badgeBaja=op.ob_baja?'<span class="badge b-den">Baja</span>':''
+    var cuotasStr=pagos.length+'/6'
+
+    // Detalle expandido
+    var detalle=''
+    if(abierto){
+      // Info principal
+      var infoRows=''
+        +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px">'
+          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asesor</div><div style="font-size:13px;color:var(--text)">'+op.asesor_nombre+'</div></div>'
+          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Plan</div><div style="font-size:13px;color:var(--text)">'+op.plan+'</div></div>'
+          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Cuota</div><div style="font-size:13px;color:var(--text)" class="am">'+fmt(op.monto)+'</div></div>'
+          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Categoría</div>'+badgeEstado+'</div>'
+          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tesorería</div>'+badgeTes+'</div>'
+          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Alta</div><div style="font-size:13px;color:var(--text)">'+fmtD(op.fecha)+'</div></div>'
+          +(op.celular?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Celular</div><div style="font-size:13px;color:var(--text)">'+op.celular+'</div></div>':'')
+          +(op.metodo_pago?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Pago</div><div style="font-size:13px;color:var(--text)">'+op.metodo_pago+'</div></div>':'')
+          +(op.unidad?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">ID Reserva</div><div style="font-size:13px;color:var(--text)">'+op.unidad+'</div></div>':'')
+          +(op.presentador_nombre?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Presentador</div><div style="font-size:13px;color:var(--text)">'+op.presentador_nombre+'</div></div>':'')
+        +'</div>'
+      // OB
+      var obSection=''
+      if(op.ob_id){
+        obSection='<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">On Boarding: '+op.ob_nombre+(op.ob_baja?' <span class="badge b-den" style="font-size:10px">Baja</span>':'')+'</div>'
+        // Movimientos OB
+        if(movs.length){
+          obSection+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
+          movs.forEach(function(m){
+            var com=m.tipo==='incremento'?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):Math.round(m.monto*0.10)
+            var badge=m.tipo==='incremento'?(m.antes_72hrs?'<span style="font-size:10px;color:var(--blue)">≤72hs</span>':'<span style="font-size:10px;color:var(--amber)">>72hs</span>'):'<span style="font-size:10px;color:var(--teal)">Ahorro</span>'
+            obSection+='<div style="background:var(--bg3);border-radius:8px;padding:8px 12px;font-size:12px">'+badge+' <span class="am">'+fmt(m.monto)+'</span> → <span class="at">'+fmt(com)+'</span>'+(m.registrado_por&&m.registrado_por!==op.ob_nombre?' <span style="font-size:10px;color:var(--amber)">⚡ por '+m.registrado_por+'</span>':'')+'</div>'
+          })
+          obSection+='</div>'
+        }
+        // Cuotas
+        if(pagos.length){
+          var OBC={1:{a:20000,d:10000},2:{a:15000,d:7500},3:{a:10000,d:5000},4:{a:10000,d:5000},5:{a:10000,d:5000},6:{a:10000,d:5000}}
+          obSection+='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">'
+          for(var n=1;n<=6;n++){
+            var pago=pagos.find(function(p){return p.numero_cuota===n})
+            if(pago){
+              var t=OBC[n]||{a:0,d:0}
+              var com2=pago.dia_del_mes<=10?t.a:t.d
+              obSection+='<div style="background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;color:var(--text3)">M'+n+'</div><div style="font-size:11px;color:var(--green)">Día '+pago.dia_del_mes+'</div>'+(pago.metodo_pago?'<div style="font-size:9px;color:var(--text3)">'+pago.metodo_pago+'</div>':'')+'<div style="font-size:11px;color:var(--teal)">'+fmt(com2)+'</div></div>'
+            } else {
+              obSection+='<div style="background:var(--bg3);border-radius:8px;padding:8px;text-align:center;opacity:0.5"><div style="font-size:10px;color:var(--text3)">M'+n+'</div><div style="font-size:11px;color:var(--text3)">Pendiente</div></div>'
+            }
+          }
+          obSection+='</div>'
+        }
+        if(op.ob_notas)obSection+='<div style="font-size:12px;color:var(--text2);margin-top:8px">📝 '+op.ob_notas+'</div>'
+        obSection+='</div>'
+      }
+      // Observaciones
+      var obsSection=op.obs?'<div style="font-size:12px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px">💬 '+op.obs+'</div>':''
+      detalle='<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">'+infoRows+obSection+obsSection+'</div>'
+    }
+    out+='<div class="card" style="margin-bottom:8px">'
+      +'<div onclick="toggleClienteAdmin(\''+op.id+'\')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;flex-wrap:wrap;gap:8px">'
+        +'<div style="display:flex;align-items:center;gap:10px">'
+          +'<span style="font-size:16px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:'+(abierto?'rotate(90deg)':'rotate(0deg)')+'">›</span>'
+          +'<div>'
+            +'<div style="font-size:14px;font-weight:600;color:var(--text)">'+op.cliente+'</div>'
+            +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+op.asesor_nombre+' · '+fmtD(op.fecha)+'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+          +badgeEstado+badgeTes+badgeOB+badgeBaja
+          +(op.ob_id?'<span style="font-size:11px;color:var(--text3)">'+cuotasStr+' cuotas</span>':'')
+          +'<span class="am" style="font-size:13px;font-weight:600">'+fmt(op.monto)+'</span>'
+        +'</div>'
+      +'</div>'
+      +detalle
+    +'</div>'
+  })
+  html('cl-list',out)
 }
 
 

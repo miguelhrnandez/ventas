@@ -237,6 +237,42 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
   </div>
 </div>
 
+<!-- MODAL PERSONALIZAR CARPETA -->
+<div id="modal-carp-fechas" class="modal-bg hidden">
+  <div class="modal" style="max-width:480px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Personalizar fechas de carpeta</div>
+    <div id="mcf-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:var(--amber-bg);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px;font-size:12px;color:var(--amber)">
+        ⚠ Usá esto solo para casos especiales (feriados, imprevistos). Las fechas automáticas se calculan viernes a jueves.
+      </div>
+      <div class="g3">
+        <div>
+          <label>Fecha de cierre</label>
+          <input id="mcf-cierre" type="date">
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Último día que entra en esta carpeta</div>
+        </div>
+        <div>
+          <label>Fecha de entrega</label>
+          <input id="mcf-llevar" type="date">
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Día que la llevás a tesorería</div>
+        </div>
+        <div>
+          <label>Fecha de cobro</label>
+          <input id="mcf-cobro" type="date">
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Día estimado de cobro</div>
+        </div>
+      </div>
+      <div id="mcf-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-carp-fechas')" style="flex:1">Cancelar</button>
+        <button onclick="resetCarpFechas()" style="flex:1;color:var(--text2)">Restablecer auto</button>
+        <button class="bp" onclick="guardarCarpFechas()" id="mcf-btn" style="flex:2">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL MOVER CARPETA -->
 <div id="modal-mover" class="modal-bg hidden">
   <div class="modal" style="max-width:500px">
@@ -861,7 +897,7 @@ async function loadAll(){
   const[o,u,l,om,op]=await Promise.all([
     db.from('operaciones').select('*').order('fecha',{ascending:false}),
     db.from('usuarios').select('*').order('nombre'),
-    db.from('carpetas_llevadas').select('periodo_key'),
+    db.from('carpetas_llevadas').select('periodo_key,fecha_llevada,nro_sop,fecha_cierre_custom,fecha_llevar_custom,fecha_cobro_custom'),
     db.from('ob_movimientos').select('*').order('fecha',{ascending:false}),
     db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
   ])
@@ -2198,7 +2234,17 @@ function rAdmCarp(){
   vn.forEach(op=>{
     const p=getPer(op.fecha)
     const llRec=allLlData.find(x=>x.periodo_key===p.key)
-    if(!byP[p.key])byP[p.key]={...p,ops:[],ll:allLl.includes(p.key),nro_sop:llRec?llRec.nro_sop:''}
+    if(!byP[p.key]){
+      var pEff={...p}
+      if(llRec&&llRec.fecha_llevar_custom)pEff.vie=new Date(llRec.fecha_llevar_custom+'T12:00:00')
+      if(llRec&&llRec.fecha_cobro_custom)pEff.cob=new Date(llRec.fecha_cobro_custom+'T12:00:00')
+      if(llRec&&llRec.fecha_cierre_custom)pEff.thu=new Date(llRec.fecha_cierre_custom+'T12:00:00')
+      byP[p.key]={...pEff,ops:[],ll:allLl.includes(p.key),nro_sop:llRec?llRec.nro_sop:'',
+        fecha_cierre_custom:llRec?llRec.fecha_cierre_custom:'',
+        fecha_llevar_custom:llRec?llRec.fecha_llevar_custom:'',
+        fecha_cobro_custom:llRec?llRec.fecha_cobro_custom:''
+      }
+    }
     byP[p.key].ops.push(op)
   })
   const ks=Object.keys(byP).sort().reverse()
@@ -2258,12 +2304,14 @@ function rAdmCarp(){
         +'</tr>'
     })
 
+    const hasCustom=p.fecha_llevar_custom||p.fecha_cobro_custom||p.fecha_cierre_custom
+    const customBadge=hasCustom?'<span class="badge" style="background:var(--amber-bg);color:var(--amber);font-size:10px">📅 Fechas ajustadas</span>':''
+    const btnPersonalizar='<button onclick="event.stopPropagation();openCarpFechas(\''+k+'\')" style="font-size:11px;padding:4px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;color:var(--text2);cursor:pointer">⚙ Ajustar fechas</button>'
     const llBtn=p.ll
       ?'<span class="badge" style="background:var(--blue-bg);color:var(--blue)">✓ Llevada</span>'
-      :'<button class="bp" onclick="event.stopPropagation();markLL(\''+k+'\')" style="font-size:12px;padding:5px 12px">Marcar como llevada</button>'
+      :'<button class="bp" onclick="event.stopPropagation();markLL(\''+k+'\' )" style="font-size:12px;padding:5px 12px">Marcar como llevada</button>'
 
     const borderLeft=p.ll?'border-left:3px solid var(--blue);':''
-
     out+='<div class="card" style="margin-bottom:10px;'+borderLeft+'">'
       // HEADER colapsable
       +'<div onclick="toggleCarpeta(\''+k+'\')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;flex-wrap:wrap;gap:8px;padding:4px 0">'
@@ -2292,6 +2340,7 @@ function rAdmCarp(){
               +'<span style="font-size:11px;color:var(--text3);white-space:nowrap">N° SOP:</span>'
               +'<input id="sop-'+k+'" type="text" value="'+(p.nro_sop||'')+'" placeholder="Ej: 12345" onclick="event.stopPropagation()" style="width:90px;font-size:12px;padding:2px 6px;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:var(--mono);outline:none" onchange="event.stopPropagation();guardarSOP(\''+k+'\',this.value);this.style.color=\'var(--teal)\'" onblur="guardarSOP(\''+k+'\',this.value)">'
             +'</div>'
+            +btnPersonalizar
             +llBtn
           +'</div>'
         +'</div>'
@@ -3062,6 +3111,55 @@ async function guardarMover(){
   moverOpId=null
   await loadAll();rAdmCarp();rAdmStats()
 }
+// ═══ CARPETA FECHAS CUSTOM ═══
+let carpFechasKey=null
+function openCarpFechas(k){
+  carpFechasKey=k
+  const p=Object.values(Object.fromEntries(Object.entries(
+    (()=>{const byP={};allOps.filter(x=>categ(x.monto).isVenta).forEach(op=>{const p2=getPer(op.fecha);if(!byP[p2.key])byP[p2.key]=p2});return byP})()
+  ))).find(x=>x.key===k)||getPer(k.split('_')[0])
+  const llRec=allLlData.find(x=>x.periodo_key===k)||{}
+  document.getElementById('mcf-info').textContent='Carpeta: '+fmtD(k.split('_')[0])+' al '+fmtD(k.split('_')[1])
+  document.getElementById('mcf-cierre').value=llRec.fecha_cierre_custom||k.split('_')[1]
+  document.getElementById('mcf-llevar').value=llRec.fecha_llevar_custom||p.vie.toISOString().slice(0,10)
+  document.getElementById('mcf-cobro').value=llRec.fecha_cobro_custom||p.cob.toISOString().slice(0,10)
+  hi('mcf-err')
+  sh('modal-carp-fechas')
+}
+async function resetCarpFechas(){
+  if(!carpFechasKey)return
+  document.getElementById('mcf-btn').textContent='Guardando...'
+  await db.from('carpetas_llevadas').upsert({
+    periodo_key:carpFechasKey,
+    fecha_cierre_custom:null,
+    fecha_llevar_custom:null,
+    fecha_cobro_custom:null
+  })
+  document.getElementById('mcf-btn').textContent='Guardar'
+  hi('modal-carp-fechas')
+  carpFechasKey=null
+  await loadAll();rAdmCarp()
+}
+async function guardarCarpFechas(){
+  hi('mcf-err')
+  const cierre=document.getElementById('mcf-cierre').value
+  const llevar=document.getElementById('mcf-llevar').value
+  const cobro=document.getElementById('mcf-cobro').value
+  if(!cierre||!llevar||!cobro){sh('mcf-err');document.getElementById('mcf-err').textContent='Completa todas las fechas.';return}
+  document.getElementById('mcf-btn').textContent='Guardando...'
+  const{error}=await db.from('carpetas_llevadas').upsert({
+    periodo_key:carpFechasKey,
+    fecha_cierre_custom:cierre,
+    fecha_llevar_custom:llevar,
+    fecha_cobro_custom:cobro
+  })
+  document.getElementById('mcf-btn').textContent='Guardar'
+  if(error){sh('mcf-err');document.getElementById('mcf-err').textContent='Error al guardar.';return}
+  hi('modal-carp-fechas')
+  carpFechasKey=null
+  await loadAll();rAdmCarp()
+}
+
 // ═══ RETENCIONES OB ═══
 function poblarFiltrosRet(){
   const meses={}

@@ -994,7 +994,7 @@ async function loadAll(){
 
 // ═══ MODAL EDITAR ═══
 function openEdit(id){
-  const op=aOps.find(x=>x.id===id);if(!op)return
+  const op=aOps.find(x=>String(x.id)===String(id));if(!op)return
   editId=id
   const esVenta=categ(op.monto).isVenta
   sv('me-cliente',op.cliente);sv('me-plan',op.plan);sv('me-monto',op.monto);sv('me-unidad',op.unidad||'')

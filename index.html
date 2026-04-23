@@ -998,7 +998,7 @@ function openEdit(id){
   editId=id
   const esVenta=categ(op.monto).isVenta
   sv('me-cliente',op.cliente);sv('me-plan',op.plan);sv('me-monto',op.monto);sv('me-unidad',op.unidad||'')
-  sv('me-celular',op.celular||'');sv('me-mpago',op.metodo_pago||'');sv('me-obs',op.obs||'')
+  sv('me-obs',op.obs||'')
   const montoEl=document.getElementById('me-monto')
   const planEl=document.getElementById('me-plan')
   const lockEl=document.getElementById('me-monto-lock')
@@ -1023,7 +1023,7 @@ function prevEditTipo(){
 }
 async function guardarEdit(){
   hi('me-err')
-  const cl=gv('me-cliente').trim(),pl=gv('me-plan'),mo=parseInt(gv('me-monto')),un=gv('me-unidad').trim(),cel=gv('me-celular').trim(),mpago=gv('me-mpago'),ob=gv('me-obs').trim()
+  const cl=gv('me-cliente').trim(),pl=gv('me-plan'),mo=parseInt(gv('me-monto')),un=gv('me-unidad').trim(),ob=gv('me-obs').trim()
   if(!cl||!pl||!mo||isNaN(mo)||mo<=0){sh('me-err');document.getElementById('me-err').textContent='Completa todos los campos.';return}
   const opActual=aOps.find(x=>x.id===editId)
   const c=categ(mo)
@@ -1033,7 +1033,7 @@ async function guardarEdit(){
     if(!ok)return
   }
   document.getElementById('me-btn').textContent='Guardando...'
-  const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:cel,metodo_pago:mpago,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
+  const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
   document.getElementById('me-btn').textContent='Guardar cambios'
   if(error){sh('me-err');document.getElementById('me-err').textContent='Error al guardar.';return}
   closeEdit()

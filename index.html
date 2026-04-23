@@ -728,14 +728,19 @@ function calcC(m){
 function calcJV(m){return m<100000?0:m*0.165}
 
 function getPer(ds){
+  // Semana: viernes a jueves
+  // day: 0=dom,1=lun,2=mar,3=mie,4=jue,5=vie,6=sab
   const d=new Date(ds+'T12:00:00'),day=d.getDay()
-  const dts=day===6?0:day+1
-  const sat=new Date(d);sat.setDate(d.getDate()-dts)
-  const thu=new Date(sat);thu.setDate(sat.getDate()+6)
-  const vie=new Date(thu);vie.setDate(thu.getDate()+1)
-  const cob=new Date(vie);cob.setDate(vie.getDate()+6)
-  const key=sat.toISOString().slice(0,10)+'_'+thu.toISOString().slice(0,10)
-  return{key,sat,thu,vie,cob,label:fmtD(sat.toISOString().slice(0,10))+' al '+fmtD(thu.toISOString().slice(0,10))}
+  // Días hasta el viernes anterior (inicio de semana)
+  const dtsVie=day===5?0:day===6?1:day+2
+  const vie=new Date(d);vie.setDate(d.getDate()-dtsVie)
+  const thu=new Date(vie);thu.setDate(vie.getDate()+6)
+  // Llevar: el viernes siguiente (día después del jueves)
+  const llevar=new Date(thu);llevar.setDate(thu.getDate()+1)
+  // Cobro: viernes siguiente al llevar
+  const cob=new Date(llevar);cob.setDate(llevar.getDate()+7)
+  const key=vie.toISOString().slice(0,10)+'_'+thu.toISOString().slice(0,10)
+  return{key,sat:vie,thu,vie:llevar,cob,label:fmtD(vie.toISOString().slice(0,10))+' al '+fmtD(thu.toISOString().slice(0,10))}
 }
 function badgeE(e){
   if(e==='aceptada'||e==='aceptado')return'<span class="badge b-acp">Aceptada</span>'

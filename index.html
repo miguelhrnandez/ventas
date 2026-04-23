@@ -1138,25 +1138,36 @@ function rAStats(){
 }
 function rAOps(){
   if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciones</div>');return}
-  html('a-ob',`<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Monto</th><th>Categoria</th><th>Tesoreria</th><th>Llevada</th><th>Accion</th></tr></thead>
-  <tbody>${aOps.map(op=>{const c=categ(op.monto);
-    const tes=op.carpeta_tesoreria||'pendiente'
-    const tesBadge=tes==='aceptada'
+  var filas=''
+  aOps.forEach(function(op){
+    var c=categ(op.monto)
+    var tes=op.carpeta_tesoreria||'pendiente'
+    var tesBadge=tes==='aceptada'
       ?'<span class="badge b-acp">Aceptada</span>'
       :tes==='denegada'
-        ?'<div><span class="badge b-den">Denegada</span>'+(op.motivo_denegacion?`<div style="font-size:11px;color:var(--red);margin-top:3px;max-width:160px">💬 ${op.motivo_denegacion}</div>`:'')+'</div>'
+        ?'<div><span class="badge b-den">Denegada</span>'+(op.motivo_denegacion?'<div style="font-size:11px;color:var(--red);margin-top:3px">💬 '+op.motivo_denegacion+'</div>':'')+'</div>'
         :'<span class="badge b-pend">Pendiente</span>'
-    const ll=op.carpeta_llevada?'<span style="font-size:11px;color:var(--blue)">✓ Llevada</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'
-    return`<tr>
-    <td><div>${fmtD(op.fecha)}</div>${op.fecha_carga&&op.fecha_carga!==op.fecha?'<div style="font-size:10px;color:var(--amber);margin-top:1px">cargada '+fmtD(op.fecha_carga)+'</div>':''}</td><td style="color:var(--text)">${op.cliente}</td><td>${op.plan}</td><td>${op.unidad||'-'}</td>
-    <td class="am">${fmt(op.monto)}</td>
-    <td><span class="badge ${c.cls}">${c.label}</span></td>
-    <td>${tesBadge}</td>
-    <td>${ll}</td>
-    ${'<button onclick="openEdit(\''+op.id+'\' )" style="font-size:11px;padding:3px 7px;background:var(--blue-bg);border:1px solid rgba(96,165,250,0.2);border-radius:6px;color:var(--blue);cursor:pointer">✏ Editar</button>'
-    +'<button onclick="deleteOp(\''+op.id+'\',\'asesor\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'}
-  </tr>`}).join('')}</tbody></table>`)
+    var ll=op.carpeta_llevada?'<span style="font-size:11px;color:var(--blue)">✓ Llevada</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'
+    var fechaExtra=op.fecha_carga&&op.fecha_carga!==op.fecha?'<div style="font-size:10px;color:var(--amber);margin-top:1px">cargada '+fmtD(op.fecha_carga)+'</div>':''
+    var oid=String(op.id)
+    filas+='<tr>'
+      +'<td><div>'+fmtD(op.fecha)+'</div>'+fechaExtra+'</td>'
+      +'<td style="color:var(--text)">'+op.cliente+'</td>'
+      +'<td>'+op.plan+'</td>'
+      +'<td>'+(op.unidad||'-')+'</td>'
+      +'<td class="am">'+fmt(op.monto)+'</td>'
+      +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
+      +'<td>'+tesBadge+'</td>'
+      +'<td>'+ll+'</td>'
+      +'<td><div style="display:flex;gap:4px">'
+        +'<button onclick="openEdit(\''+oid+'\')" style="font-size:11px;padding:3px 7px;background:var(--blue-bg);border:1px solid rgba(96,165,250,0.2);border-radius:6px;color:var(--blue);cursor:pointer">✏ Editar</button>'
+        +'<button onclick="deleteOp(\''+oid+'\',\'asesor\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'
+      +'</div></td>'
+      +'</tr>'
+  })
+  html('a-ob','<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Monto</th><th>Categoria</th><th>Tesoreria</th><th>Llevada</th><th>Accion</th></tr></thead><tbody>'+filas+'</tbody></table>')
 }
+
 function prevPago(){
   const ef=parseFloat(document.getElementById('n-ef')?.value)||0
   const tr=parseFloat(document.getElementById('n-tr')?.value)||0

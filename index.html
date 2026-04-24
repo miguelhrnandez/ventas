@@ -2592,17 +2592,17 @@ async function setPagoPres(opId,estado){
 }
 let admComSort={field:"total",dir:"desc"}
 function rAdmCom(){
-  // Comisiones agrupadas por fecha de aceptacion (fecha_tesoreria)
+  // Comisiones agrupadas igual que las carpetas (fecha_carpeta || fecha)
   const filtro=gv('adm-fp')
-  const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
-  vn.forEach(op=>{const p=getPer(op.fecha_tesoreria);if(filtro&&p.key!==filtro)return;if(!byP[p.key])byP[p.key]={label:p.label,cob:p.cob,ops:[]};byP[p.key].ops.push(op)})
+  const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
+  vn.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);if(filtro&&p.key!==filtro)return;if(!byP[p.key])byP[p.key]={label:p.label,cob:p.cob,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   if(!ks.length){html('adm-cob','<div class="es">Sin datos</div>');return}
   const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
   html('adm-cob',ks.map(k=>{
     const p=byP[k]
     const porAs={}
-    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,ops:0};porAs[op.asesor_id].com+=calcC(op.monto);porAs[op.asesor_id].ops+=1})
+    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesoreria==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto)}else{porAs[op.asesor_id].comPend+=calcC(op.monto)};porAs[op.asesor_id].ops+=1})
     const opAh=p.ops.filter(x=>x.plan==='Ahorro'),comJA=opAh.reduce((a,x)=>a+calcJV(x.monto),0)
     const opPo=p.ops.filter(x=>x.plan==='Pozo'),comJP=opPo.reduce((a,x)=>a+calcJV(x.monto),0)
     const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id)
@@ -2629,9 +2629,12 @@ function rAdmCom(){
           const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentadores',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
           let rows=[
             ...Object.values(porAs).map(r=>{
-              const acpCount=p.ops.filter(x=>x.asesor_id===r.aid).length
-              const status='<span class="badge b-acp">'+acpCount+' aceptada'+(acpCount!==1?'s':'')+'</span>'
-              return{nombre:r.nombre,rolKey:'asesor',total:r.com,det:r.ops+' venta'+(r.ops!==1?'s':'')+' - 50% c/tope $250k',colorCls:'ag',carpetaStatus:status}
+              const acpCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesoreria==='aceptada').length
+              const pendCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesoreria!=='aceptada').length
+              const status=acpCount>0&&pendCount===0?'<span class="badge b-acp">'+acpCount+' aceptada'+(acpCount!==1?'s':'')+'</span>':
+                acpCount>0?'<span class="badge b-acp">'+acpCount+' acept.</span> <span class="badge b-pend">'+pendCount+' pend.</span>':
+                '<span class="badge b-pend">'+pendCount+' pendiente'+(pendCount!==1?'s':'')+'</span>'
+              return{nombre:r.nombre,rolKey:'asesor',total:r.com,comPend:r.comPend,det:r.ops+' venta'+(r.ops!==1?'s':'')+' - 50% c/tope $250k',colorCls:'ag',carpetaStatus:status}
             }),
             ...(comJA>0?[{nombre:jefeAh?jefeAh.nombre:'Jefe Ahorro',rolKey:'jefe_ahorro',total:comJA,det:opAh.length+' ventas ahorro - 16.5%',colorCls:'ag'}]:[]),
             ...(comJP>0?[{nombre:jefePo?jefePo.nombre:'Jefe Pozo',rolKey:'jefe_pozo',total:comJP,det:opPo.length+' ventas pozo - 16.5%',colorCls:'ag'}]:[]),
@@ -2655,7 +2658,7 @@ function rAdmCom(){
             <td><span class="badge b-${r.rolKey}">${rl[r.rolKey]}</span></td>
             <td style="font-size:12px;color:var(--text3)">${r.det}</td>
             <td>${r.carpetaStatus||''}</td>
-            <td class="${r.colorCls}">${fmt(r.total)}</td></tr>`).join('')
+            <td class="${r.colorCls}">${fmt(r.total)}${r.comPend>0?'<div style="font-size:11px;color:var(--amber)">' + fmt(r.comPend) + ' pend.</div>':''}</td></tr>`).join('')
         })()}
       </tbody>
       <tfoot><tr><td colspan="3" style="font-weight:600;color:var(--text)">Total del periodo</td><td class="ag" style="font-weight:600">${fmt(totGen)}</td></tr></tfoot>
@@ -2782,7 +2785,7 @@ async function delUser(id){
 }
 function pobPer(){
   const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
-  vn.forEach(op=>{const p=getPer(op.fecha_tesoreria);byP[p.key]=p.label})
+  vn.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);byP[p.key]=p.label})
   const ks=Object.keys(byP).sort().reverse(),sel=document.getElementById('adm-fp'),cur=sel.value
   sel.innerHTML='<option value="">Todos los periodos</option>'+ks.map(k=>`<option value="${k}">${byP[k]}</option>`).join('')
   if(cur)sel.value=cur

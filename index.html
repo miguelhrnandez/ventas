@@ -2558,6 +2558,91 @@ async function markLL(key){
   }
   await loadAll();rAdmCarp()
 }
+// ═══ MOVER COMISION PRESENTADOR ═══
+let moverPresOpId=null
+function openMoverPres(opId, cliente){
+  moverPresOpId=opId
+  const op=allOps.find(x=>x.id===opId)
+  if(!op)return
+  const modal=document.createElement('div')
+  modal.id='modal-mover-pres'
+  modal.className='modal-bg'
+  // Armar opciones de carpetas
+  const vn=allOps.filter(x=>categ(x.monto).isVenta)
+  const byP={}
+  vn.forEach(op2=>{const p=getPer(op2.fecha_carpeta||op2.fecha);if(!byP[p.key])byP[p.key]=p})
+  const ks=Object.keys(byP).sort().reverse()
+  const perActual=getPer(op.fecha_pago_presentador||op.fecha_carpeta||op.fecha).key
+  const opts=ks.map(k2=>{
+    const p2=byP[k2]
+    return '<option value="'+k2+'"'+(k2===perActual?' selected':'')+'>'+p2.label+' (cobro '+fmtD(p2.cob.toISOString().slice(0,10))+')</option>'
+  }).join('')
+  modal.innerHTML='<div class="modal"><div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)">Mover comisión presentador</div>'
+    +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">'+cliente+'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label>Carpeta destino</label><select id="mpres-sel" style="width:100%">'+opts+'</select></div>'
+    +'<div style="display:flex;gap:8px;margin-top:4px">'
+    +'<button onclick="cerrarModalPres()" style="flex:1">Cancelar</button>'
+    +'<button class="bp" onclick="guardarMoverPres()" style="flex:2">Mover</button>'
+    +'</div></div></div>'
+  document.body.appendChild(modal)
+}
+function cerrarModalPres(){var m=document.getElementById('modal-mover-pres');if(m)m.remove()}
+function cerrarModalOB(){var m=document.getElementById('modal-mover-ob');if(m)m.remove()}
+async function guardarMoverPres(){
+  const sel=document.getElementById('mpres-sel')
+  if(!sel||!moverPresOpId)return
+  const perKey=sel.value
+  // Usar el sábado de esa carpeta como fecha_pago_presentador
+  const partes=perKey.split('_')
+  const nuevaFecha=partes[0]
+  await db.from('operaciones').update({fecha_pago_presentador:nuevaFecha}).eq('id',moverPresOpId)
+  document.getElementById('modal-mover-pres').remove()
+  moverPresOpId=null
+  await loadAll();rAdmPres()
+  if(!document.getElementById('adm-Tco').classList.contains('hidden')){pobPer();rAdmCom()}
+}
+
+// ═══ MOVER COMISION OB ═══
+let moverObMovId=null
+function openMoverOB(movId, cliente){
+  moverObMovId=movId
+  const mov=allObMovs.find(x=>x.id===movId)
+  if(!mov)return
+  const vn=allOps.filter(x=>categ(x.monto).isVenta)
+  const byP={}
+  vn.forEach(op2=>{const p=getPer(op2.fecha_carpeta||op2.fecha);if(!byP[p.key])byP[p.key]=p})
+  const ks=Object.keys(byP).sort().reverse()
+  const perActual=getPer(mov.fecha_pago||mov.fecha).key
+  const opts=ks.map(k2=>{
+    const p2=byP[k2]
+    return '<option value="'+k2+'"'+(k2===perActual?' selected':'')+'>'+p2.label+' (cobro '+fmtD(p2.cob.toISOString().slice(0,10))+')</option>'
+  }).join('')
+  const modal=document.createElement('div')
+  modal.id='modal-mover-ob'
+  modal.className='modal-bg'
+  modal.innerHTML='<div class="modal"><div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)">Mover comision OB</div>'
+    +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">'+cliente+' — '+(mov.tipo==='incremento'?(mov.antes_72hrs?'≤72hs':'>72hs'):'Ahorro')+' '+fmt(mov.monto)+'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label>Carpeta destino</label><select id="mob-sel" style="width:100%">'+opts+'</select></div>'
+    +'<div style="display:flex;gap:8px;margin-top:4px">'
+    +'<button onclick="cerrarModalOB()" style="flex:1">Cancelar</button>'
+    +'<button class="bp" onclick="guardarMoverOB()" style="flex:2">Mover</button>'
+    +'</div></div></div>'
+  document.body.appendChild(modal)
+}
+async function guardarMoverOB(){
+  const sel=document.getElementById('mob-sel')
+  if(!sel||!moverObMovId)return
+  const perKey=sel.value
+  const nuevaFecha=perKey.split('_')[0]
+  await db.from('ob_movimientos').update({fecha_pago:nuevaFecha}).eq('id',moverObMovId)
+  document.getElementById('modal-mover-ob').remove()
+  moverObMovId=null
+  await loadAll()
+  if(!document.getElementById('adm-Tco').classList.contains('hidden')){pobPer();rAdmCom()}
+}
+
 function rAdmPres(){
   const filtro=gv('adm-fpr'),vn=allOps.filter(x=>categ(x.monto).isVenta),pres=allUsers.filter(x=>x.rol==='presentador')
   let ops=vn
@@ -2577,6 +2662,7 @@ function rAdmPres(){
     <td><div style="display:flex;gap:4px">
       ${op.presentador_id&&op.pago_presentador!=='aceptado'?`<button class="bg" onclick="setPagoPres('${op.id}','aceptado')" style="font-size:11px;padding:3px 8px">Aceptar</button>`:''}
       ${op.presentador_id&&op.pago_presentador!=='denegado'?`<button class="br" onclick="setPagoPres('${op.id}','denegado')" style="font-size:11px;padding:3px 8px">Denegar</button>`:''}
+      <button onclick="openMoverPres('${op.id}','${op.cliente}')" style="font-size:11px;padding:3px 8px;background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);border-radius:6px;color:var(--purple);cursor:pointer">↗ Mover</button>
       <button class="br" onclick="deleteOp('${op.id}','admin')" style="font-size:11px;padding:3px 8px">Eliminar</button>
     </div></td>
   </tr>`).join('')}</tbody></table>`)
@@ -2613,11 +2699,11 @@ function rAdmCom(){
     p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesoreria==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto)}else{porAs[op.asesor_id].comPend+=calcC(op.monto)};porAs[op.asesor_id].ops+=1})
     const opAh=p.ops.filter(x=>x.plan==='Ahorro'),comJA=opAh.reduce((a,x)=>a+calcJV(x.monto),0)
     const opPo=p.ops.filter(x=>x.plan==='Pozo'),comJP=opPo.reduce((a,x)=>a+calcJV(x.monto),0)
-    const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id)
+    const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id&&getPer(x.fecha_pago_presentador||x.fecha_carpeta||x.fecha).key===k)
     const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
     // OB
     const obMap={}
-    allObMovs.filter(m=>getPer(m.fecha).key===k).forEach(m=>{
+    allObMovs.filter(m=>getPer(m.fecha_pago||m.fecha).key===k).forEach(m=>{
       if(!obMap[m.ob_id])obMap[m.ob_id]={nombre:m.ob_nombre,comInc:0,comAh:0,movs:[]}
       var opNom=allOps.find(x=>x.id===m.operacion_id)
       obMap[m.ob_id].movs.push({...m,cliente_nombre:opNom?opNom.cliente:'-'})
@@ -2715,9 +2801,13 @@ function rAdmCom(){
               r.obMovs.forEach(function(m){
                 var com=m.tipo==='incremento'?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):Math.round(m.monto*0.10)
                 var badge=m.tipo==='incremento'?(m.antes_72hrs?'≤72hs':'&gt;72hs'):'Ahorro'
-                detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">'
+                var mid=String(m.id).replace(/[^a-z0-9]/gi,'')
+                var cnombre=m.cliente_nombre.replace(/'/g,"\'")
+                detalleHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">'
                   +'<span style="color:var(--text)">'+m.cliente_nombre+' <span style="color:var(--text3)">('+badge+')</span></span>'
-                  +'<span style="display:flex;gap:10px"><span class="am">'+fmt(m.monto)+'</span><span class="at">'+fmt(com)+'</span></span>'
+                  +'<span style="display:flex;gap:8px;align-items:center"><span class="am">'+fmt(m.monto)+'</span><span class="at">'+fmt(com)+'</span>'
+                  +'<button data-obid="'+m.id+'" data-obcli="'+cnombre+'" onclick="openMoverOB(this.dataset.obid,this.dataset.obcli)" style="font-size:10px;padding:2px 7px;background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);border-radius:5px;color:var(--purple);cursor:pointer">&#x2197;</button>'
+                  +'</span>'
                 +'</div>'
               })
               detalleHtml+='</div></td></tr>'

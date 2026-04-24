@@ -2703,7 +2703,13 @@ function rAdmCom(){
     const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
     // OB
     const obMap={}
-    allObMovs.filter(m=>getPer(m.fecha_pago||m.fecha).key===k).forEach(m=>{
+    allObMovs.filter(m=>{
+      // Usar fecha_pago si fue movido manualmente, sino la carpeta de la operacion
+      if(m.fecha_pago) return getPer(m.fecha_pago).key===k
+      const opVinculada=allOps.find(x=>x.id===m.operacion_id)
+      if(opVinculada) return getPer(opVinculada.fecha_carpeta||opVinculada.fecha).key===k
+      return getPer(m.fecha).key===k
+    }).forEach(m=>{
       if(!obMap[m.ob_id])obMap[m.ob_id]={nombre:m.ob_nombre,comInc:0,comAh:0,movs:[]}
       var opNom=allOps.find(x=>x.id===m.operacion_id)
       obMap[m.ob_id].movs.push({...m,cliente_nombre:opNom?opNom.cliente:'-'})

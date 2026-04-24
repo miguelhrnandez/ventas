@@ -3300,6 +3300,7 @@ async function guardarMover(){
   hi('modal-mover')
   moverOpId=null
   await loadAll();rAdmCarp();rAdmStats()
+  if(!document.getElementById('adm-Tcl').classList.contains('hidden'))rAdmClientes()
 }
 // ═══ CARPETA FECHAS CUSTOM ═══
 let carpFechasKey=null
@@ -3557,7 +3558,15 @@ function rAdmClientes(){
       }
       // Observaciones
       var obsSection=op.obs?'<div style="font-size:12px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px">💬 '+op.obs+'</div>':''
-      detalle='<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">'+infoRows+obSection+obsSection+'</div>'
+      // Botón mover carpeta
+      var moverBtn=''
+      if(op.estado==='venta'||op.monto>=100000){
+        moverBtn='<div style="margin-top:12px;display:flex;gap:8px;align-items:center">'
+          +'<button onclick="event.stopPropagation();openMover(\''+op.id+'\',\''+op.cliente.replace(/'/g,"\'")+'\');" style="font-size:12px;padding:5px 12px;background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);border-radius:6px;color:var(--purple);cursor:pointer">↗ Mover carpeta</button>'
+          +'<span style="font-size:11px;color:var(--text3)">Carpeta actual: '+getPer(op.fecha).label+'</span>'
+        +'</div>'
+      }
+      detalle='<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">'+infoRows+obSection+obsSection+moverBtn+'</div>'
     }
     out+='<div class="card" style="margin-bottom:8px">'
       +'<div onclick="toggleClienteAdmin(\''+op.id+'\')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;flex-wrap:wrap;gap:8px">'

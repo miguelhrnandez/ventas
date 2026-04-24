@@ -1410,7 +1410,7 @@ function rJVStats(){
 }
 function rJVCarp(){
   const byP={}
-  jvOps.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  jvOps.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   if(!ks.length){html('jv-cpb','<div class="card"><div class="es">Sin carpetas aun</div></div>');return}
   let out=''
@@ -2421,8 +2421,7 @@ async function guardarSOP(key,val){
 function rAdmCarp(){
   const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
   vn.forEach(op=>{
-    const fechaCarp=op.fecha_tesoreria&&op.fecha_tesoreria!==op.fecha?op.fecha_tesoreria:op.fecha
-    const p=getPer(fechaCarp)
+    const p=getPer(op.fecha_carpeta||op.fecha)
     const llRec=allLlData.find(x=>x.periodo_key===p.key)
     if(!byP[p.key]){
       var pEff={...p}
@@ -3250,7 +3249,7 @@ function openMover(opId, cliente){
   }).join('')+'<option value="__nueva__">+ Nueva carpeta con fecha personalizada...</option>'
   var op=allOps.find(function(x){return x.id===opId})
   if(op){
-    var perActual=getPer(op.fecha_tesoreria&&op.fecha_tesoreria!==op.fecha?op.fecha_tesoreria:op.fecha).key
+    var perActual=getPer(op.fecha_carpeta||op.fecha).key
     if(moverCarpetasKs.includes(perActual))sel.value=perActual
   }
   onMoverSelChange()
@@ -3295,7 +3294,7 @@ async function guardarMover(){
     nuevaFecha=p.sat.toISOString().slice(0,10)
   }
   document.getElementById('mmov-btn').textContent='Moviendo...'
-  var res=await db.from('operaciones').update({fecha_tesoreria:nuevaFecha}).eq('id',moverOpId)
+  var res=await db.from('operaciones').update({fecha_carpeta:nuevaFecha}).eq('id',moverOpId)
   document.getElementById('mmov-btn').textContent='Mover operacion'
   if(res.error){sh('mmov-err');document.getElementById('mmov-err').textContent='Error al guardar.';return}
   hi('modal-mover')
@@ -3564,7 +3563,7 @@ function rAdmClientes(){
       if(op.estado==='venta'||op.monto>=100000){
         moverBtn='<div style="margin-top:12px;display:flex;gap:8px;align-items:center">'
           +'<button onclick="event.stopPropagation();openMover(\''+op.id+'\',\''+op.cliente.replace(/'/g,"\'")+'\');" style="font-size:12px;padding:5px 12px;background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);border-radius:6px;color:var(--purple);cursor:pointer">↗ Mover carpeta</button>'
-          +'<span style="font-size:11px;color:var(--text3)">Carpeta actual: '+getPer(op.fecha_tesoreria&&op.fecha_tesoreria!==op.fecha?op.fecha_tesoreria:op.fecha).label+'</span>'
+          +'<span style="font-size:11px;color:var(--text3)">Carpeta actual: '+getPer(op.fecha_carpeta||op.fecha).label+'</span>'
         +'</div>'
       }
       detalle='<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">'+infoRows+obSection+obsSection+moverBtn+'</div>'

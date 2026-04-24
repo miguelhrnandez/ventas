@@ -2646,8 +2646,8 @@ function rAdmCom(){
                 '<span class="badge b-pend">'+pendCount+' pendiente'+(pendCount!==1?'s':'')+'</span>'
               return{nombre:r.nombre,rolKey:'asesor',aid:r.aid,total:r.com,comPend:r.comPend,det:r.ops+' venta'+(r.ops!==1?'s':'')+' - 50% c/tope $250k',colorCls:'ag',carpetaStatus:status}
             }),
-            ...(comJA>0?[{nombre:jefeAh?jefeAh.nombre:'Jefe Ahorro',rolKey:'jefe_ahorro',total:comJA,det:opAh.length+' ventas ahorro - 16.5%',colorCls:'ag'}]:[]),
-            ...(comJP>0?[{nombre:jefePo?jefePo.nombre:'Jefe Pozo',rolKey:'jefe_pozo',total:comJP,det:opPo.length+' ventas pozo - 16.5%',colorCls:'ag'}]:[]),
+            ...(comJA>0?[{nombre:jefeAh?jefeAh.nombre:'Jefe Ahorro',rolKey:'jefe_ahorro',opsJefe:opAh,total:comJA,det:opAh.length+' ventas ahorro - 16.5%',colorCls:'ag'}]:[]),
+            ...(comJP>0?[{nombre:jefePo?jefePo.nombre:'Jefe Pozo',rolKey:'jefe_pozo',opsJefe:opPo,total:comJP,det:opPo.length+' ventas pozo - 16.5%',colorCls:'ag'}]:[]),
             ...(()=>{
               // Desglosar por presentador individual
               const porPres={}
@@ -2656,7 +2656,7 @@ function rAdmCom(){
                 porPres[op.presentador_id].cnt++
               })
               const rowsPres=Object.values(porPres).map(pr=>({nombre:pr.nombre,rolKey:'presentador',presId:pr.id,total:pr.cnt*74000,det:pr.cnt+' venta'+(pr.cnt!==1?'s':'')+' - $74.000 c/u',colorCls:'ag'}))
-              const rowJPres=presAcp.length>0?[{nombre:jefeJP?jefeJP.nombre:'Jefe Pres.',rolKey:'jefe_presentaciones',total:comJPres,det:presAcp.length+' venta'+(presAcp.length!==1?'s':'')+' - $35.000 c/u',colorCls:'ag'}]:[]
+              const rowJPres=presAcp.length>0?[{nombre:jefeJP?jefeJP.nombre:'Jefe Pres.',rolKey:'jefe_presentaciones',opsJefe:presAcp,total:comJPres,det:presAcp.length+' venta'+(presAcp.length!==1?'s':'')+' - $35.000 c/u',colorCls:'ag'}]:[]
               return[...rowsPres,...rowJPres]
             })(),
             ...Object.entries(obMap).map(([obId,ob])=>({nombre:ob.nombre,rolKey:'on_boarding',obId:obId,obMovs:ob.movs,total:ob.comInc+ob.comAh,det:'Inc: '+fmt(ob.comInc)+' + Ah: '+fmt(ob.comAh),colorCls:'at'}))
@@ -2682,18 +2682,25 @@ function rAdmCom(){
                 +'</div>'
               })
               detalleHtml+='</div></td></tr>'
-            } else if(r.rolKey==='jefe_ahorro'){
-              var opsJA=p.ops.filter(x=>x.plan==='Ahorro')
-              detalleHtml='<tr id="comdet-'+k+'-ja" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
-              opsJA.forEach(function(op){
-                detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text)">'+op.cliente+'</span><span class="ag">'+fmt(calcJV(op.monto))+'</span></div>'
+            } else if((r.rolKey==='jefe_ahorro'||r.rolKey==='jefe_pozo')&&r.opsJefe){
+              var idJefe=r.rolKey==='jefe_ahorro'?'ja':'jp'
+              detalleHtml='<tr id="comdet-'+k+'-'+idJefe+'" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
+              r.opsJefe.forEach(function(op){
+                var c=categ(op.monto)
+                var tesBadge=op.carpeta_tesoreria==='aceptada'?'<span class="badge b-acp" style="font-size:10px">Aceptada</span>':'<span class="badge b-pend" style="font-size:10px">Pendiente</span>'
+                detalleHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">'
+                  +'<span style="color:var(--text)">'+op.cliente+' <span style="color:var(--text3);font-size:11px">('+op.asesor_nombre+')</span></span>'
+                  +'<span style="display:flex;gap:10px;align-items:center">'+tesBadge+'<span class="am">'+fmt(op.monto)+'</span><span class="ag">'+fmt(calcJV(op.monto))+'</span></span>'
+                +'</div>'
               })
               detalleHtml+='</div></td></tr>'
-            } else if(r.rolKey==='jefe_pozo'){
-              var opsJP2=p.ops.filter(x=>x.plan==='Pozo')
-              detalleHtml='<tr id="comdet-'+k+'-jp" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
-              opsJP2.forEach(function(op){
-                detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text)">'+op.cliente+'</span><span class="ag">'+fmt(calcJV(op.monto))+'</span></div>'
+            } else if(r.rolKey==='jefe_presentaciones'&&r.opsJefe){
+              detalleHtml='<tr id="comdet-'+k+'-jp2" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
+              r.opsJefe.forEach(function(op){
+                detalleHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">'
+                  +'<span style="color:var(--text)">'+op.cliente+' <span style="color:var(--text3);font-size:11px">('+op.asesor_nombre+')</span></span>'
+                  +'<span class="ag">'+fmt(35000)+'</span>'
+                +'</div>'
               })
               detalleHtml+='</div></td></tr>'
             } else if(r.rolKey==='presentador'&&r.presId){
@@ -2715,7 +2722,7 @@ function rAdmCom(){
               })
               detalleHtml+='</div></td></tr>'
             }
-            var detId='comdet-'+k+'-'+(r.aid||r.rolKey)
+            var detId='comdet-'+k+'-'+(r.aid||(r.rolKey==='jefe_ahorro'?'ja':r.rolKey==='jefe_pozo'?'jp':r.rolKey==='jefe_presentaciones'?'jp2':r.presId?'pr-'+r.presId:r.obId?'ob-'+r.obId:r.rolKey))
             var onclk=detalleHtml?" onclick=\"toggleComDet('"+detId+"')\"":''
             var mainRow='<tr style="cursor:'+(detalleHtml?'pointer':'default')+'"'+onclk+'>'
               +'<td style="color:var(--text)">'+(detalleHtml?'<span style="color:var(--text3);margin-right:6px" id="arr-'+detId+'">›</span>':'')+r.nombre+'</td>'

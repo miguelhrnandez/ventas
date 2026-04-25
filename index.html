@@ -38,7 +38,7 @@ button:active{transform:scale(0.98)}
 .b-jefe_ahorro{background:rgba(96,165,250,0.15);color:var(--blue)}
 .b-jefe_pozo{background:rgba(192,132,252,0.15);color:var(--purple)}
 .b-presentador{background:rgba(251,191,36,0.15);color:var(--amber)}
-.b-jefe_presentaciones{background:rgba(74,222,128,0.15);color:var(--green)}
+.b-jefe_presentaciónes{background:rgba(74,222,128,0.15);color:var(--green)}
 .b-on_boarding{background:rgba(45,212,191,0.15);color:var(--teal)}
 .b-admin{background:rgba(232,25,44,0.15);color:var(--accent)}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 24px}
@@ -105,8 +105,22 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px}
 @media(max-width:900px){.sb{transform:translateX(-100%)}.sb-content{margin-left:0}}
 
 /* ── TEMA CLARO ────────────────────────────────────────── */
-body.light{--bg:#f4f4f5;--bg2:#ffffff;--bg3:#f0f0f1;--bg4:#e4e4e7;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);--text:#18181b;--text2:#52525b;--text3:#a1a1aa}
+body.light{--bg:#f4f4f5;--bg2:#ffffff;--bg3:#f0f0f1;--bg4:#e4e4e7;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);--text:#000000;--text2:#27272a;--text3:#71717a;--green:#16a34a;--amber:#b45309;--red:#dc2626;--blue:#1d4ed8;--purple:#7e22ce;--teal:#0f766e;--accent:#b45309;--accent2:#92400e}
 body.light tr:hover td{background:rgba(0,0,0,0.02)}
+body.light .ag{color:#16a34a}
+body.light .am{color:#000000}
+body.light .at{color:#0f766e}
+body.light .sc{background:#ffffff;border-color:rgba(0,0,0,0.1)}
+body.light .card{background:#ffffff;border-color:rgba(0,0,0,0.1)}
+body.light .badge{filter:brightness(0.8) saturate(1.5)}
+body.light input,body.light select,body.light textarea{background:#ffffff;color:#000000;border-color:rgba(0,0,0,0.2)}
+body.light .sb-item{color:#27272a}
+body.light .sb-item:hover,body.light .sb-item.active{background:rgba(0,0,0,0.06);color:#000000}
+body.light .ddmenu-list{background:#ffffff;border-color:rgba(0,0,0,0.15)}
+body.light .ddmenu-list button{color:#27272a}
+body.light .modal{background:#ffffff}
+body.light th{color:#52525b}
+body.light td{color:#000000}
 body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2352525b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")}
 
 /* ── HAMBURGUESA ───────────────────────────────────────── */
@@ -170,7 +184,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div class="card">
     <div style="display:flex;flex-direction:column;gap:14px">
       <div><label>Usuario</label><input id="lu" type="text" placeholder="Tu usuario"></div>
-      <div><label>Contrasena</label><input id="lp" type="password" placeholder="..."></div>
+      <div><label>Contraseña</label><input id="lp" type="password" placeholder="..."></div>
       <div id="le" class="hidden em"></div>
       <button class="bp" id="lb" onclick="doLogin()" style="padding:11px;margin-top:4px">Ingresar</button>
     </div>
@@ -198,7 +212,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 <!-- MODAL DENEGAR CON MOTIVO -->
 <div id="modal-denegar" class="modal-bg hidden">
   <div class="modal">
-    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Denegar operacion</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Denegar operación</div>
     <div id="md-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div><label>Motivo de denegacion (opcional)</label><textarea id="md-motivo" rows="3" style="resize:vertical" placeholder="Ej: Documentacion incompleta, cuota insuficiente..."></textarea></div>
@@ -235,7 +249,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 <!-- MODAL EDITAR OPERACION -->
 <div id="modal-edit" class="modal-bg hidden">
   <div class="modal" style="max-width:520px">
-    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Editar operacion</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Editar operación</div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="g2">
         <div><label>Apellido(s)</label><input id="me-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
@@ -250,7 +264,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
           <input id="me-monto" type="number" oninput="prevEditTipo()">
           <div id="me-monto-lock" style="display:none;align-items:center;gap:6px;margin-top:5px;font-size:12px;color:var(--amber)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2"/></svg>
-            Monto bloqueado — la operacion ya es una venta
+            Monto bloqueado — la operación ya es una venta
           </div>
         </div>
       </div>
@@ -286,11 +300,11 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 <!-- MODAL CAMBIAR CONTRASENA -->
 <div id="modal-pass" class="modal-bg hidden">
   <div class="modal">
-    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Cambiar contrasena</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Cambiar contraseña</div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div style="font-size:13px;color:var(--text2)" id="mp-nombre"></div>
-      <div><label>Nueva contrasena</label><input id="mp-pass" type="password" placeholder="..."></div>
-      <div><label>Confirmar contrasena</label><input id="mp-pass2" type="password" placeholder="..."></div>
+      <div><label>Nueva contraseña</label><input id="mp-pass" type="password" placeholder="..."></div>
+      <div><label>Confirmar contraseña</label><input id="mp-pass2" type="password" placeholder="..."></div>
       <div id="mp-err" class="hidden em"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button onclick="closePass()" style="flex:1">Cancelar</button>
@@ -355,7 +369,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       <div id="mmov-err" class="hidden em"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button onclick="hi('modal-mover')" style="flex:1">Cancelar</button>
-        <button class="bp" onclick="guardarMover()" id="mmov-btn" style="flex:2">Mover operacion</button>
+        <button class="bp" onclick="guardarMover()" id="mmov-btn" style="flex:2">Mover operación</button>
       </div>
     </div>
   </div>
@@ -364,7 +378,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 <!-- MODAL EDITAR FECHA -->
 <div id="modal-fecha" class="modal-bg hidden">
   <div class="modal">
-    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Cambiar fecha de operacion</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Cambiar fecha de operación</div>
     <div id="mf-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div><label>Nueva fecha</label><input id="mf-fecha" type="date"></div>
@@ -381,10 +395,10 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
 <!-- MODAL CAMBIAR CONTRASENA PROPIA -->
 <div id="modal-mypass" class="modal-bg hidden">
   <div class="modal">
-    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Cambiar mi contrasena</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Cambiar mi contraseña</div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div><label>Nueva contrasena</label><input id="myp-new" type="password" placeholder="..."></div>
-      <div><label>Confirmar contrasena</label><input id="myp-new2" type="password" placeholder="..."></div>
+      <div><label>Nueva contraseña</label><input id="myp-new" type="password" placeholder="..."></div>
+      <div><label>Confirmar contraseña</label><input id="myp-new2" type="password" placeholder="..."></div>
       <div id="myp-err" class="hidden em"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button onclick="hi('modal-mypass')" style="flex:1">Cancelar</button>
@@ -403,8 +417,8 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
   <div id="a-tn" class="hidden">
     <div class="card" style="max-width:520px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
-      <div id="a-nok" class="hidden aok">Operacion guardada</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operación</div>
+      <div id="a-nok" class="hidden aok">Operación guardada</div>
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="g2">
           <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
@@ -440,7 +454,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
         <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
         <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
         <div id="nerr" class="hidden em"></div>
-        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
+        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operación</button>
       </div>
     </div>
   </div>
@@ -558,7 +572,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       </button>
       <button class="sb-item" onclick="admTab('pr',this)" id="sb-pr">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Presentaciones
+        Presentaciónes
       </button>
       <button class="sb-item" onclick="admTab('ob',this)" id="sb-ob">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -567,11 +581,11 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       <div class="sb-sep"></div>
       <button class="sb-item" onclick="admTab('co',this)" id="sb-co">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-        Comisiones
+        Comisiónes
       </button>
       <button class="sb-item" onclick="admTab('ret',this)" id="sb-ret">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Retenciones OB
+        Retenciónes OB
       </button>
       <button class="sb-item" onclick="admTab('to',this)" id="sb-to">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
@@ -584,7 +598,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       </button>
       <button class="sb-item" onclick="admTab('liq',this)" id="sb-liq">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Liquidaciones
+        Liquidaciónes
       </button>
       <button class="sb-item" onclick="admTab('us',this)" id="sb-us">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -624,7 +638,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tcp"><div id="adm-cpb"></div></div>
   <div id="adm-Tpr" class="hidden">
     <div class="card ox">
-      <div style="font-size:15px;font-weight:600;margin-bottom:16px">Asignacion de presentadores</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:16px">Asignación de presentadores</div>
       <div style="margin-bottom:14px"><select id="adm-fpr" onchange="rAdmPres()" style="width:auto"><option value="">Todos</option><option value="sin">Sin presentador</option><option value="pendiente">Pendiente</option><option value="aceptado">Aceptado</option><option value="denegado">Denegado</option></select></div>
       <div id="adm-prb"></div>
     </div>
@@ -632,8 +646,8 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tco" class="hidden">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
-        <div style="font-size:15px;font-weight:600">Comisiones por periodo</div>
-        <select id="adm-fp" onchange="rAdmCom()" style="width:auto;min-width:220px"><option value="">Todos los periodos</option></select>
+        <div style="font-size:15px;font-weight:600">Comisiónes por período</div>
+        <select id="adm-fp" onchange="rAdmCom()" style="width:auto;min-width:220px"><option value="">Todos los períodos</option></select>
       </div>
       <div id="adm-cob"></div>
     </div>
@@ -641,7 +655,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tto" class="hidden">
     <div class="card ox">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-        <div style="font-size:15px;font-weight:600">Todas las operaciones</div>
+        <div style="font-size:15px;font-weight:600">Todas las operaciónes</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <select id="adm-fa" onchange="rAdmTodas()" style="width:auto"></select>
           <select id="adm-fe" onchange="rAdmTodas()" style="width:auto"><option value="">Todos</option><option value="venta_completa">Venta completa</option><option value="venta_bonificada">Venta bonificada</option><option value="reserva">Reserva</option></select>
@@ -667,7 +681,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
             <div><label>Monto ($)</label><input id="inc-monto" type="number" placeholder="Ej: 50000"></div>
             <div><label>Fecha</label><input id="inc-fecha" type="date"></div>
           </div>
-          <div><label>Descripcion (opcional)</label><input id="inc-desc" placeholder="Ej: Premio por mejor vendedor"></div>
+          <div><label>Descripción (opcional)</label><input id="inc-desc" placeholder="Ej: Premio por mejor vendedor"></div>
           <div id="inc-err" class="hidden em"></div>
           <button class="bp" onclick="cargarIncentivo()" style="padding:11px">Cargar incentivo</button>
         </div>
@@ -688,7 +702,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tob" class="hidden">
     <div class="nav" style="margin-bottom:20px">
       <button class="active" onclick="obAdmTab('clientes',this)">Clientes y movimientos</button>
-      <button onclick="obAdmTab('asign',this)">Asignacion</button>
+      <button onclick="obAdmTab('asign',this)">Asignación</button>
     </div>
     <div id="adm-ob-tclientes">
       <div class="card">
@@ -718,10 +732,10 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tret" class="hidden">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
-        <div style="font-size:15px;font-weight:600">Retenciones On Boarding</div>
+        <div style="font-size:15px;font-weight:600">Retenciónes On Boarding</div>
         <div style="display:flex;gap:8px">
-          <select id="ret-mes" onchange="rRetenciones()" style="width:auto;min-width:160px"></select>
-          <select id="ret-ob" onchange="rRetenciones()" style="width:auto"><option value="">Todas las OB</option></select>
+          <select id="ret-mes" onchange="rRetenciónes()" style="width:auto;min-width:160px"></select>
+          <select id="ret-ob" onchange="rRetenciónes()" style="width:auto"><option value="">Todas las OB</option></select>
         </div>
       </div>
       <div id="ret-content"></div>
@@ -731,19 +745,19 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tliq" class="hidden">
     <div style="display:grid;grid-template-columns:400px 1fr;gap:16px;align-items:start">
       <div class="card">
-        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Registrar liquidacion RRHH</div>
-        <div id="liq-ok" class="hidden aok">Liquidacion registrada</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Registrar liquidación RRHH</div>
+        <div id="liq-ok" class="hidden aok">Liquidación registrada</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div><label>Empleado</label><select id="liq-usr" style="width:100%"><option value="">Seleccionar...</option></select></div>
-          <div><label>Monto liquidacion ($)</label><input id="liq-monto" type="number" placeholder="Ej: 500000"></div>
-          <div><label>Fecha de liquidacion</label><input id="liq-fecha" type="date"></div>
-          <div><label>Descripcion</label><input id="liq-desc" placeholder="Ej: Liquidacion final por renuncia"></div>
+          <div><label>Monto liquidación ($)</label><input id="liq-monto" type="number" placeholder="Ej: 500000"></div>
+          <div><label>Fecha de liquidación</label><input id="liq-fecha" type="date"></div>
+          <div><label>Descripción</label><input id="liq-desc" placeholder="Ej: Liquidación final por renuncia"></div>
           <div id="liq-err" class="hidden em"></div>
-          <button class="bp" onclick="cargarLiquidacion()" style="padding:11px">Registrar liquidacion</button>
+          <button class="bp" onclick="cargarLiquidación()" style="padding:11px">Registrar liquidación</button>
         </div>
       </div>
       <div class="card">
-        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Liquidaciones registradas</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Liquidaciónes registradas</div>
         <div id="liq-list"></div>
       </div>
     </div>
@@ -755,9 +769,9 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
         <div style="font-size:15px;font-weight:600;margin-bottom:16px">Agregar usuario</div>
         <div id="adm-uok" class="hidden aok">Usuario agregado</div>
         <div style="display:flex;flex-direction:column;gap:12px">
-          <div><label>Nombre completo</label><input id="u-nom" placeholder="Ej: Garcia Laura"></div>
+          <div><label>Nombre completo</label><input id="u-nom" placeholder="Ej: García Laura"></div>
           <div><label>Usuario (para login)</label><input id="u-usr" placeholder="Ej: lgarcia"></div>
-          <div><label>Contrasena</label><input id="u-pas" type="password" placeholder="..."></div>
+          <div><label>Contraseña</label><input id="u-pas" type="password" placeholder="..."></div>
           <div><label>Rol</label>
             <select id="u-rol" onchange="onRolChange()">
               <option value="">Seleccionar rol...</option>
@@ -765,7 +779,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
               <option value="jefe_ahorro">Jefe de ventas - Ahorro</option>
               <option value="jefe_pozo">Jefe de ventas - Pozo</option>
               <option value="presentador">Presentador</option>
-              <option value="jefe_presentaciones">Jefe de presentaciones</option>
+              <option value="jefe_presentaciónes">Jefe de presentaciónes</option>
               <option value="on_boarding">On Boarding</option>
               <option value="admin">Administrador</option>
               <optgroup id="u-rol-custom-group" label="— Roles personalizados —"></optgroup>
@@ -790,13 +804,13 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
           <div>
             <label style="margin-bottom:8px">Permisos</label>
             <div style="display:flex;flex-direction:column;gap:8px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ops" style="width:auto"> Ver sus operaciones y comisiones</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ops" style="width:auto"> Ver sus operaciónes y comisiónes</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-cargar" style="width:auto"> Cargar ventas/reservas</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pres" style="width:auto"> Ver/cargar presentaciones</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pres" style="width:auto"> Ver/cargar presentaciónes</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ob" style="width:auto"> Ver/cargar on boarding</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-carp" style="width:auto"> Ver carpetas</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-comtodo" style="width:auto"> Ver comisiones de todo el equipo</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-usrs" style="width:auto"> Gestionar usuarios</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-comtodo" style="width:auto"> Ver comisiónes de todo el equipo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-usrs" style="width:auto"> Gestiónar usuarios</label>
             </div>
           </div>
           <div id="rol-err" class="hidden em"></div>
@@ -1003,7 +1017,7 @@ function badgeE(e){
 }
 function showOnly(id){screens.forEach(s=>s===id?sh(s):hi(s))}
 
-// OB comision
+// OB comisión
 function calcOBCom(op){
   let total=0
   if(op.ob_incremento>0&&op.ob_fecha_incremento&&op.fecha){
@@ -1095,8 +1109,8 @@ function toggleTema(){
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('SL').classList.contains('hidden'))doLogin()})
 
-const ROL_LABELS={asesor:'Asesor de ventas',jefe_ahorro:'Jefe de ventas Ahorro',jefe_pozo:'Jefe de ventas Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe de presentaciones',on_boarding:'On Boarding',admin:'Administrador'}
-const ROL_ICONS={asesor:'📊',jefe_ahorro:'👔',jefe_pozo:'👔',presentador:'🎤',jefe_presentaciones:'🎯',on_boarding:'🤝',admin:'⚙️'}
+const ROL_LABELS={asesor:'Asesor de ventas',jefe_ahorro:'Jefe de ventas Ahorro',jefe_pozo:'Jefe de ventas Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe de presentaciónes',on_boarding:'On Boarding',admin:'Administrador'}
+const ROL_ICONS={asesor:'📊',jefe_ahorro:'👔',jefe_pozo:'👔',presentador:'🎤',jefe_presentaciónes:'🎯',on_boarding:'🤝',admin:'⚙️'}
 async function showRolPanel(roles){
   showOnly('SRS')
   document.getElementById('srs-nombre').textContent=CU.nombre
@@ -1105,8 +1119,8 @@ async function showRolPanel(roles){
   const rolesAMostrar=rolesReales.length>0?rolesReales:roles
   const opciones=document.getElementById('srs-opciones')
   // Filtrar duplicados
-  const rolesUnicos=[...new Set(rolesAMostrar)]
-  opciones.innerHTML=rolesUnicos.map(r=>`
+  const rolesÚnicos=[...new Set(rolesAMostrar)]
+  opciones.innerHTML=rolesÚnicos.map(r=>`
     <button onclick="elegirRol('${r}')" style="width:100%;padding:16px;border-radius:10px;background:var(--bg2);border:1px solid var(--border2);text-align:left;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
       <span style="font-size:24px">${ROL_ICONS[r]||'👤'}</span>
       <div>
@@ -1128,7 +1142,7 @@ async function enterPanel(r){
   else if(r==='asesor')await showAs()
   else if(r==='jefe_ahorro'||r==='jefe_pozo')await showJV()
   else if(r==='presentador')await showPr()
-  else if(r==='jefe_presentaciones')await showJP()
+  else if(r==='jefe_presentaciónes')await showJP()
   else if(r==='on_boarding')await showOB()
 }
 async function doLogin(){
@@ -1137,7 +1151,7 @@ async function doLogin(){
   if(u===ADMU&&p===ADMP){CU={role:'admin',nombre:'Administrador',isHardAdmin:true};await showAdm();return}
   const{data,error}=await db.from('usuarios').select('*').eq('username',u).eq('password',p).single()
   document.getElementById('lb').textContent='Ingresar'
-  if(error||!data){sh('le');document.getElementById('le').textContent='Usuario o contrasena incorrectos';return}
+  if(error||!data){sh('le');document.getElementById('le').textContent='Usuario o contraseña incorrectos';return}
   CU={...data,role:data.rol,rolOriginal:data.rol,rolActivo:data.rol}
   // Verificar si tiene roles extra
   const rolesExtra=data.roles_extra||[]
@@ -1153,13 +1167,13 @@ function logout(){CU=null;showOnly('SL');sv('lu','');sv('lp','');document.getEle
 let allObMovs=[],allObPagos=[]
 async function loadAll(){
   const[o,u,l,om,op]=await Promise.all([
-    db.from('operaciones').select('*').order('fecha',{ascending:false}),
+    db.from('operaciónes').select('*').order('fecha',{ascending:false}),
     db.from('usuarios').select('*').order('nombre'),
-    db.from('carpetas_llevadas').select('periodo_key,fecha_llevada,nro_sop,fecha_cierre_custom,fecha_llevar_custom,fecha_cobro_custom'),
+    db.from('carpetas_llevadas').select('período_key,fecha_llevada,nro_sop,fecha_cierre_custom,fecha_llevar_custom,fecha_cobro_custom'),
     db.from('ob_movimientos').select('*').order('fecha',{ascending:false}),
     db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
   ])
-  allOps=o.data||[];allUsers=u.data||[];allLl=(l.data||[]).map(x=>x.periodo_key);allLlData=l.data||[];allObMovs=om.data||[];allObPagos=op.data||[]
+  allOps=o.data||[];allUsers=u.data||[];allLl=(l.data||[]).map(x=>x.período_key);allLlData=l.data||[];allObMovs=om.data||[];allObPagos=op.data||[]
 }
 
 // ═══ MODAL EDITAR ═══
@@ -1180,7 +1194,7 @@ function openEdit(id){
   sv('me-nombre', nombre_edit);sv('me-plan',op.plan);sv('me-monto',op.monto);sv('me-unidad',op.unidad||'')
   sv('me-celular',op.celular||'');sv('me-obs',op.obs||'')
   // Cargar forma de pago
-  var mpago=op.metodo_pago||''
+  var mpago=op.método_pago||''
   var meEf=document.getElementById('me-ef'),meTr=document.getElementById('me-tr')
   var mePrev=document.getElementById('me-pago-prev')
   if(meEf)meEf.value=''
@@ -1227,7 +1241,7 @@ function prevEditTipo(){
   const m=parseInt(gv('me-monto')),el=document.getElementById('me-prev')
   if(!m||isNaN(m)){hi('me-prev');return}sh('me-prev')
   const c=categ(m)
-  el.innerHTML=`Categoria: <strong style="color:var(--${c.cls.includes('completa')?'green':c.cls.includes('bonificada')?'blue':'amber'})">${c.label}</strong>` + (c.isVenta?` - Comision est.: <span class="ag">${fmt(calcC(m))}</span>`:'')
+  el.innerHTML=`Categoría: <strong style="color:var(--${c.cls.includes('completa')?'green':c.cls.includes('bonificada')?'blue':'amber'})">${c.label}</strong>` + (c.isVenta?` - Comisión est.: <span class="ag">${fmt(calcC(m))}</span>`:'')
 }
 async function guardarEdit(){
   hi('me-err')
@@ -1251,11 +1265,11 @@ async function guardarEdit(){
     if(!ok)return
   }
   document.getElementById('me-btn').textContent='Guardando...'
-  const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:mecel,metodo_pago:mepago||null,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
+  const{error}=await db.from('operaciónes').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:mecel,método_pago:mepago||null,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
   document.getElementById('me-btn').textContent='Guardar cambios'
   if(error){sh('me-err');document.getElementById('me-err').textContent='Error al guardar.';return}
   closeEdit()
-  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciónes').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps()
 }
 
@@ -1299,7 +1313,7 @@ async function confirmarDenegar(){
   hi('md-err')
   const motivo=gv('md-motivo').trim()
   document.getElementById('md-btn').textContent='Denegando...'
-  const{error}=await db.from('operaciones').update({carpeta_tesoreria:'denegada',fecha_tesoreria:new Date().toISOString().slice(0,10),motivo_denegacion:motivo||null}).eq('id',denegarId)
+  const{error}=await db.from('operaciónes').update({carpeta_tesorería:'denegada',fecha_tesorería:new Date().toISOString().slice(0,10),motivo_denegacion:motivo||null}).eq('id',denegarId)
   document.getElementById('md-btn').textContent='Denegar'
   if(error){sh('md-err');document.getElementById('md-err').textContent='Error al guardar.';return}
   closeDenegar()
@@ -1318,15 +1332,15 @@ function closePass(){hi('modal-pass');passUserId=null}
 async function guardarPass(){
   hi('mp-err')
   const p1=gv('mp-pass'),p2=gv('mp-pass2')
-  if(!p1||p1.length<4){sh('mp-err');document.getElementById('mp-err').textContent='La contrasena debe tener al menos 4 caracteres.';return}
-  if(p1!==p2){sh('mp-err');document.getElementById('mp-err').textContent='Las contrasenas no coinciden.';return}
+  if(!p1||p1.length<4){sh('mp-err');document.getElementById('mp-err').textContent='La contraseña debe tener al menos 4 caracteres.';return}
+  if(p1!==p2){sh('mp-err');document.getElementById('mp-err').textContent='Las contraseñas no coinciden.';return}
   document.getElementById('mp-btn').textContent='Guardando...'
   const{error}=await db.from('usuarios').update({password:p1}).eq('id',passUserId)
   document.getElementById('mp-btn').textContent='Guardar'
   if(error){sh('mp-err');document.getElementById('mp-err').textContent='Error al guardar.';return}
   closePass()
   const ok=document.createElement('div')
-  ok.textContent='Contrasena actualizada'
+  ok.textContent='Contraseña actualizada'
   ok.className='aok'
   ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;animation:none'
   document.body.appendChild(ok)
@@ -1339,11 +1353,11 @@ async function showAs(){
   showOnly('SA')
   const tieneExtra=(CU.roles_extra||[]).length>0
   document.getElementById('SA-sb').innerHTML=mkSidebar([
-    {id:'o',label:'Mis operaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',fn:"aTab('o',document.getElementById('sbitem-o'))"},
-    {id:'n',label:'Cargar nueva',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>',fn:"aTab('n',document.getElementById('sbitem-n'))"},
-    {id:'c',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"aTab('c',document.getElementById('sbitem-c'))"}
+    {id:'o',label:'Mis operaciónes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',fn:"aTab('o',document.getElementById('sbitem-o'))"},
+    {id:'n',label:'Cargar nueva venta',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>',fn:"aTab('n',document.getElementById('sbitem-n'))"},
+    {id:'c',label:'Mis comisiónes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"aTab('c',document.getElementById('sbitem-c'))"}
   ],'o',CU.nombre,'Asesor de ventas',tieneExtra)
-  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciónes').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps()
 }
 function rAStats(){
@@ -1352,14 +1366,14 @@ function rAStats(){
   html('a-stats',`<div class="sc"><div class="sv">${vcompl.length}</div><div class="sl">Ventas completas</div></div>
     <div class="sc"><div class="sv">${vbon.length}</div><div class="sl">Ventas bonificadas</div></div>
     <div class="sc"><div class="sv">${res.length}</div><div class="sl">Reservas</div></div>
-    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto),0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesorería==='aceptada').reduce((a,x)=>a+calcC(x.monto),0))}</div><div class="sl">Comisiónes confirmadas</div></div>`)
 }
 function rAOps(){
-  if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciones</div>');return}
+  if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciónes</div>');return}
   var filas=''
   aOps.forEach(function(op){
     var c=categ(op.monto)
-    var tes=op.carpeta_tesoreria||'pendiente'
+    var tes=op.carpeta_tesorería||'pendiente'
     var tesBadge=tes==='aceptada'
       ?'<span class="badge b-acp">Aceptada</span>'
       :tes==='denegada'
@@ -1383,7 +1397,7 @@ function rAOps(){
       +'</div></td>'
       +'</tr>'
   })
-  html('a-ob','<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Monto</th><th>Categoria</th><th>Tesoreria</th><th>Llevada</th><th>Accion</th></tr></thead><tbody>'+filas+'</tbody></table>')
+  html('a-ob','<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Monto</th><th>Categoría</th><th>Tesorería</th><th>Llevada</th><th>Accion</th></tr></thead><tbody>'+filas+'</tbody></table>')
 }
 
 function prevPago(){
@@ -1406,7 +1420,7 @@ function prevT(){
   if(!m||isNaN(m)){hi('nprev');return}sh('nprev')
   const c=categ(m)
   const col=m>=200000?'var(--green)':m>=100000?'var(--blue)':'var(--amber)'
-  el.innerHTML=`Categoria: <strong style="color:${col}">${c.label}</strong>` + (c.isVenta?` &nbsp;·&nbsp; Comision estimada: <span class="ag">${fmt(calcC(m))}</span>`:'&nbsp;·&nbsp; <span style="color:var(--amber)">Menos de $100.000 — se guarda como reserva</span>')
+  el.innerHTML=`Categoría: <strong style="color:${col}">${c.label}</strong>` + (c.isVenta?` &nbsp;·&nbsp; Comisión estimada: <span class="ag">${fmt(calcC(m))}</span>`:'&nbsp;·&nbsp; <span style="color:var(--amber)">Menos de $100.000 — se guarda como reserva</span>')
 }
 async function cargarVenta(){
   hi('nerr');hi('a-nok')
@@ -1427,15 +1441,15 @@ async function cargarVenta(){
   if(!mo||isNaN(mo)||mo<=0){sh('nerr');document.getElementById('nerr').textContent='Ingresa un monto valido.';return}
   document.getElementById('nbtn').textContent='Guardando...'
   const c=categ(mo)
-  const{error}=await db.from('operaciones').insert({fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva',celular:cel,metodo_pago:mpago,carpeta_tesoreria:'pendiente',pago_presentador:null})
-  document.getElementById('nbtn').textContent='Guardar operacion'
+  const{error}=await db.from('operaciónes').insert({fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva',celular:cel,método_pago:mpago,carpeta_tesorería:'pendiente',pago_presentador:null})
+  document.getElementById('nbtn').textContent='Guardar operación'
   if(error){sh('nerr');document.getElementById('nerr').textContent='Error: '+(error.message||error.details||JSON.stringify(error));return}
   sv('nc-apellido','');sv('nc-nombre','');sv('npl','');sv('nm','');sv('nu','');sv('ncel','');sv('nob','');hi('nprev');document.getElementById('n-ef').value='';document.getElementById('n-tr').value='';document.getElementById('n-pago-prev').textContent=''
   document.getElementById('nfecha').value=hoy
   document.getElementById('nfecha-warn').style.display='none'
-  document.getElementById('a-nok').textContent='Operacion guardada: '+cl+' - '+fmt(mo)
+  document.getElementById('a-nok').textContent='Operación guardada: '+cl+' - '+fmt(mo)
   sh('a-nok');setTimeout(()=>hi('a-nok'),3000)
-  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciónes').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();aTab('o',document.querySelector('#SA .nav button'))
 }
 let aComFiltro={desde:'',hasta:''}
@@ -1443,13 +1457,13 @@ function rACom(){
   const desde=document.getElementById('ac-desde')?.value||''
   const hasta=document.getElementById('ac-hasta')?.value||''
   let ops=aOps.filter(x=>categ(x.monto).isVenta)
-  if(desde)ops=ops.filter(x=>x.fecha_tesoreria>=desde)
-  if(hasta)ops=ops.filter(x=>x.fecha_tesoreria<=hasta)
+  if(desde)ops=ops.filter(x=>x.fecha_tesorería>=desde)
+  if(hasta)ops=ops.filter(x=>x.fecha_tesorería<=hasta)
   const byP={}
-  ops.forEach(op=>{const p=getPer(op.fecha_tesoreria||op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
+  ops.forEach(op=>{const p=getPer(op.fecha_tesorería||op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
-  const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
-  const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+  const totalGral=ops.filter(x=>x.carpeta_tesorería==='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+  const totalPend=ops.filter(x=>x.carpeta_tesorería!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
 
   let filtros='<div class="card" style="margin-bottom:16px">'
     +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
@@ -1467,14 +1481,14 @@ function rACom(){
     +'</div>'
   +'</div>'
 
-  if(!ks.length){html('a-cb',filtros+'<div class="card"><div class="es">Sin ventas en ese periodo</div></div>');return}
+  if(!ks.length){html('a-cb',filtros+'<div class="card"><div class="es">Sin ventas en ese período</div></div>');return}
 
   let out=filtros
   ks.forEach(k=>{
     const p=byP[k]
-    const acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
+    const acp=p.ops.filter(x=>x.carpeta_tesorería==='aceptada')
     const tot=acp.reduce((a,x)=>a+calcC(x.monto),0)
-    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+    const pend=p.ops.filter(x=>x.carpeta_tesorería!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
     let filas=''
     p.ops.forEach(op=>{
       const c=categ(op.monto)
@@ -1484,8 +1498,8 @@ function rACom(){
         +'<td>'+op.plan+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
-        +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
+        +'<td class="ag">'+(op.carpeta_tesorería==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
+        +'<td>'+badgeE(op.carpeta_tesorería||'pendiente')+'</td>'
         +'</tr>'
     })
     out+='<div class="card" style="margin-bottom:14px">'
@@ -1499,7 +1513,7 @@ function rACom(){
           +(pend>0?'<div style="font-size:11px;color:var(--amber);margin-top:2px">'+fmt(pend)+' pendiente</div>':'')
         +'</div>'
       +'</div>'
-      +'<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Categoria</th><th>Comision</th><th>Tesoreria</th></tr></thead>'
+      +'<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Categoría</th><th>Comisión</th><th>Tesorería</th></tr></thead>'
       +'<tbody>'+filas+'</tbody>'
       +'<tfoot><tr>'
         +'<td colspan="5" style="font-weight:500;color:var(--text)">Total semana</td>'
@@ -1534,11 +1548,11 @@ async function showJV(){
     {id:'cp',label:'Ventas de mi plan',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',fn:"jvTab('cp',document.getElementById('sbitem-cp'))"},
     {id:'co',label:'Mis cobros',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"jvTab('co',document.getElementById('sbitem-co'))"}
   ],'cp',CU.nombre,rolLabel,false)
-  const{data}=await db.from('operaciones').select('*').eq('plan',pl).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciónes').select('*').eq('plan',pl).order('fecha',{ascending:false})
   jvOps=(data||[]).filter(x=>categ(x.monto).isVenta);rJVStats();rJVCarp()
 }
 function rJVStats(){
-  const acp=jvOps.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto),0)
+  const acp=jvOps.filter(x=>x.carpeta_tesorería==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto),0)
   html('jv-stats',`<div class="sc"><div class="sv">${jvOps.length}</div><div class="sl">Ventas de mi plan</div></div>
     <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Carpetas aceptadas</div></div>
     <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(tot)}</div><div class="sl">Mis cobros</div></div>`)
@@ -1551,9 +1565,9 @@ function rJVCarp(){
   let out=''
   ks.forEach(k=>{
     const p=byP[k]
-    const acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
+    const acp=p.ops.filter(x=>x.carpeta_tesorería==='aceptada')
     const tot=acp.reduce((a,x)=>a+calcJV(x.monto),0)
-    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
+    const pend=p.ops.filter(x=>x.carpeta_tesorería!=='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
     let filas=''
     p.ops.forEach(op=>{
       const c=categ(op.monto)
@@ -1563,19 +1577,19 @@ function rJVCarp(){
         +'<td>'+(op.unidad||'-')+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcJV(op.monto)):'pendiente')+'</td>'
-        +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
+        +'<td class="ag">'+(op.carpeta_tesorería==='aceptada'?fmt(calcJV(op.monto)):'pendiente')+'</td>'
+        +'<td>'+badgeE(op.carpeta_tesorería||'pendiente')+'</td>'
         +'</tr>'
     })
     out+='<div class="card" style="margin-bottom:14px">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">'
-        +'<div><div style="font-size:14px;font-weight:600;color:var(--text)">Periodo: '+p.label+'</div>'
+        +'<div><div style="font-size:14px;font-weight:600;color:var(--text)">Período: '+p.label+'</div>'
         +'<div style="font-size:12px;color:var(--text2);margin-top:3px">Cobro est.: '+fmtD(p.cob.toISOString().slice(0,10))+'</div></div>'
         +'<div style="text-align:right"><div class="ag" style="font-size:18px;font-weight:600">'+fmt(tot)+'</div>'
         +(pend>0?'<div style="font-size:11px;color:var(--amber)">'+fmt(pend)+' pendiente</div>':'')
         +'</div>'
       +'</div>'
-      +'<table><thead><tr><th>Asesor</th><th>Cliente</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Mi cobro 16.5%</th><th>Tesoreria</th></tr></thead>'
+      +'<table><thead><tr><th>Asesor</th><th>Cliente</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Mi cobro 16.5%</th><th>Tesorería</th></tr></thead>'
       +'<tbody>'+filas+'</tbody>'
       +'</table>'
     +'</div>'
@@ -1587,7 +1601,7 @@ function rJVCarp(){
 function rJVCob(){
   const desde=document.getElementById('jvc-desde')?.value||''
   const hasta=document.getElementById('jvc-hasta')?.value||''
-  let ops=jvOps.filter(x=>x.carpeta_tesoreria==='aceptada')
+  let ops=jvOps.filter(x=>x.carpeta_tesorería==='aceptada')
   if(desde)ops=ops.filter(x=>x.fecha>=desde)
   if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
   const byP={}
@@ -1604,7 +1618,7 @@ function rJVCob(){
       +'<div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>'
     +'</div>'
   +'</div>'
-  if(!ks.length){html('jv-cob',filtros+'<div class="card"><div class="es">Sin cobros en ese periodo</div></div>');return}
+  if(!ks.length){html('jv-cob',filtros+'<div class="card"><div class="es">Sin cobros en ese período</div></div>');return}
   let out=filtros
   ks.forEach(k=>{
     const p=byP[k]
@@ -1648,9 +1662,9 @@ let prOps=[]
 async function showPr(){
   showOnly('SPR')
   document.getElementById('SPR-sb').innerHTML=mkSidebar([
-    {id:'pr',label:'Mis presentaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',fn:''}
+    {id:'pr',label:'Mis presentaciónes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',fn:''}
   ],'pr',CU.nombre,'Presentador',false)
-  const{data}=await db.from('operaciones').select('*').eq('presentador_id',CU.id).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciónes').select('*').eq('presentador_id',CU.id).order('fecha',{ascending:false})
   prOps=data||[];rPrStats();rPrOps()
 }
 function rPrStats(){
@@ -1683,7 +1697,7 @@ function rPrOps(){
       +'</div>'
     +'</div>'
   +'</div>'
-  if(!ks.length){html('pr-ob',filtros+'<div class="es">Sin ventas en ese periodo</div>');return}
+  if(!ks.length){html('pr-ob',filtros+'<div class="es">Sin ventas en ese período</div>');return}
   let out=filtros
   ks.forEach(k=>{
     const p=byP[k]
@@ -1721,8 +1735,8 @@ async function showJP(){
   document.getElementById('SJP-sb').innerHTML=mkSidebar([
     {id:'op',label:'Ventas del equipo',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',fn:"jpTab('op',document.getElementById('sbitem-op'))"},
     {id:'co',label:'Mis cobros',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"jpTab('co',document.getElementById('sbitem-co'))"}
-  ],'op',CU.nombre,'Jefe de Presentaciones',false)
-  const{data}=await db.from('operaciones').select('*').not('presentador_id','is',null).order('fecha',{ascending:false})
+  ],'op',CU.nombre,'Jefe de Presentaciónes',false)
+  const{data}=await db.from('operaciónes').select('*').not('presentador_id','is',null).order('fecha',{ascending:false})
   jpOps=data||[];rJPStats();rJPOps()
 }
 function rJPStats(){
@@ -1732,7 +1746,7 @@ function rJPStats(){
     <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(acp.length*35000)}</div><div class="sl">Mis cobros</div></div>`)
 }
 function rJPOps(){
-  if(!jpOps.length){html('jp-ob','<div class="es">Sin operaciones del equipo</div>');return}
+  if(!jpOps.length){html('jp-ob','<div class="es">Sin operaciónes del equipo</div>');return}
   let filas=''
   jpOps.forEach(op=>{
     filas+='<tr>'
@@ -1770,7 +1784,7 @@ function rJPCob(){
       +'<div style="margin-left:auto"><div class="ag" style="font-size:16px;font-weight:600">'+fmt(totalGral)+'</div><div style="font-size:11px;color:var(--text2)">total confirmado</div></div>'
     +'</div>'
   +'</div>'
-  if(!ks.length){html('jp-cob',filtros+'<div class="card"><div class="es">Sin cobros en ese periodo</div></div>');return}
+  if(!ks.length){html('jp-cob',filtros+'<div class="card"><div class="es">Sin cobros en ese período</div></div>');return}
   let out=filtros
   ks.forEach(k=>{
     const p=byP[k]
@@ -1818,21 +1832,21 @@ async function showOB(){
   document.getElementById('SOB-sb').innerHTML=mkSidebar([
     {id:'mis',label:'Mis clientes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',fn:"obTab('mis',document.getElementById('sbitem-mis'))"},
     {id:'disp',label:'Ventas disponibles',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',fn:"obTab('disp',document.getElementById('sbitem-disp'))"},
-    {id:'co',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"obTab('co',document.getElementById('sbitem-co'))"}
+    {id:'co',label:'Mis comisiónes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"obTab('co',document.getElementById('sbitem-co'))"}
   ],'mis',CU.nombre,'On Boarding',tieneExtra)
   await loadOBData();rOBStats();rOBMis()
 }
 let obPagos=[]
 async function loadOBData(){
   const[mis,disp,movs,pagos]=await Promise.all([
-    db.from('operaciones').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
-    db.from('operaciones').select('*').is('ob_id',null).eq('estado','venta').eq('plan','Ahorro').order('fecha',{ascending:false}),
+    db.from('operaciónes').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
+    db.from('operaciónes').select('*').is('ob_id',null).eq('estado','venta').eq('plan','Ahorro').order('fecha',{ascending:false}),
     db.from('ob_movimientos').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
     db.from('ob_pagos_cuota').select('*').eq('ob_id',CU.id).order('fecha_pago',{ascending:true})
   ])
   obOps=mis.data||[];obDisp=disp.data||[];obMovs=movs.data||[];obPagos=pagos.data||[]
 }
-function getMovsOp(opId){return obMovs.filter(x=>x.operacion_id===opId)}
+function getMovsOp(opId){return obMovs.filter(x=>x.operación_id===opId)}
 function calcComOBMovs(movs){
   return movs.reduce((a,m)=>{
     if(m.tipo==='incremento'&&m.antes_72hrs!==null&&m.antes_72hrs!==undefined)return a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275))
@@ -1843,12 +1857,12 @@ function calcComOBMovs(movs){
 function rOBStats(){
   const totInc=obMovs.filter(x=>x.tipo==='incremento'&&x.antes_72hrs!==null).reduce((a,m)=>a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275)),0)
   const totAh=obMovs.filter(x=>x.tipo==='ahorro').reduce((a,m)=>a+Math.round(m.monto*0.10),0)
-  const totCuotas=(obPagos||[]).reduce((a,p)=>a+calcComCuota(p.numero_cuota,p.dia_del_mes),0)
+  const totCuotas=(obPagos||[]).reduce((a,p)=>a+calcComCuota(p.número_cuota,p.dia_del_mes),0)
   const totGral=totInc+totAh+totCuotas
   html('ob-stats',`<div class="sc"><div class="sv">${obOps.length}</div><div class="sl">Mis clientes</div></div>
     <div class="sc"><div class="sv">${obPagos.length}</div><div class="sl">Pagos de cuota</div></div>
     <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totCuotas)}</div><div class="sl">Com. cuotas</div></div>
-    <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totGral)}</div><div class="sl">Total comisiones</div></div>`)
+    <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totGral)}</div><div class="sl">Total comisiónes</div></div>`)
 }
 function renderMovHistorial(movs, isAdmin=false){
   if(!movs.length) return '<div style="font-size:12px;color:var(--text3);padding:8px 0">Sin movimientos aun</div>'
@@ -1880,7 +1894,7 @@ function renderMovHistorial(movs, isAdmin=false){
 let obClienteAbierto=null
 const OB_CUOTAS={1:{antes:20000,despues:10000},2:{antes:15000,despues:7500},3:{antes:10000,despues:5000},4:{antes:10000,despues:5000},5:{antes:10000,despues:5000},6:{antes:10000,despues:5000}}
 function calcComCuota(nro,dia){const t=OB_CUOTAS[nro];if(!t)return 0;return dia<=10?t.antes:t.despues}
-function getPagosCuota(opId){return obPagos.filter(x=>x.operacion_id===opId)}
+function getPagosCuota(opId){return obPagos.filter(x=>x.operación_id===opId)}
 function rOBMis(isAdmin=false){
   if(!obOps.length){html('ob-misb','<div class="card"><div class="es">No tenes clientes asignados aun</div></div>');return}
   const busq=(document.getElementById('ob-mis-search')?.value||'').toLowerCase()
@@ -1905,10 +1919,10 @@ function rOBMis(isAdmin=false){
     const movs=getMovsOp(op.id)
     const pagos=getPagosCuota(op.id)
     const totComMovs=calcComOBMovs(movs)
-    const totComCuotas=pagos.reduce((a,p)=>a+calcComCuota(p.numero_cuota,p.dia_del_mes),0)
+    const totComCuotas=pagos.reduce((a,p)=>a+calcComCuota(p.número_cuota,p.dia_del_mes),0)
     const totCom=totComMovs+totComCuotas
     const abierto=obClienteAbierto===op.id
-    const pagosOrdenados=[...pagos].sort((a,b)=>a.numero_cuota-b.numero_cuota)
+    const pagosOrdenados=[...pagos].sort((a,b)=>a.número_cuota-b.número_cuota)
     const clienteEsc=op.cliente.replace(/'/g,"\\'")
 
     // Header del cliente
@@ -1935,7 +1949,7 @@ function rOBMis(isAdmin=false){
     if(abierto){
       // Datos personales
       let datosGrid='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">'
-        +'<div><span style="color:var(--text3)">Tel. OB: </span><span style="color:var(--text)">'+(op.ob_telefono||'—')+'</span></div>'
+        +'<div><span style="color:var(--text3)">Tel. OB: </span><span style="color:var(--text)">'+(op.ob_teléfono||'—')+'</span></div>'
         +'<div><span style="color:var(--text3)">Email: </span><span style="color:var(--text)">'+(op.ob_email||'—')+'</span></div>'
         +'<div><span style="color:var(--text3)">Celular venta: </span><span style="color:var(--text)">'+(op.celular||'—')+'</span></div>'
         +'<div><span style="color:var(--text3)">Unidad: </span><span style="color:var(--text)">'+(op.unidad||'—')+'</span></div>'
@@ -1945,7 +1959,7 @@ function rOBMis(isAdmin=false){
       // Cuotas grid
       let cuotasGrid='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">'
       for(let n=1;n<=6;n++){
-        const pago=pagosOrdenados.find(p=>p.numero_cuota===n)
+        const pago=pagosOrdenados.find(p=>p.número_cuota===n)
         const t=OB_CUOTAS[n]||{antes:0,despues:0}
         if(pago){
           const com=calcComCuota(n,pago.dia_del_mes)
@@ -2035,19 +2049,19 @@ function rOBMis(isAdmin=false){
 
 
 // ═══ OB PAGOS DE CUOTA ═══
-function openOBPagoCuota(opId,cliente,numeroCuota){
+function openOBPagoCuota(opId,cliente,númeroCuota){
   const modal=document.createElement('div')
   modal.id='ob-modal'
   modal.className='modal-bg'
-  const t=OB_CUOTAS[numeroCuota]||{antes:0,despues:0}
+  const t=OB_CUOTAS[númeroCuota]||{antes:0,despues:0}
   modal.innerHTML=`<div class="modal" style="max-width:400px">
-    <div style="font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)">Registrar pago M${numeroCuota}</div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)">Registrar pago M${númeroCuota}</div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:16px">${cliente}</div>
     <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:14px;font-size:12px;color:var(--text2)">
-      Comision: <strong style="color:var(--teal)">$${t.antes.toLocaleString('es-AR')}</strong> si paga del 1-10 &nbsp;·&nbsp; <strong style="color:var(--amber)">$${t.despues.toLocaleString('es-AR')}</strong> si paga del 11-30
+      Comisión: <strong style="color:var(--teal)">$${t.antes.toLocaleString('es-AR')}</strong> si paga del 1-10 &nbsp;·&nbsp; <strong style="color:var(--amber)">$${t.despues.toLocaleString('es-AR')}</strong> si paga del 11-30
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div><label>Fecha de pago</label><input id="obp-fecha" type="date" value="${new Date().toISOString().slice(0,10)}" onchange="previewOBPago(${numeroCuota})"></div>
+      <div><label>Fecha de pago</label><input id="obp-fecha" type="date" value="${new Date().toISOString().slice(0,10)}" onchange="previewOBPago(${númeroCuota})"></div>
       <div>
         <label>Forma de pago</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
@@ -2061,32 +2075,32 @@ function openOBPagoCuota(opId,cliente,numeroCuota){
           </div>
         </div>
       </div>
-      <div id="obp-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">Selecciona la fecha para ver la comision</div>
+      <div id="obp-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">Selecciona la fecha para ver la comisión</div>
       <div id="obp-err" style="display:none;font-size:12px;color:var(--red)"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button onclick="document.getElementById('ob-modal').remove()" style="flex:1">Cancelar</button>
-        <button class="bp" onclick="guardarOBPago('${opId}',${numeroCuota})" style="flex:2">Registrar pago</button>
+        <button class="bp" onclick="guardarOBPago('${opId}',${númeroCuota})" style="flex:2">Registrar pago</button>
       </div>
     </div>
   </div>`
   document.body.appendChild(modal)
-  previewOBPago(numeroCuota)
+  previewOBPago(númeroCuota)
 }
-function previewOBPago(numeroCuota){
+function previewOBPago(númeroCuota){
   const f=document.getElementById('obp-fecha')?.value
   const el=document.getElementById('obp-prev')
   if(!el||!f)return
   const dia=new Date(f+'T12:00:00').getDate()
-  const com=calcComCuota(numeroCuota,dia)
+  const com=calcComCuota(númeroCuota,dia)
   const color=dia<=10?'var(--teal)':'var(--amber)'
-  el.innerHTML=`Día <strong style="color:${color}">${dia}</strong> del mes — Comision: <span style="color:var(--teal);font-weight:600;font-family:var(--mono)">$${com.toLocaleString('es-AR')}</span>`
+  el.innerHTML=`Día <strong style="color:${color}">${dia}</strong> del mes — Comisión: <span style="color:var(--teal);font-weight:600;font-family:var(--mono)">$${com.toLocaleString('es-AR')}</span>`
 }
-async function guardarOBPago(opId,numeroCuota){
+async function guardarOBPago(opId,númeroCuota){
   const f=document.getElementById('obp-fecha')?.value
   const errEl=document.getElementById('obp-err')
   if(!f){if(errEl){errEl.textContent='Selecciona la fecha.';errEl.style.display='block'}return}
   const dia=new Date(f+'T12:00:00').getDate()
-  const com=calcComCuota(numeroCuota,dia)
+  const com=calcComCuota(númeroCuota,dia)
   const obpEf=parseFloat(document.getElementById('obp-ef')?.value)||0
   const obpTr=parseFloat(document.getElementById('obp-tr')?.value)||0
   let obpPago=''
@@ -2094,9 +2108,9 @@ async function guardarOBPago(opId,numeroCuota){
   else if(obpEf>0)obpPago='Efectivo'
   else if(obpTr>0)obpPago='Transferencia'
   const{error}=await db.from('ob_pagos_cuota').insert({
-    operacion_id:opId,ob_id:CU.id,ob_nombre:CU.nombre,
-    numero_cuota:numeroCuota,fecha_pago:f,dia_del_mes:dia,comision:com,
-    metodo_pago:obpPago||null
+    operación_id:opId,ob_id:CU.id,ob_nombre:CU.nombre,
+    número_cuota:númeroCuota,fecha_pago:f,dia_del_mes:dia,comisión:com,
+    método_pago:obpPago||null
   })
   if(error){if(errEl){errEl.textContent='Error: '+error.message;errEl.style.display='block'}return}
   document.getElementById('ob-modal').remove()
@@ -2112,7 +2126,7 @@ async function delOBPago(pagoId){
 function openOBDatosById(opId){
   const op=obOps.find(x=>x.id===opId)
   if(!op)return
-  openOBDatos(opId,op.cliente,op.ob_telefono||'',op.ob_email||'',op.ob_notas||'',op.celular||'',op.unidad||'')
+  openOBDatos(opId,op.cliente,op.ob_teléfono||'',op.ob_email||'',op.ob_notas||'',op.celular||'',op.unidad||'')
 }
 function openOBDatos(opId,cliente,tel,email,notas,celVenta,unidad){
   const modal=document.createElement('div')
@@ -2146,7 +2160,7 @@ async function guardarOBDatos(opId){
   const notas=document.getElementById('obd-notas')?.value.trim()
   const cel=document.getElementById('obd-cel')?.value.trim()
   const unidad=document.getElementById('obd-unidad')?.value.trim()
-  const{error}=await db.from('operaciones').update({ob_telefono:tel||null,ob_email:email||null,ob_notas:notas||null,celular:cel||null,unidad:unidad||null}).eq('id',opId)
+  const{error}=await db.from('operaciónes').update({ob_teléfono:tel||null,ob_email:email||null,ob_notas:notas||null,celular:cel||null,unidad:unidad||null}).eq('id',opId)
   if(error){const e=document.getElementById('obd-err');if(e){e.textContent='Error: '+error.message;e.style.display='block'}return}
   document.getElementById('ob-modal').remove()
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
@@ -2154,7 +2168,7 @@ async function guardarOBDatos(opId){
 }
 async function devolverOBCliente(opId,cliente){
   if(!confirm('Devolver a '+cliente+' al pool de clientes disponibles?\nSe quitará de tu lista pero se mantendrán todos los datos cargados.'))return
-  await db.from('operaciones').update({ob_id:null,ob_nombre:null}).eq('id',opId)
+  await db.from('operaciónes').update({ob_id:null,ob_nombre:null}).eq('id',opId)
   obClienteAbierto=null
   await loadOBData();rOBStats();rOBMis();rOBDisp()
 }
@@ -2178,7 +2192,7 @@ function openOBBaja(opId,cliente){
 }
 async function guardarOBBaja(opId){
   const motivo=document.getElementById('ob-baja-motivo')?.value.trim()
-  const{error}=await db.from('operaciones').update({ob_baja:true,ob_motivo_baja:motivo||null}).eq('id',opId)
+  const{error}=await db.from('operaciónes').update({ob_baja:true,ob_motivo_baja:motivo||null}).eq('id',opId)
   if(error){const e=document.getElementById('ob-baja-err');if(e){e.textContent='Error: '+error.message;e.style.display='block'}return}
   document.getElementById('ob-modal').remove()
   obClienteAbierto=null
@@ -2187,7 +2201,7 @@ async function guardarOBBaja(opId){
 }
 async function reactivarOBCliente(opId){
   if(!confirm('Reactivar este cliente?'))return
-  await db.from('operaciones').update({ob_baja:false,ob_motivo_baja:null}).eq('id',opId)
+  await db.from('operaciónes').update({ob_baja:false,ob_motivo_baja:null}).eq('id',opId)
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
   else{await loadOBData();rOBStats();rOBMis()}
 }
@@ -2219,7 +2233,7 @@ function rOBDisp(){
   </tr>`).join('')}</tbody></table>`)
 }
 async function asignOB(opId){
-  await db.from('operaciones').update({ob_id:CU.id,ob_nombre:CU.nombre}).eq('id',opId)
+  await db.from('operaciónes').update({ob_id:CU.id,ob_nombre:CU.nombre}).eq('id',opId)
   await loadOBData();rOBStats();rOBMis();rOBDisp()
 }
 
@@ -2233,9 +2247,9 @@ function openOBMov(opId,cliente,tipo){
   const modal=document.createElement('div')
   modal.id='ob-modal'
   modal.className='modal-bg'
-  const tituloTipo=tipo==='incremento'?'Incremento de cuota':'Ahorro del cliente'
+  const títuloTipo=tipo==='incremento'?'Incremento de cuota':'Ahorro del cliente'
   modal.innerHTML=`<div class="modal" style="max-width:440px">
-    <div style="font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)">${tituloTipo}</div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)">${títuloTipo}</div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:16px">${cliente}</div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="g2">
@@ -2244,7 +2258,7 @@ function openOBMov(opId,cliente,tipo){
       </div>
 
       <div id="obm-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">
-        Ingresa los datos para ver la comision estimada
+        Ingresa los datos para ver la comisión estimada
       </div>
       <div id="obm-err" style="display:none;font-size:12px;color:var(--red)"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
@@ -2276,7 +2290,7 @@ function previewOBMov(){
   const f=document.getElementById('obm-fecha')?.value
   const el=document.getElementById('obm-prev')
   if(!el)return
-  if(!m||isNaN(m)){el.textContent='Ingresa los datos para ver la comision estimada';return}
+  if(!m||isNaN(m)){el.textContent='Ingresa los datos para ver la comisión estimada';return}
   let com=0,det=''
   if(obMovTipo==='incremento'){
     let pct=27.5,hrs=null
@@ -2285,10 +2299,10 @@ function previewOBMov(){
       pct=hrs<=72?55:27.5
     }
     com=Math.round(m*(pct/100))
-    det=hrs!==null?`${hrs}hs desde la venta — Tasa: <strong style="color:var(--teal)">${pct}%</strong> (${hrs<=72?'≤72hs':'>72hs'}) — Comision: <span class="at">${fmt(com)}</span>`:`Tasa: <strong style="color:var(--teal)">${pct}%</strong> — Comision: <span class="at">${fmt(com)}</span>`
+    det=hrs!==null?`${hrs}hs desde la venta — Tasa: <strong style="color:var(--teal)">${pct}%</strong> (${hrs<=72?'≤72hs':'>72hs'}) — Comisión: <span class="at">${fmt(com)}</span>`:`Tasa: <strong style="color:var(--teal)">${pct}%</strong> — Comisión: <span class="at">${fmt(com)}</span>`
   } else {
     com=Math.round(m*0.10)
-    det=`Tasa: 10% — Comision: <span class="at">${fmt(com)}</span>`
+    det=`Tasa: 10% — Comisión: <span class="at">${fmt(com)}</span>`
   }
   el.innerHTML=det
 }
@@ -2308,8 +2322,8 @@ async function guardarOBMov(){
   }
   const comFinal=obMovTipo==='incremento'&&auto72!==null?Math.round(m*(auto72?0.55:0.275)):com
   const{error}=await db.from('ob_movimientos').insert({
-    operacion_id:obMovOpId,ob_id:CU.id,ob_nombre:CU.nombre,
-    tipo:obMovTipo,monto:m,fecha:f,antes_72hrs:auto72,comision:comFinal
+    operación_id:obMovOpId,ob_id:CU.id,ob_nombre:CU.nombre,
+    tipo:obMovTipo,monto:m,fecha:f,antes_72hrs:auto72,comisión:comFinal
   })
   if(error){if(errEl){errEl.textContent='Error al guardar: '+error.message;errEl.style.display='block'}return}
   document.getElementById('ob-modal').remove()
@@ -2317,7 +2331,7 @@ async function guardarOBMov(){
   else{await loadOBData();rOBStats();rOBMis()}
 }
 async function delOBMov(movId){
-  if(!confirm('Eliminar este movimiento? La comision se descontara.'))return
+  if(!confirm('Eliminar este movimiento? La comisión se descontara.'))return
   await db.from('ob_movimientos').delete().eq('id',movId)
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
   else{await loadOBData();rOBStats();rOBMis()}
@@ -2354,7 +2368,7 @@ function rOBCom(){
       +'</div>'
     +'</div>'
   +'</div>'
-  if(!ks.length){html('ob-cob',filtros+'<div class="card"><div class="es">Sin comisiones en ese periodo</div></div>');return}
+  if(!ks.length){html('ob-cob',filtros+'<div class="card"><div class="es">Sin comisiónes en ese período</div></div>');return}
   let out=filtros
   ks.forEach(k=>{
     const p=byP[k]
@@ -2363,7 +2377,7 @@ function rOBCom(){
     const tot=totInc+totAh
     let filas=''
     p.movs.forEach(m=>{
-      const op=allOps.find(x=>x.id===m.operacion_id)
+      const op=allOps.find(x=>x.id===m.operación_id)
       const ci=calcCI(m),ca=calcCA(m)
       const hrs=m.antes_72hrs!=null?(m.antes_72hrs?'≤72hs':'>72hs'):'-'
       const pct=m.antes_72hrs!=null?(m.antes_72hrs?'55%':'27.5%'):'-'
@@ -2427,7 +2441,7 @@ async function adminVerClientesOB(){
 
   let out=''
   ops.forEach(op=>{
-    const movsOp=allObMovs.filter(x=>x.operacion_id===op.id)
+    const movsOp=allObMovs.filter(x=>x.operación_id===op.id)
     const incs=movsOp.filter(x=>x.tipo==='incremento')
     const ahs=movsOp.filter(x=>x.tipo==='ahorro')
     const totInc=incs.reduce((a,m)=>a+(m.antes_72hrs!=null?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):0),0)
@@ -2472,7 +2486,7 @@ async function adminVerClientesOB(){
 
 
 async function setOBPago(opId,estado){
-  await db.from('operaciones').update({pago_ob:estado}).eq('id',opId)
+  await db.from('operaciónes').update({pago_ob:estado}).eq('id',opId)
   await loadAll();adminVerClientesOB()
 }
 function rAdmOBAsign(){
@@ -2495,7 +2509,7 @@ function rAdmOBAsign(){
 async function asignOBAdmin(opId,val){
   if(!val)return
   const[obId,obNombre]=val.split('|')
-  await db.from('operaciones').update({ob_id:obId,ob_nombre:obNombre}).eq('id',opId)
+  await db.from('operaciónes').update({ob_id:obId,ob_nombre:obNombre}).eq('id',opId)
   await loadAll();rAdmOBAsign()
 }
 function adminAgregarMovOB(opId,cliente,obId,obNombre){
@@ -2519,7 +2533,7 @@ async function showAdm(){
   rAdmStats()
   rAdmCarp()
   try{
-    await Promise.all([loadIncentivos(),loadLiquidaciones(),loadRolesCustom()])
+    await Promise.all([loadIncentivos(),loadLiquidaciónes(),loadRolesCustom()])
     poblarRolCustomSelect()
     rRoles()
   }catch(e){
@@ -2527,12 +2541,12 @@ async function showAdm(){
   }
 }
 function rAdmStats(){
-  const vn=allOps.filter(x=>categ(x.monto).isVenta),rs=allOps.filter(x=>!categ(x.monto).isVenta),acp=vn.filter(x=>x.carpeta_tesoreria==='aceptada')
+  const vn=allOps.filter(x=>categ(x.monto).isVenta),rs=allOps.filter(x=>!categ(x.monto).isVenta),acp=vn.filter(x=>x.carpeta_tesorería==='aceptada')
   const totComAsesores=vn.reduce((a,x)=>a+calcC(x.monto),0)
   html('adm-stats',`<div class="sc"><div class="sv">${vn.length}</div><div class="sl">Ventas totales</div></div>
     <div class="sc"><div class="sv">${rs.length}</div><div class="sl">Reservas</div></div>
-    <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Aceptadas tesoreria</div></div>
-    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(totComAsesores)}</div><div class="sl">Comisiones asesores</div></div>`)
+    <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Aceptadas tesorería</div></div>
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(totComAsesores)}</div><div class="sl">Comisiónes asesores</div></div>`)
 }
 let carpetaAbierta=null
 function toggleCarpeta(k){
@@ -2550,10 +2564,10 @@ function toggleCarpeta(k){
   })
 }
 async function guardarSOP(key,val){
-  await db.from('carpetas_llevadas').upsert({periodo_key:key,nro_sop:val})
+  await db.from('carpetas_llevadas').upsert({período_key:key,nro_sop:val})
   // actualizar local
   const ll=allLl.find(x=>x===key)||key
-  const rec=allLlData?allLlData.find(x=>x.periodo_key===key):null
+  const rec=allLlData?allLlData.find(x=>x.período_key===key):null
   if(rec)rec.nro_sop=val
 }
 let carpSort={field:'asesor_nombre',dir:'asc'}
@@ -2566,7 +2580,7 @@ function rAdmCarp(){
   const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
   vn.forEach(op=>{
     const p=getPer(op.fecha_carpeta||op.fecha)
-    const llRec=allLlData.find(x=>x.periodo_key===p.key)
+    const llRec=allLlData.find(x=>x.período_key===p.key)
     if(!byP[p.key]){
       var pEff={...p}
       if(llRec&&llRec.fecha_llevar_custom)pEff.vie=new Date(llRec.fecha_llevar_custom+'T12:00:00')
@@ -2586,16 +2600,16 @@ function rAdmCarp(){
   ks.forEach(k=>{
     const p=byP[k]
     const abierta=carpetaAbierta===k
-    const opAcp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
+    const opAcp=p.ops.filter(x=>x.carpeta_tesorería==='aceptada')
     const totAcp=opAcp.reduce((a,x)=>a+calcC(x.monto),0)
     const totJV=opAcp.reduce((a,x)=>a+calcJV(x.monto),0)
     const totPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*74000
     const totJPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*35000
     const grandTotal=totAcp+totJV+totPres+totJPres
     const counts={
-      acp:p.ops.filter(x=>x.carpeta_tesoreria==='aceptada').length,
-      pend:p.ops.filter(x=>!x.carpeta_tesoreria||x.carpeta_tesoreria==='pendiente').length,
-      den:p.ops.filter(x=>x.carpeta_tesoreria==='denegada').length
+      acp:p.ops.filter(x=>x.carpeta_tesorería==='aceptada').length,
+      pend:p.ops.filter(x=>!x.carpeta_tesorería||x.carpeta_tesorería==='pendiente').length,
+      den:p.ops.filter(x=>x.carpeta_tesorería==='denegada').length
     }
 
     // Badges de encabezado
@@ -2616,15 +2630,15 @@ function rAdmCarp(){
     let filas=''
     opsOrdenadas.forEach(op=>{
       const c=categ(op.monto)
-      const tesCell=op.carpeta_tesoreria==='denegada'&&op.motivo_denegacion
+      const tesCell=op.carpeta_tesorería==='denegada'&&op.motivo_denegacion
         ?'<div><span class="badge b-den">Denegada</span><div style="font-size:11px;color:var(--red);margin-top:3px;max-width:150px">💬 '+op.motivo_denegacion+'</div></div>'
-        :badgeE(op.carpeta_tesoreria||'pendiente')
+        :badgeE(op.carpeta_tesorería||'pendiente')
       const llevadaCell=op.carpeta_llevada
         ?'<span style="font-size:11px;color:var(--blue)">✓ Llevada</span>'
         :'<span style="font-size:11px;color:var(--text3)">—</span>'
-      const btnAceptar=op.carpeta_tesoreria!=='aceptada'
+      const btnAceptar=op.carpeta_tesorería!=='aceptada'
         ?'<button class="bg" onclick="setTes(\''+op.id+'\',\'aceptada\')" style="font-size:11px;padding:3px 8px">✓ Aceptar</button>':''
-      const btnDenegar=op.carpeta_tesoreria!=='denegada'
+      const btnDenegar=op.carpeta_tesorería!=='denegada'
         ?'<button class="br" onclick="openDenegar(\''+op.id+'\')" style="font-size:11px;padding:3px 8px">✗ Denegar</button>':''
       const menu='<button onclick="openEditFecha(\''+op.id+'\',\''+op.fecha+'\' )" style="font-size:11px;padding:3px 7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer">📅</button>'
         +'<button onclick="deleteOp(\''+op.id+'\',\'admin\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'
@@ -2635,7 +2649,7 @@ function rAdmCarp(){
         +'<td>'+(op.unidad||'-')+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
+        +'<td class="ag">'+(op.carpeta_tesorería==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
         +'<td>'+tesCell+'</td>'
         +'<td>'+llevadaCell+'</td>'
         +'<td><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+btnAceptar+btnDenegar+menu
@@ -2688,7 +2702,7 @@ function rAdmCarp(){
           +(function(){
   var sf=carpSort.field,sd=carpSort.dir
   function th(f,l){var arr=sf===f?(sd==='asc'?' ↑':' ↓'):' ↕';return '<th style="cursor:pointer;user-select:none;white-space:nowrap" onclick="event.stopPropagation();sortCarp(\"'+f+'\")">'+l+arr+'</th>'}
-  return '<thead><tr>'+th('asesor_nombre','Asesor')+th('cliente','Cliente')+th('plan','Plan')+th('unidad','Unidad')+th('monto','Cuota')+'<th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Llevada</th><th>Acciones</th></tr></thead>'
+  return '<thead><tr>'+th('asesor_nombre','Asesor')+th('cliente','Cliente')+th('plan','Plan')+th('unidad','Unidad')+th('monto','Cuota')+'<th>Cat.</th><th>Com. asesor</th><th>Tesorería</th><th>Llevada</th><th>Acciones</th></tr></thead>'
 })()
           +'<tbody>'+filas+'</tbody>'
         +'</table></div>'
@@ -2700,16 +2714,16 @@ function rAdmCarp(){
 
 
 async function setTes(id,estado){
-  await db.from('operaciones').update({carpeta_tesoreria:estado,fecha_tesoreria:new Date().toISOString().slice(0,10)}).eq('id',id)
+  await db.from('operaciónes').update({carpeta_tesorería:estado,fecha_tesorería:new Date().toISOString().slice(0,10)}).eq('id',id)
   await loadAll();rAdmCarp();rAdmStats()
 }
 async function markLL(key){
-  await db.from('carpetas_llevadas').upsert({periodo_key:key,fecha_llevada:new Date().toISOString().slice(0,10)})
-  // Marcar todas las ops de ese periodo como llevadas
-  const opsDelPeriodo=allOps.filter(x=>categ(x.monto).isVenta&&getPer(x.fecha).key===key)
-  if(opsDelPeriodo.length){
-    const ids=opsDelPeriodo.map(x=>x.id)
-    await db.from('operaciones').update({carpeta_llevada:true}).in('id',ids)
+  await db.from('carpetas_llevadas').upsert({período_key:key,fecha_llevada:new Date().toISOString().slice(0,10)})
+  // Marcar todas las ops de ese período como llevadas
+  const opsDelPeríodo=allOps.filter(x=>categ(x.monto).isVenta&&getPer(x.fecha).key===key)
+  if(opsDelPeríodo.length){
+    const ids=opsDelPeríodo.map(x=>x.id)
+    await db.from('operaciónes').update({carpeta_llevada:true}).in('id',ids)
   }
   await loadAll();rAdmCarp()
 }
@@ -2751,7 +2765,7 @@ async function guardarMoverPres(){
   // Usar el sábado de esa carpeta como fecha_pago_presentador
   const partes=perKey.split('_')
   const nuevaFecha=partes[0]
-  await db.from('operaciones').update({fecha_pago_presentador:nuevaFecha}).eq('id',moverPresOpId)
+  await db.from('operaciónes').update({fecha_pago_presentador:nuevaFecha}).eq('id',moverPresOpId)
   document.getElementById('modal-mover-pres').remove()
   moverPresOpId=null
   await loadAll();rAdmPres()
@@ -2776,7 +2790,7 @@ function openMoverOB(movId, cliente){
   const modal=document.createElement('div')
   modal.id='modal-mover-ob'
   modal.className='modal-bg'
-  modal.innerHTML='<div class="modal"><div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)">Mover comision OB</div>'
+  modal.innerHTML='<div class="modal"><div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)">Mover comisión OB</div>'
     +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">'+cliente+' — '+(mov.tipo==='incremento'?(mov.antes_72hrs?'≤72hs':'>72hs'):'Ahorro')+' '+fmt(mov.monto)+'</div>'
     +'<div style="display:flex;flex-direction:column;gap:12px">'
     +'<div><label>Carpeta destino</label><select id="mob-sel" style="width:100%">'+opts+'</select></div>'
@@ -2805,7 +2819,7 @@ function rAdmPres(){
   else if(filtro==='pendiente')ops=vn.filter(x=>x.presentador_id&&x.pago_presentador==='pendiente')
   else if(filtro==='aceptado')ops=vn.filter(x=>x.pago_presentador==='aceptado')
   else if(filtro==='denegado')ops=vn.filter(x=>x.pago_presentador==='denegado')
-  if(!ops.length){html('adm-prb','<div class="es">Sin operaciones</div>');return}
+  if(!ops.length){html('adm-prb','<div class="es">Sin operaciónes</div>');return}
   html('adm-prb',`<table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Presentador</th><th>Estado</th><th>Accion</th></tr></thead>
   <tbody>${ops.map(op=>`<tr>
     <td><div>${fmtD(op.fecha)}</div>${op.fecha_carga&&op.fecha_carga!==op.fecha?'<div style="font-size:10px;color:var(--amber);margin-top:1px">cargada '+fmtD(op.fecha_carga)+'</div>':''}</td><td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
@@ -2824,11 +2838,11 @@ function rAdmPres(){
 }
 async function asignPres(opId,presId){
   const pres=allUsers.find(x=>x.id===presId)
-  await db.from('operaciones').update({presentador_id:presId||null,presentador_nombre:pres?pres.nombre:null,pago_presentador:presId?'pendiente':null}).eq('id',opId)
+  await db.from('operaciónes').update({presentador_id:presId||null,presentador_nombre:pres?pres.nombre:null,pago_presentador:presId?'pendiente':null}).eq('id',opId)
   await loadAll();rAdmPres()
 }
 async function setPagoPres(opId,estado){
-  await db.from('operaciones').update({pago_presentador:estado}).eq('id',opId)
+  await db.from('operaciónes').update({pago_presentador:estado}).eq('id',opId)
   await loadAll();rAdmPres();rAdmStats()
 }
 function toggleComDet(id){
@@ -2841,39 +2855,39 @@ function toggleComDet(id){
 }
 let admComSort={field:"total",dir:"desc"}
 function rAdmCom(){
-  // Comisiones agrupadas igual que las carpetas (fecha_carpeta || fecha)
+  // Comisiónes agrupadas igual que las carpetas (fecha_carpeta || fecha)
   const filtro=gv('adm-fp')
   const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
   vn.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);if(filtro&&p.key!==filtro)return;if(!byP[p.key])byP[p.key]={label:p.label,cob:p.cob,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   if(!ks.length){html('adm-cob','<div class="es">Sin datos</div>');return}
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe Pres.',on_boarding:'On Boarding'}
   html('adm-cob',ks.map(k=>{
     const p=byP[k]
     const porAs={}
-    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesoreria==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto)}else{porAs[op.asesor_id].comPend+=calcC(op.monto)};porAs[op.asesor_id].ops+=1})
-    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),opAhAcp=opAh.filter(x=>x.carpeta_tesoreria==='aceptada'),comJA=opAhAcp.reduce((a,x)=>a+calcJV(x.monto),0)
-    const opPo=p.ops.filter(x=>x.plan==='Pozo'),opPoAcp=opPo.filter(x=>x.carpeta_tesoreria==='aceptada'),comJP=opPoAcp.reduce((a,x)=>a+calcJV(x.monto),0)
+    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesorería==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto)}else{porAs[op.asesor_id].comPend+=calcC(op.monto)};porAs[op.asesor_id].ops+=1})
+    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),opAhAcp=opAh.filter(x=>x.carpeta_tesorería==='aceptada'),comJA=opAhAcp.reduce((a,x)=>a+calcJV(x.monto),0)
+    const opPo=p.ops.filter(x=>x.plan==='Pozo'),opPoAcp=opPo.filter(x=>x.carpeta_tesorería==='aceptada'),comJP=opPoAcp.reduce((a,x)=>a+calcJV(x.monto),0)
     const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id&&getPer(x.fecha_pago_presentador||x.fecha_carpeta||x.fecha).key===k)
     const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
     // OB
     const obMap={}
     allObMovs.filter(m=>{
-      // Usar fecha_pago si fue movido manualmente, sino la carpeta de la operacion
+      // Usar fecha_pago si fue movido manualmente, sino la carpeta de la operación
       if(m.fecha_pago) return getPer(m.fecha_pago).key===k
-      const opVinculada=allOps.find(x=>x.id===m.operacion_id)
+      const opVinculada=allOps.find(x=>x.id===m.operación_id)
       if(opVinculada) return getPer(opVinculada.fecha_carpeta||opVinculada.fecha).key===k
       return getPer(m.fecha).key===k
     }).forEach(m=>{
       if(!obMap[m.ob_id])obMap[m.ob_id]={nombre:m.ob_nombre,comInc:0,comAh:0,movs:[]}
-      var opNom=allOps.find(x=>x.id===m.operacion_id)
+      var opNom=allOps.find(x=>x.id===m.operación_id)
       obMap[m.ob_id].movs.push({...m,cliente_nombre:opNom?opNom.cliente:'-'})
       if(m.tipo==='incremento')obMap[m.ob_id].comInc+=Math.round(m.monto*(m.antes_72hrs?0.55:0.275))
       if(m.tipo==='ahorro')obMap[m.ob_id].comAh+=Math.round(m.monto*0.10)
     })
     const comOBTotal=Object.values(obMap).reduce((a,x)=>a+x.comInc+x.comAh,0)
     const totGen=Object.values(porAs).reduce((a,x)=>a+x.com,0)+comJA+comJP+comPres+comJPres+comOBTotal
-    const jefeAh=allUsers.find(x=>x.rol==='jefe_ahorro'),jefePo=allUsers.find(x=>x.rol==='jefe_pozo'),jefeJP=allUsers.find(x=>x.rol==='jefe_presentaciones')
+    const jefeAh=allUsers.find(x=>x.rol==='jefe_ahorro'),jefePo=allUsers.find(x=>x.rol==='jefe_pozo'),jefeJP=allUsers.find(x=>x.rol==='jefe_presentaciónes')
     return`<div style="margin-bottom:28px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div style="font-size:14px;font-weight:600;color:var(--text)">${p.label}</div>
@@ -2883,11 +2897,11 @@ function rAdmCom(){
       <table><thead><tr><th style="cursor:pointer" onclick="admComSort.field='nombre';rAdmCom()">Persona ↕</th><th>Rol</th><th>Detalle</th><th>Estado carpeta</th><th style="cursor:pointer" onclick="admComSort.field='total';rAdmCom()">Total a cobrar ↕</th></tr></thead>
       <tbody>
         ${(()=>{
-          const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentadores',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
+          const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentadores',jefe_presentaciónes:'Jefe Pres.',on_boarding:'On Boarding'}
           let rows=[
             ...Object.values(porAs).map(r=>{
-              const acpCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesoreria==='aceptada').length
-              const pendCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesoreria!=='aceptada').length
+              const acpCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesorería==='aceptada').length
+              const pendCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesorería!=='aceptada').length
               const status=acpCount>0&&pendCount===0?'<span class="badge b-acp">'+acpCount+' aceptada'+(acpCount!==1?'s':'')+'</span>':
                 acpCount>0?'<span class="badge b-acp">'+acpCount+' acept.</span> <span class="badge b-pend">'+pendCount+' pend.</span>':
                 '<span class="badge b-pend">'+pendCount+' pendiente'+(pendCount!==1?'s':'')+'</span>'
@@ -2903,7 +2917,7 @@ function rAdmCom(){
                 porPres[op.presentador_id].cnt++
               })
               const rowsPres=Object.values(porPres).map(pr=>({nombre:pr.nombre,rolKey:'presentador',presId:pr.id,total:pr.cnt*74000,det:pr.cnt+' venta'+(pr.cnt!==1?'s':'')+' - $74.000 c/u',colorCls:'ag'}))
-              const rowJPres=presAcp.length>0?[{nombre:jefeJP?jefeJP.nombre:'Jefe Pres.',rolKey:'jefe_presentaciones',opsJefe:presAcp,total:comJPres,det:presAcp.length+' venta'+(presAcp.length!==1?'s':'')+' - $35.000 c/u',colorCls:'ag'}]:[]
+              const rowJPres=presAcp.length>0?[{nombre:jefeJP?jefeJP.nombre:'Jefe Pres.',rolKey:'jefe_presentaciónes',opsJefe:presAcp,total:comJPres,det:presAcp.length+' venta'+(presAcp.length!==1?'s':'')+' - $35.000 c/u',colorCls:'ag'}]:[]
               return[...rowsPres,...rowJPres]
             })(),
             ...Object.entries(obMap).map(([obId,ob])=>({nombre:ob.nombre,rolKey:'on_boarding',obId:obId,obMovs:ob.movs,total:ob.comInc+ob.comAh,det:'Inc: '+fmt(ob.comInc)+' + Ah: '+fmt(ob.comAh),colorCls:'at'}))
@@ -2918,7 +2932,7 @@ function rAdmCom(){
               detalleHtml='<tr id="comdet-'+k+'-'+r.aid+'" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
               opsAsesor.forEach(function(op){
                 var c=categ(op.monto)
-                var com=op.carpeta_tesoreria==='aceptada'?'<span class="ag">'+fmt(calcC(op.monto))+'</span>':'<span style="color:var(--amber)">pend.</span>'
+                var com=op.carpeta_tesorería==='aceptada'?'<span class="ag">'+fmt(calcC(op.monto))+'</span>':'<span style="color:var(--amber)">pend.</span>'
                 detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">'
                   +'<span style="color:var(--text)">'+op.cliente+'</span>'
                   +'<span style="display:flex;gap:12px;align-items:center">'
@@ -2934,14 +2948,14 @@ function rAdmCom(){
               detalleHtml='<tr id="comdet-'+k+'-'+idJefe+'" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
               r.opsJefe.forEach(function(op){
                 var c=categ(op.monto)
-                var tesBadge=op.carpeta_tesoreria==='aceptada'?'<span class="badge b-acp" style="font-size:10px">Aceptada</span>':'<span class="badge b-pend" style="font-size:10px">Pendiente</span>'
+                var tesBadge=op.carpeta_tesorería==='aceptada'?'<span class="badge b-acp" style="font-size:10px">Aceptada</span>':'<span class="badge b-pend" style="font-size:10px">Pendiente</span>'
                 detalleHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">'
                   +'<span style="color:var(--text)">'+op.cliente+' <span style="color:var(--text3);font-size:11px">('+op.asesor_nombre+')</span></span>'
                   +'<span style="display:flex;gap:10px;align-items:center">'+tesBadge+'<span class="am">'+fmt(op.monto)+'</span><span class="ag">'+fmt(calcJV(op.monto))+'</span></span>'
                 +'</div>'
               })
               detalleHtml+='</div></td></tr>'
-            } else if(r.rolKey==='jefe_presentaciones'&&r.opsJefe){
+            } else if(r.rolKey==='jefe_presentaciónes'&&r.opsJefe){
               detalleHtml='<tr id="comdet-'+k+'-jp2" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
               r.opsJefe.forEach(function(op){
                 detalleHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">'
@@ -2973,7 +2987,7 @@ function rAdmCom(){
               })
               detalleHtml+='</div></td></tr>'
             }
-            var detId='comdet-'+k+'-'+(r.aid||(r.rolKey==='jefe_ahorro'?'ja':r.rolKey==='jefe_pozo'?'jp':r.rolKey==='jefe_presentaciones'?'jp2':r.presId?'pr-'+r.presId:r.obId?'ob-'+r.obId:r.rolKey))
+            var detId='comdet-'+k+'-'+(r.aid||(r.rolKey==='jefe_ahorro'?'ja':r.rolKey==='jefe_pozo'?'jp':r.rolKey==='jefe_presentaciónes'?'jp2':r.presId?'pr-'+r.presId:r.obId?'ob-'+r.obId:r.rolKey))
             var onclk=detalleHtml?" onclick=\"toggleComDet('"+detId+"')\"":''
             var mainRow='<tr style="cursor:'+(detalleHtml?'pointer':'default')+'"'+onclk+'>'
               +'<td style="color:var(--text)">'+(detalleHtml?'<span style="color:var(--text3);margin-right:6px" id="arr-'+detId+'">›</span>':'')+r.nombre+'</td>'
@@ -2986,7 +3000,7 @@ function rAdmCom(){
           }).join('')
         })()}
       </tbody>
-      <tfoot><tr><td colspan="3" style="font-weight:600;color:var(--text)">Total del periodo</td><td class="ag" style="font-weight:600">${fmt(totGen)}</td></tr></tfoot>
+      <tfoot><tr><td colspan="3" style="font-weight:600;color:var(--text)">Total del período</td><td class="ag" style="font-weight:600">${fmt(totGen)}</td></tr></tfoot>
       </table>${!filtro?'<div style="border-top:1px solid var(--border);margin-top:16px"></div>':''}
     </div>`
   }).join(''))
@@ -2998,7 +3012,7 @@ function rAdmTodas(){
   if(fe==='reserva')ops=ops.filter(x=>!categ(x.monto).isVenta)
   else if(fe==='venta_completa')ops=ops.filter(x=>x.monto>=200000)
   else if(fe==='venta_bonificada')ops=ops.filter(x=>x.monto>=100000&&x.monto<200000)
-  if(!ops.length){html('adm-tob','<div class="es">Sin operaciones</div>');return}
+  if(!ops.length){html('adm-tob','<div class="es">Sin operaciónes</div>');return}
   const sf=admTodasSort.field,sd=admTodasSort.dir
   ops.sort((a,b)=>{
     let va=a[sf]||'',vb=b[sf]||''
@@ -3013,9 +3027,9 @@ function rAdmTodas(){
   let filas=''
   ops.forEach(function(op){
     const c=categ(op.monto)
-    const btnAceptar=c.isVenta&&op.carpeta_tesoreria!=='aceptada'
+    const btnAceptar=c.isVenta&&op.carpeta_tesorería!=='aceptada'
       ?'<button onclick="setTes(\''+op.id+'\',\'aceptada\')" style="font-size:11px;padding:3px 7px;background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:6px;color:var(--green);cursor:pointer">✓</button>':''
-    const btnDenegar=c.isVenta&&op.carpeta_tesoreria!=='denegada'
+    const btnDenegar=c.isVenta&&op.carpeta_tesorería!=='denegada'
       ?'<button onclick="openDenegar(\''+op.id+'\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">✗</button>':''
     const btnFecha='<button onclick="openEditFecha(\''+op.id+'\',\''+op.fecha+'\')" style="font-size:11px;padding:3px 7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer">📅</button>'
     const btnMover='<button onclick="openMoverById(\''+op.id+'\')" style="font-size:11px;padding:3px 7px;background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);border-radius:6px;color:var(--purple);cursor:pointer">↗ Mover</button>'
@@ -3027,10 +3041,10 @@ function rAdmTodas(){
       +'<td>'+op.cliente+'</td>'
       +'<td style="font-family:var(--mono);font-size:12px">'+(op.celular||'-')+'</td>'
       +'<td>'+op.plan+'</td>'
-      +'<td>'+(op.metodo_pago||'-')+'</td>'
+      +'<td>'+(op.método_pago||'-')+'</td>'
       +'<td class="am">'+fmt(op.monto)+'</td>'
       +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-      +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
+      +'<td>'+badgeE(op.carpeta_tesorería||'pendiente')+'</td>'
       +'<td style="max-width:100px;font-size:12px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+obsTitle+'">'+(op.obs||'-')+'</td>'
       +'<td><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+btnAceptar+btnDenegar+btnFecha+btnMover+btnDel+'</div></td>'
       +'</tr>'
@@ -3038,8 +3052,8 @@ function rAdmTodas(){
   html('adm-tob','<table><thead><tr>'
     +thA('fecha','Fecha')+thA('asesor_nombre','Asesor')+thA('cliente','Cliente')
     +'<th>Celular</th>'+thA('plan','Plan')+'<th>Pago</th>'
-    +thA('monto','Monto')+thA('estado','Categoria')
-    +'<th>Tesoreria</th><th>Obs</th><th>Acciones</th>'
+    +thA('monto','Monto')+thA('estado','Categoría')
+    +'<th>Tesorería</th><th>Obs</th><th>Acciones</th>'
     +'</tr></thead><tbody>'+filas+'</tbody></table>')
 }
 
@@ -3052,7 +3066,7 @@ function sortAdmTodas(f){
 }
 function rAdmUsers(){
   if(!allUsers.length){html('adm-usb','<div class="es">No hay usuarios aun</div>');return}
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Presentaciones',on_boarding:'On Boarding'}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe Presentaciónes',on_boarding:'On Boarding'}
   html('adm-usb',allUsers.map(u=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
       <div>
@@ -3109,10 +3123,10 @@ async function delUser(id){
   await loadAll();rAdmUsers();rAdmStats()
 }
 function pobPer(){
-  const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
+  const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesorería==='aceptada'&&x.fecha_tesorería),byP={}
   vn.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);byP[p.key]=p.label})
   const ks=Object.keys(byP).sort().reverse(),sel=document.getElementById('adm-fp'),cur=sel.value
-  sel.innerHTML='<option value="">Todos los periodos</option>'+ks.map(k=>`<option value="${k}">${byP[k]}</option>`).join('')
+  sel.innerHTML='<option value="">Todos los períodos</option>'+ks.map(k=>`<option value="${k}">${byP[k]}</option>`).join('')
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
@@ -3124,7 +3138,7 @@ function admTab(t,btn){
   if(t==='us'){rAdmUsers();rRoles();poblarRolCustomSelect()}
   if(t==='pr')rAdmPres()
   if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
-  if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
+  if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciónes()}
   if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
   if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
 }
@@ -3153,7 +3167,7 @@ async function guardarFecha(){
   const f=document.getElementById('mf-fecha').value
   if(!f){sh('mf-err');document.getElementById('mf-err').textContent='Selecciona una fecha.';return}
   document.getElementById('mf-btn').textContent='Guardando...'
-  const{error}=await db.from('operaciones').update({fecha:f}).eq('id',fechaEditId)
+  const{error}=await db.from('operaciónes').update({fecha:f}).eq('id',fechaEditId)
   document.getElementById('mf-btn').textContent='Guardar fecha'
   if(error){sh('mf-err');document.getElementById('mf-err').textContent='Error al guardar.';return}
   closeFecha()
@@ -3165,17 +3179,17 @@ async function guardarFecha(){
 async function guardarMyPass(){
   hi('myp-err')
   const p1=gv('myp-new'),p2=gv('myp-new2')
-  if(!p1||p1.length<4){sh('myp-err');document.getElementById('myp-err').textContent='Minimo 4 caracteres.';return}
-  if(p1!==p2){sh('myp-err');document.getElementById('myp-err').textContent='Las contrasenas no coinciden.';return}
+  if(!p1||p1.length<4){sh('myp-err');document.getElementById('myp-err').textContent='Mínimo 4 caracteres.';return}
+  if(p1!==p2){sh('myp-err');document.getElementById('myp-err').textContent='Las contraseñas no coinciden.';return}
   document.getElementById('myp-btn').textContent='Guardando...'
-  if(CU.isHardAdmin){sh('myp-err');document.getElementById('myp-err').textContent='El admin maestro no puede cambiar contraseña desde aqui. Editala en el codigo.';document.getElementById('myp-btn').textContent='Guardar';return}
+  if(CU.isHardAdmin){sh('myp-err');document.getElementById('myp-err').textContent='El admin maestro no puede cambiar contraseña desde aqui. Editala en el código.';document.getElementById('myp-btn').textContent='Guardar';return}
   const{error}=await db.from('usuarios').update({password:p1,password_visible:p1}).eq('id',CU.id)
   document.getElementById('myp-btn').textContent='Guardar'
   if(error){sh('myp-err');document.getElementById('myp-err').textContent='Error al guardar.';return}
   hi('modal-mypass');sv('myp-new','');sv('myp-new2','')
   CU.password=p1
   const ok=document.createElement('div')
-  ok.textContent='Contrasena actualizada correctamente'
+  ok.textContent='Contraseña actualizada correctamente'
   ok.className='aok'
   ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'
   document.body.appendChild(ok)
@@ -3198,8 +3212,8 @@ async function cargarIncentivo(){
   const uid=gv('inc-usr'),tipo=gv('inc-tipo'),monto=parseFloat(gv('inc-monto')),fecha=gv('inc-fecha'),desc=gv('inc-desc').trim()
   if(!uid||!monto||!fecha){sh('inc-err');document.getElementById('inc-err').textContent='Completa los campos obligatorios.';return}
   const usr=allUsers.find(x=>x.id===uid)
-  const periodo=tipo==='mensual'?fecha.slice(0,7):getPer(fecha).key
-  const{error}=await db.from('incentivos').insert({usuario_id:uid,usuario_nombre:usr.nombre,tipo,monto,descripcion:desc,periodo,fecha})
+  const período=tipo==='mensual'?fecha.slice(0,7):getPer(fecha).key
+  const{error}=await db.from('incentivos').insert({usuario_id:uid,usuario_nombre:usr.nombre,tipo,monto,descripción:desc,período,fecha})
   if(error){sh('inc-err');document.getElementById('inc-err').textContent='Error al guardar.';return}
   sv('inc-usr','');sv('inc-monto','');sv('inc-fecha','');sv('inc-desc','')
   sh('inc-ok');setTimeout(()=>hi('inc-ok'),3000)
@@ -3213,13 +3227,13 @@ function rIncentivos(){
   if(!items.length){html('inc-list','<div class="es">Sin incentivos cargados</div>');return}
   const total=items.reduce((a,x)=>a+x.monto,0)
   html('inc-list',`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-size:12px;color:var(--text2)">${items.length} registro${items.length!==1?'s':''}</span><span class="ag">${fmt(total)}</span></div>`+
-  `<table><thead><tr><th>Fecha</th><th>Empleado</th><th>Tipo</th><th>Monto</th><th>Descripcion</th><th></th></tr></thead>
+  `<table><thead><tr><th>Fecha</th><th>Empleado</th><th>Tipo</th><th>Monto</th><th>Descripción</th><th></th></tr></thead>
   <tbody>${items.map(i=>`<tr>
     <td>${fmtD(i.fecha)}</td>
     <td style="color:var(--text)">${i.usuario_nombre}</td>
     <td><span class="badge ${i.tipo==='mensual'?'b-jefe_ahorro':'b-on_boarding'}">${i.tipo==='mensual'?'Mensual':'Semanal'}</span></td>
     <td class="ag">${fmt(i.monto)}</td>
-    <td style="font-size:12px;color:var(--text3)">${i.descripcion||'-'}</td>
+    <td style="font-size:12px;color:var(--text3)">${i.descripción||'-'}</td>
     <td><button class="br" onclick="delIncentivo('${i.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button></td>
   </tr>`).join('')}</tbody></table>`)
 }
@@ -3230,29 +3244,29 @@ async function delIncentivo(id){
 }
 
 // ═══ LIQUIDACIONES ═══
-let allLiquidaciones=[]
-async function loadLiquidaciones(){
-  try{const{data}=await db.from('liquidaciones').select('*').order('fecha_liquidacion',{ascending:false});allLiquidaciones=data||[]}catch(e){allLiquidaciones=[]}
+let allLiquidaciónes=[]
+async function loadLiquidaciónes(){
+  try{const{data}=await db.from('liquidaciónes').select('*').order('fecha_liquidación',{ascending:false});allLiquidaciónes=data||[]}catch(e){allLiquidaciónes=[]}
 }
-async function cargarLiquidacion(){
+async function cargarLiquidación(){
   hi('liq-err');hi('liq-ok')
   const uid=gv('liq-usr'),monto=parseFloat(gv('liq-monto')),fecha=gv('liq-fecha'),desc=gv('liq-desc').trim()
   if(!uid||!monto||!fecha){sh('liq-err');document.getElementById('liq-err').textContent='Completa los campos obligatorios.';return}
   const usr=allUsers.find(x=>x.id===uid)
-  const{error}=await db.from('liquidaciones').insert({usuario_id:uid,usuario_nombre:usr.nombre,monto,descripcion:desc,fecha_liquidacion:fecha,estado:'pendiente'})
+  const{error}=await db.from('liquidaciónes').insert({usuario_id:uid,usuario_nombre:usr.nombre,monto,descripción:desc,fecha_liquidación:fecha,estado:'pendiente'})
   if(error){sh('liq-err');document.getElementById('liq-err').textContent='Error al guardar.';return}
   sv('liq-usr','');sv('liq-monto','');sv('liq-fecha','');sv('liq-desc','')
   sh('liq-ok');setTimeout(()=>hi('liq-ok'),3000)
-  await loadLiquidaciones();rLiquidaciones()
+  await loadLiquidaciónes();rLiquidaciónes()
 }
-function rLiquidaciones(){
-  if(!allLiquidaciones.length){html('liq-list','<div class="es">Sin liquidaciones registradas</div>');return}
-  html('liq-list',`<table><thead><tr><th>Empleado</th><th>Monto</th><th>Fecha liq.</th><th>Descripcion</th><th>Estado</th><th>Accion</th></tr></thead>
-  <tbody>${allLiquidaciones.map(l=>`<tr>
+function rLiquidaciónes(){
+  if(!allLiquidaciónes.length){html('liq-list','<div class="es">Sin liquidaciónes registradas</div>');return}
+  html('liq-list',`<table><thead><tr><th>Empleado</th><th>Monto</th><th>Fecha liq.</th><th>Descripción</th><th>Estado</th><th>Accion</th></tr></thead>
+  <tbody>${allLiquidaciónes.map(l=>`<tr>
     <td style="color:var(--text)">${l.usuario_nombre}</td>
     <td class="ag">${fmt(l.monto)}</td>
-    <td>${fmtD(l.fecha_liquidacion)}</td>
-    <td style="font-size:12px;color:var(--text3)">${l.descripcion||'-'}</td>
+    <td>${fmtD(l.fecha_liquidación)}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.descripción||'-'}</td>
     <td>${l.estado==='pagado'?`<span class="badge b-acp">Pagado RRHH</span><div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtD(l.fecha_pago)}</div>`:'<span class="badge b-pend">Pendiente</span>'}</td>
     <td><div style="display:flex;gap:4px;flex-wrap:wrap">
       ${l.estado!=='pagado'?`<button class="bg" onclick="pagarLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Marcar pagado</button>`:''}
@@ -3263,13 +3277,13 @@ function rLiquidaciones(){
 async function pagarLiq(id){
   const fecha=prompt('Fecha de pago por RRHH (AAAA-MM-DD):',new Date().toISOString().slice(0,10))
   if(!fecha)return
-  await db.from('liquidaciones').update({estado:'pagado',fecha_pago:fecha}).eq('id',id)
-  await loadLiquidaciones();rLiquidaciones()
+  await db.from('liquidaciónes').update({estado:'pagado',fecha_pago:fecha}).eq('id',id)
+  await loadLiquidaciónes();rLiquidaciónes()
 }
 async function delLiq(id){
-  if(!confirm('Eliminar esta liquidacion?'))return
-  await db.from('liquidaciones').delete().eq('id',id)
-  await loadLiquidaciones();rLiquidaciones()
+  if(!confirm('Eliminar esta liquidación?'))return
+  await db.from('liquidaciónes').delete().eq('id',id)
+  await loadLiquidaciónes();rLiquidaciónes()
 }
 
 // ═══ ROLES PERSONALIZADOS ═══
@@ -3277,7 +3291,7 @@ let allRolesCustom=[]
 async function loadRolesCustom(){
   try{const{data}=await db.from('roles_custom').select('*').order('nombre');allRolesCustom=data||[]}catch(e){allRolesCustom=[]}
 }
-const PERMISOS_LABELS={ops:'Ver operaciones y comisiones',cargar:'Cargar ventas/reservas',pres:'Ver/cargar presentaciones',ob:'Ver/cargar on boarding',carp:'Ver carpetas',comtodo:'Ver comisiones del equipo',usrs:'Gestionar usuarios'}
+const PERMISOS_LABELS={ops:'Ver operaciónes y comisiónes',cargar:'Cargar ventas/reservas',pres:'Ver/cargar presentaciónes',ob:'Ver/cargar on boarding',carp:'Ver carpetas',comtodo:'Ver comisiónes del equipo',usrs:'Gestiónar usuarios'}
 async function crearRol(){
   hi('rol-err');hi('rol-ok')
   const nom=gv('rol-nom').trim()
@@ -3315,10 +3329,10 @@ function poblarRolCustomSelect(){
   }
 }
 function getRolSelectOptions(currentRol, currentCustomId){
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
   const base=[
     {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
-    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciónes',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
   ]
   const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
   const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
@@ -3342,23 +3356,23 @@ async function rMisIncentivos(containerId,userId){
   if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin incentivos asignados</div>');return}
   const total=items.reduce((a,x)=>a+x.monto,0)
   html(containerId,`<div style="margin-bottom:10px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--text2)">${items.length} incentivo${items.length!==1?'s':''}</span><span class="ag">${fmt(total)}</span></div>`+
-  `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Descripcion</th></tr></thead>
+  `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Descripción</th></tr></thead>
   <tbody>${items.map(i=>`<tr>
     <td>${fmtD(i.fecha)}</td>
     <td><span class="badge ${i.tipo==='mensual'?'b-jefe_ahorro':'b-on_boarding'}">${i.tipo==='mensual'?'Mensual':'Semanal'}</span></td>
     <td class="ag">${fmt(i.monto)}</td>
-    <td style="font-size:12px;color:var(--text3)">${i.descripcion||'-'}</td>
+    <td style="font-size:12px;color:var(--text3)">${i.descripción||'-'}</td>
   </tr>`).join('')}</tbody></table>`)
 }
-async function rMisLiquidaciones(containerId,userId){
-  const{data}=await db.from('liquidaciones').select('*').eq('usuario_id',userId).order('fecha_liquidacion',{ascending:false})
+async function rMisLiquidaciónes(containerId,userId){
+  const{data}=await db.from('liquidaciónes').select('*').eq('usuario_id',userId).order('fecha_liquidación',{ascending:false})
   const items=data||[]
-  if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin liquidaciones registradas</div>');return}
-  html(containerId,`<table><thead><tr><th>Fecha</th><th>Monto</th><th>Descripcion</th><th>Estado</th></tr></thead>
+  if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin liquidaciónes registradas</div>');return}
+  html(containerId,`<table><thead><tr><th>Fecha</th><th>Monto</th><th>Descripción</th><th>Estado</th></tr></thead>
   <tbody>${items.map(l=>`<tr>
-    <td>${fmtD(l.fecha_liquidacion)}</td>
+    <td>${fmtD(l.fecha_liquidación)}</td>
     <td class="ag">${fmt(l.monto)}</td>
-    <td style="font-size:12px;color:var(--text3)">${l.descripcion||'-'}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.descripción||'-'}</td>
     <td>${l.estado==='pagado'?`<span class="badge b-acp">Pagado</span><div style="font-size:11px;color:var(--text3)">${fmtD(l.fecha_pago)}</div>`:'<span class="badge b-pend">Pendiente</span>'}</td>
   </tr>`).join('')}</tbody></table>`)
 }
@@ -3367,7 +3381,7 @@ async function rMisLiquidaciones(containerId,userId){
 const _origShowAdm=showAdm
 showAdm=async function(){
   await _origShowAdm()
-  await Promise.all([loadIncentivos(),loadLiquidaciones(),loadRolesCustom()])
+  await Promise.all([loadIncentivos(),loadLiquidaciónes(),loadRolesCustom()])
   poblarRolCustomSelect()
 }
 
@@ -3389,7 +3403,7 @@ admTab=function(t,btn){
     sh('adm-Tliq')
     document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
-    poblarSelUsrIncentivos();rLiquidaciones()
+    poblarSelUsrIncentivos();rLiquidaciónes()
     return
   }
   if(t==='ob'){
@@ -3405,7 +3419,7 @@ admTab=function(t,btn){
     sh('adm-Tret')
     document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
-    poblarFiltrosRet();rRetenciones()
+    poblarFiltrosRet();rRetenciónes()
     return
   }
   _origAdmTab(t,btn)
@@ -3441,7 +3455,7 @@ const _origAddUsuario2=addUsuario
 const _origRAdmUsers=rAdmUsers
 rAdmUsers=function(){
   if(!allUsers.length){html('adm-usb','<div class="es">No hay usuarios aun</div>');return}
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
   html('adm-usb',allUsers.map(u=>{
     const rolNom=u.rol==='custom'?(allRolesCustom.find(x=>x.id===u.rol_custom_id)?.nombre||'Personalizado'):rl[u.rol]||u.rol
     const pass=u.password_visible||u.password||'—'
@@ -3455,7 +3469,7 @@ rAdmUsers=function(){
           <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:var(--mono)">@${u.username}</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <div style="font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-family:var(--mono);color:var(--text2)" title="Contrasena">🔑 ${pass}</div>
+          <div style="font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-family:var(--mono);color:var(--text2)" title="Contraseña">🔑 ${pass}</div>
           <select onchange="cambiarRol(\'${u.id}\',this.value)" style="width:auto;font-size:12px;padding:4px 28px 4px 8px;border-radius:6px">${getRolSelectOptions(u.rol,u.rol_custom_id)}</select>
           <button class="bb" onclick="openPass('${u.id}','${u.nombre}')" style="font-size:12px;padding:5px 10px">Cambiar pass</button>
           <button class="br" onclick="delUser('${u.id}')" style="font-size:12px;padding:5px 10px">Eliminar</button>
@@ -3495,7 +3509,7 @@ function poblarRolCustomSelect(){
 function getRolSelectOptions(currentRol,currentCustomId){
   const base=[
     {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
-    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciónes',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
   ]
   const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
   const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
@@ -3543,11 +3557,11 @@ function ddExec(id,action){
 async function deleteOp(id,source){
   var op=(source==='asesor'?aOps:allOps).find(function(x){return x.id===id})
   if(!op)return
-  if(!confirm('Eliminar la operacion de '+op.cliente+'?\n\nEsta accion no se puede deshacer.'))return
-  var res=await db.from('operaciones').delete().eq('id',id)
+  if(!confirm('Eliminar la operación de '+op.cliente+'?\n\nEsta accion no se puede deshacer.'))return
+  var res=await db.from('operaciónes').delete().eq('id',id)
   if(res.error){alert('Error al eliminar.');return}
   if(source==='asesor'){
-    var d=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+    var d=await db.from('operaciónes').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
     aOps=d.data||[];rAStats();rAOps()
   } else {
     await loadAll();rAdmCarp();rAdmStats()
@@ -3623,8 +3637,8 @@ async function guardarMover(){
     nuevaFecha=p.sat.toISOString().slice(0,10)
   }
   document.getElementById('mmov-btn').textContent='Moviendo...'
-  var res=await db.from('operaciones').update({fecha_carpeta:nuevaFecha}).eq('id',moverOpId)
-  document.getElementById('mmov-btn').textContent='Mover operacion'
+  var res=await db.from('operaciónes').update({fecha_carpeta:nuevaFecha}).eq('id',moverOpId)
+  document.getElementById('mmov-btn').textContent='Mover operación'
   if(res.error){sh('mmov-err');document.getElementById('mmov-err').textContent='Error al guardar.';return}
   hi('modal-mover')
   moverOpId=null
@@ -3638,7 +3652,7 @@ function openCarpFechas(k){
   const p=Object.values(Object.fromEntries(Object.entries(
     (()=>{const byP={};allOps.filter(x=>categ(x.monto).isVenta).forEach(op=>{const p2=getPer(op.fecha);if(!byP[p2.key])byP[p2.key]=p2});return byP})()
   ))).find(x=>x.key===k)||getPer(k.split('_')[0])
-  const llRec=allLlData.find(x=>x.periodo_key===k)||{}
+  const llRec=allLlData.find(x=>x.período_key===k)||{}
   document.getElementById('mcf-info').textContent='Carpeta: '+fmtD(k.split('_')[0])+' al '+fmtD(k.split('_')[1])
   document.getElementById('mcf-cierre').value=llRec.fecha_cierre_custom||k.split('_')[1]
   document.getElementById('mcf-llevar').value=llRec.fecha_llevar_custom||p.vie.toISOString().slice(0,10)
@@ -3650,7 +3664,7 @@ async function resetCarpFechas(){
   if(!carpFechasKey)return
   document.getElementById('mcf-btn').textContent='Guardando...'
   await db.from('carpetas_llevadas').upsert({
-    periodo_key:carpFechasKey,
+    período_key:carpFechasKey,
     fecha_cierre_custom:null,
     fecha_llevar_custom:null,
     fecha_cobro_custom:null
@@ -3668,7 +3682,7 @@ async function guardarCarpFechas(){
   if(!cierre||!llevar||!cobro){sh('mcf-err');document.getElementById('mcf-err').textContent='Completa todas las fechas.';return}
   document.getElementById('mcf-btn').textContent='Guardando...'
   const{error}=await db.from('carpetas_llevadas').upsert({
-    periodo_key:carpFechasKey,
+    período_key:carpFechasKey,
     fecha_cierre_custom:cierre,
     fecha_llevar_custom:llevar,
     fecha_cobro_custom:cobro
@@ -3716,10 +3730,10 @@ function limpiarFiltro(id1,id2,fn){
   else if(fn==='rOBCom')rOBCom()
 }
 function calcRet(nro,dia){const t=OB_COM[nro];if(!t)return 0;return dia<=10?t.a:t.d}
-function rRetenciones(){
+function rRetenciónes(){
   const mes=document.getElementById('ret-mes')?.value||''
   const obFiltro=document.getElementById('ret-ob')?.value||''
-  if(!mes){html('ret-content','<div class="es">No hay datos de retenciones aun</div>');return}
+  if(!mes){html('ret-content','<div class="es">No hay datos de retenciónes aun</div>');return}
   const partes=mes.split('-')
   const anio=parseInt(partes[0]),mesN=parseInt(partes[1])
   let pagos=allObPagos.filter(p=>{
@@ -3727,30 +3741,30 @@ function rRetenciones(){
     return d.getFullYear()===anio&&(d.getMonth()+1)===mesN
   })
   if(obFiltro)pagos=pagos.filter(p=>p.ob_id===obFiltro)
-  if(!pagos.length){html('ret-content','<div class="es">Sin retenciones en este período</div>');return}
+  if(!pagos.length){html('ret-content','<div class="es">Sin retenciónes en este período</div>');return}
   const porOB={}
   pagos.forEach(p=>{
     if(!porOB[p.ob_id])porOB[p.ob_id]={nombre:p.ob_nombre,antes:[],despues:[]}
-    const op=allOps.find(x=>x.id===p.operacion_id)
+    const op=allOps.find(x=>x.id===p.operación_id)
     const entry={...p,op}
     if(p.dia_del_mes<=10)porOB[p.ob_id].antes.push(entry)
     else porOB[p.ob_id].despues.push(entry)
   })
-  const totGral=pagos.reduce((a,p)=>a+calcRet(p.numero_cuota,p.dia_del_mes),0)
+  const totGral=pagos.reduce((a,p)=>a+calcRet(p.número_cuota,p.dia_del_mes),0)
   let rows=''
   Object.values(porOB).forEach(ob=>{
-    const totAntes=ob.antes.reduce((a,p)=>a+calcRet(p.numero_cuota,p.dia_del_mes),0)
-    const totDespues=ob.despues.reduce((a,p)=>a+calcRet(p.numero_cuota,p.dia_del_mes),0)
+    const totAntes=ob.antes.reduce((a,p)=>a+calcRet(p.número_cuota,p.dia_del_mes),0)
+    const totDespues=ob.despues.reduce((a,p)=>a+calcRet(p.número_cuota,p.dia_del_mes),0)
     const totOB=totAntes+totDespues
     let antesRows=ob.antes.length?ob.antes.map(p=>{
       const cli=p.op?p.op.cliente:'-'
-      const com=calcRet(p.numero_cuota,p.dia_del_mes)
-      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><div><span style="color:var(--text)">'+cli+'</span><span style="color:var(--text3);margin-left:6px">M'+p.numero_cuota+' · Día '+p.dia_del_mes+'</span></div><span class="at">'+fmt(com)+'</span></div>'
+      const com=calcRet(p.número_cuota,p.dia_del_mes)
+      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><div><span style="color:var(--text)">'+cli+'</span><span style="color:var(--text3);margin-left:6px">M'+p.número_cuota+' · Día '+p.dia_del_mes+'</span></div><span class="at">'+fmt(com)+'</span></div>'
     }).join('')+'<div style="display:flex;justify-content:flex-end;padding-top:8px;font-size:13px;font-weight:600"><span class="ag">'+fmt(totAntes)+'</span></div>':'<div style="font-size:12px;color:var(--text3)">Ninguno</div>'
     let despuesRows=ob.despues.length?ob.despues.map(p=>{
       const cli=p.op?p.op.cliente:'-'
-      const com=calcRet(p.numero_cuota,p.dia_del_mes)
-      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><div><span style="color:var(--text)">'+cli+'</span><span style="color:var(--text3);margin-left:6px">M'+p.numero_cuota+' · Día '+p.dia_del_mes+'</span></div><span style="color:var(--amber);font-family:var(--mono);font-weight:500">'+fmt(com)+'</span></div>'
+      const com=calcRet(p.número_cuota,p.dia_del_mes)
+      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><div><span style="color:var(--text)">'+cli+'</span><span style="color:var(--text3);margin-left:6px">M'+p.número_cuota+' · Día '+p.dia_del_mes+'</span></div><span style="color:var(--amber);font-family:var(--mono);font-weight:500">'+fmt(com)+'</span></div>'
     }).join('')+'<div style="display:flex;justify-content:flex-end;padding-top:8px;font-size:13px;font-weight:600"><span style="color:var(--amber)">'+fmt(totDespues)+'</span></div>':'<div style="font-size:12px;color:var(--text3)">Ninguno</div>'
     rows+=`<div class="card" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px">
@@ -3778,7 +3792,7 @@ function rRetenciones(){
   html('ret-content',`
     <div style="background:var(--bg3);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
       <div style="font-size:13px;color:var(--text2)">${pagos.length} pagos registrados</div>
-      <div><div class="at" style="font-size:20px;font-weight:700">${fmt(totGral)}</div><div style="font-size:11px;color:var(--text3)">total retenciones del mes</div></div>
+      <div><div class="at" style="font-size:20px;font-weight:700">${fmt(totGral)}</div><div style="font-size:11px;color:var(--text3)">total retenciónes del mes</div></div>
     </div>
     ${rows}
   `)
@@ -3818,7 +3832,7 @@ async function guardarCamposCliente(opId){
   }
   var btn=document.querySelector('[data-cid="'+opId+'"]')
   if(btn){btn.textContent='Guardando...';btn.disabled=true}
-  await db.from('operaciones').update(upd).eq('id',opId)
+  await db.from('operaciónes').update(upd).eq('id',opId)
   if(btn){btn.textContent='✓ Guardado';setTimeout(function(){btn.textContent='Guardar cambios';btn.disabled=false},2000)}
   await loadAll();rAdmClientes();rAdmStats()
 }
@@ -3832,13 +3846,13 @@ async function guardarCampoCliente(opId, campo, valor){
   } else {
     upd[campo]=valor
   }
-  await db.from('operaciones').update(upd).eq('id',opId)
+  await db.from('operaciónes').update(upd).eq('id',opId)
   await loadAll()
   rAdmClientes()
   rAdmStats()
 }
 async function guardarAsesorCliente(opId, userId, userName){
-  await db.from('operaciones').update({asesor_id:userId,asesor_nombre:userName}).eq('id',opId)
+  await db.from('operaciónes').update({asesor_id:userId,asesor_nombre:userName}).eq('id',opId)
   await loadAll()
   rAdmClientes()
   rAdmStats()
@@ -3883,11 +3897,11 @@ function rAdmClientes(){
   ops.forEach(function(op){
     var c=categ(op.monto)
     var abierto=clienteAbierto===op.id
-    var movs=allObMovs.filter(function(m){return m.operacion_id===op.id})
-    var pagos=allObPagos.filter(function(p){return p.operacion_id===op.id})
+    var movs=allObMovs.filter(function(m){return m.operación_id===op.id})
+    var pagos=allObPagos.filter(function(p){return p.operación_id===op.id})
     // Badges resumen
     var badgeEstado='<span class="badge '+c.cls+'">'+c.label+'</span>'
-    var badgeTes=badgeE(op.carpeta_tesoreria||'pendiente')
+    var badgeTes=badgeE(op.carpeta_tesorería||'pendiente')
     var badgeOB=op.ob_nombre?'<span class="badge b-on_boarding">OB: '+op.ob_nombre+'</span>':''
     var badgeBaja=op.ob_baja?'<span class="badge b-den">Baja</span>':''
     var cuotasStr=pagos.length+'/6'
@@ -3915,7 +3929,7 @@ function rAdmClientes(){
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">ID Reserva</div>'
         +'<input id="cl-un-'+oid+'" placeholder="-" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Alta</div><div style="font-size:13px;color:var(--text)">'+fmtD(op.fecha)+'</div></div>'
-        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tesoreria</div>'+badgeTes+'</div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tesorería</div>'+badgeTes+'</div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px;grid-column:span 2"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Observaciones</div>'
         +'<input id="cl-obs-'+oid+'" placeholder="Sin observaciones" style="font-size:12px;color:var(--text2);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px;display:flex;align-items:center;justify-content:center">'
@@ -3960,11 +3974,11 @@ function rAdmClientes(){
           var OBC={1:{a:20000,d:10000},2:{a:15000,d:7500},3:{a:10000,d:5000},4:{a:10000,d:5000},5:{a:10000,d:5000},6:{a:10000,d:5000}}
           obSection+='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">'
           for(var n=1;n<=6;n++){
-            var pago=pagos.find(function(p){return p.numero_cuota===n})
+            var pago=pagos.find(function(p){return p.número_cuota===n})
             if(pago){
               var t=OBC[n]||{a:0,d:0}
               var com2=pago.dia_del_mes<=10?t.a:t.d
-              obSection+='<div style="background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;color:var(--text3)">M'+n+'</div><div style="font-size:11px;color:var(--green)">Día '+pago.dia_del_mes+'</div>'+(pago.metodo_pago?'<div style="font-size:9px;color:var(--text3)">'+pago.metodo_pago+'</div>':'')+'<div style="font-size:11px;color:var(--teal)">'+fmt(com2)+'</div></div>'
+              obSection+='<div style="background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:8px;text-align:center"><div style="font-size:10px;color:var(--text3)">M'+n+'</div><div style="font-size:11px;color:var(--green)">Día '+pago.dia_del_mes+'</div>'+(pago.método_pago?'<div style="font-size:9px;color:var(--text3)">'+pago.método_pago+'</div>':'')+'<div style="font-size:11px;color:var(--teal)">'+fmt(com2)+'</div></div>'
             } else {
               obSection+='<div style="background:var(--bg3);border-radius:8px;padding:8px;text-align:center;opacity:0.5"><div style="font-size:10px;color:var(--text3)">M'+n+'</div><div style="font-size:11px;color:var(--text3)">Pendiente</div></div>'
             }
@@ -4151,23 +4165,23 @@ function calcSemanasMes(y,m){
   // Semanas de sábado a viernes dentro del mes
   var semanas=[]
   var primerDia=new Date(y,m-1,1)
-  var ultimoDia=new Date(y,m,0)
+  var últimoDia=new Date(y,m,0)
   var d=new Date(primerDia)
   // Ir al primer sábado
   while(d.getDay()!==6)d.setDate(d.getDate()+1)
-  if(d>ultimoDia){
+  if(d>últimoDia){
     // Todo el mes es una sola semana
     var ds=primerDia.toISOString().slice(0,10)
-    var hs=ultimoDia.toISOString().slice(0,10)
-    return [{label:'Sem 1',desde:ds,hasta:hs,dias:ultimoDia.getDate()-primerDia.getDate()+1}]
+    var hs=últimoDia.toISOString().slice(0,10)
+    return [{label:'Sem 1',desde:ds,hasta:hs,dias:últimoDia.getDate()-primerDia.getDate()+1}]
   }
   var n=1
   var cur=new Date(primerDia)
-  while(cur<=ultimoDia){
+  while(cur<=últimoDia){
     var inicio=new Date(cur)
     var fin=new Date(cur)
     fin.setDate(fin.getDate()+6) // viernes
-    if(fin>ultimoDia)fin=new Date(ultimoDia)
+    if(fin>últimoDia)fin=new Date(últimoDia)
     var dias=Math.floor((fin-inicio)/(1000*3600*24))+1
     semanas.push({
       label:'Sem '+n,
@@ -4280,8 +4294,8 @@ function calcDiasRestantesMes(){
   var hoy=new Date()
   var mesActual=hoy.getFullYear()+'-'+(String(hoy.getMonth()+1).padStart(2,'0'))
   if(mes!==mesActual)return0
-  var ultimoDia=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate()
-  return ultimoDia-hoy.getDate()
+  var últimoDia=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate()
+  return últimoDia-hoy.getDate()
 }
 
 function abrirPBMetas(){
@@ -4389,7 +4403,7 @@ async function cargarAccesosPB(){
   var lista=document.getElementById('pb-acceso-lista')
   if(!lista)return
   var usuarios=allUsers.filter(function(u){
-    return u.rol!=='admin'&&u.rol!=='jefe_ahorro'&&u.rol!=='jefe_pozo'&&u.rol!=='jefe_presentaciones'
+    return u.rol!=='admin'&&u.rol!=='jefe_ahorro'&&u.rol!=='jefe_pozo'&&u.rol!=='jefe_presentaciónes'
   })
   lista.innerHTML=usuarios.map(function(u){
     var checked=pbAccesos.includes(u.id)
@@ -4413,7 +4427,7 @@ async function toggleAccesoPB(userId,checked){
 function puedeVerPB(){
   if(!CU)return false
   var r=CU.role||CU.rol
-  if(r==='admin'||r==='jefe_ahorro'||r==='jefe_pozo'||r==='jefe_presentaciones')return true
+  if(r==='admin'||r==='jefe_ahorro'||r==='jefe_pozo'||r==='jefe_presentaciónes')return true
   return pbAccesos.includes(CU.id)
 }
 

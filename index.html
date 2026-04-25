@@ -1227,8 +1227,8 @@ function toggleTema(){
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('SL').classList.contains('hidden'))doLogin()})
 
-const ROL_LABELS={asesor:'Asesor de ventas',jefe_ahorro:'Jefe de ventas Ahorro',jefe_pozo:'Jefe de ventas Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe de presentaciones',on_boarding:'On Boarding',admin:'Administrador'}
-const ROL_ICONS={asesor:'📊',jefe_ahorro:'👔',jefe_pozo:'👔',presentador:'🎤',jefe_presentaciones:'🎯',on_boarding:'🤝',admin:'⚙️'}
+const ROL_LABELS={asesor:'Asesor de ventas',jefe_ahorro:'Jefe de ventas Ahorro',jefe_pozo:'Jefe de ventas Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe de presentaciones',on_boarding:'On Boarding',admin:'Administrador',jefe_promotores:'Jefe de promotores',jefe_captacion:'Jefe de captacion'}
+const ROL_ICONS={asesor:'📊',jefe_ahorro:'👔',jefe_pozo:'👔',presentador:'🎤',jefe_presentaciones:'🎯',on_boarding:'🤝',admin:'⚙️',jefe_promotores:'📣',jefe_captacion:'🎯'}
 async function showRolPanel(roles){
   showOnly('SRS')
   document.getElementById('srs-nombre').textContent=CU.nombre
@@ -1262,6 +1262,7 @@ async function enterPanel(r){
   else if(r==='presentador')await showPr()
   else if(r==='jefe_presentaciones')await showJP()
   else if(r==='on_boarding')await showOB()
+  else if(r==='jefe_promotores'||r==='jefe_captacion')await showPremios()
 }
 async function doLogin(){
   const u=gv('lu').trim(),p=gv('lp')
@@ -4552,6 +4553,27 @@ function puedeVerPB(){
   return pbAccesos.includes(CU.id)
 }
 
+
+// ═══ PANEL JEFE CAPTACION / PROMOTORES ═══
+async function showPremios(){
+  // Cargar datos necesarios
+  await loadAll()
+  var prmAcc=await db.from('premios_acceso').select('*')
+  prmAccesos=(prmAcc.data||[]).map(function(x){return x.usuario_id})
+
+  // Mostrar panel admin simplificado con solo Premios
+  showOnly('SADM')
+  // Ocultar items del sidebar que no corresponden
+  var ocultarItems=['sb-cp','sb-pr','sb-co','sb-to','sb-inc','sb-liq','sb-us','sb-cl','sb-pb','sb-ob','sb-ret']
+  ocultarItems.forEach(function(id){
+    var el=document.getElementById(id)
+    if(el)el.style.display='none'
+  })
+  // Mostrar solo premios
+  document.querySelector('.pt')&&(document.querySelector('.pt').textContent=CU.nombre)
+  admTab('prm', document.getElementById('sb-prm'))
+  await initPremios()
+}
 
 // ═══════════════════════════════════════════════
 // MÓDULO PREMIOS SEMANALES

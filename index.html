@@ -237,7 +237,10 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div class="modal" style="max-width:520px">
     <div style="font-size:16px;font-weight:600;margin-bottom:18px;color:var(--text)">Editar operacion</div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div><label>Nombre del cliente</label><input id="me-cliente" placeholder="Apellido y nombre"></div>
+      <div class="g2">
+        <div><label>Apellido(s)</label><input id="me-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
+        <div><label>Nombre(s)</label><input id="me-nombre" placeholder="Ej: JUAN CARLOS"></div>
+      </div>
       <div class="g2">
         <div><label>Tipo de plan</label>
           <select id="me-plan"><option value="Ahorro">Plan de ahorro</option><option value="Pozo">Plan de pozo</option></select>
@@ -403,7 +406,10 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
       <div id="a-nok" class="hidden aok">Operacion guardada</div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div><label>Nombre del cliente</label><input id="nc" placeholder="Apellido y nombre"></div>
+        <div class="g2">
+          <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
+          <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
+        </div>
         <div class="g2">
           <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Plan de ahorro</option><option value="Pozo">Plan de pozo</option></select></div>
           <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
@@ -1161,7 +1167,17 @@ function openEdit(id){
   const op=aOps.find(x=>String(x.id)===String(id));if(!op)return
   editId=id
   const esVenta=categ(op.monto).isVenta
-  sv('me-cliente',op.cliente);sv('me-plan',op.plan);sv('me-monto',op.monto);sv('me-unidad',op.unidad||'')
+  // Separar apellido y nombre del cliente
+  var partes_cliente = op.cliente ? op.cliente.split(' ') : []
+  var apellido_edit = '', nombre_edit = ''
+  if(partes_cliente.length >= 2){
+    apellido_edit = partes_cliente.slice(0, Math.ceil(partes_cliente.length/2)).join(' ')
+    nombre_edit = partes_cliente.slice(Math.ceil(partes_cliente.length/2)).join(' ')
+  } else {
+    apellido_edit = op.cliente || ''
+  }
+  sv('me-apellido', apellido_edit)
+  sv('me-nombre', nombre_edit);sv('me-plan',op.plan);sv('me-monto',op.monto);sv('me-unidad',op.unidad||'')
   sv('me-celular',op.celular||'');sv('me-obs',op.obs||'')
   // Cargar forma de pago
   var mpago=op.metodo_pago||''
@@ -1215,7 +1231,10 @@ function prevEditTipo(){
 }
 async function guardarEdit(){
   hi('me-err')
-  const cl=gv('me-cliente').trim(),pl=gv('me-plan'),mo=parseInt(gv('me-monto')),un=gv('me-unidad').trim(),ob=gv('me-obs').trim()
+  const me_ap=(document.getElementById('me-apellido')?.value||'').trim().toUpperCase()
+  const me_no=(document.getElementById('me-nombre')?.value||'').trim().toUpperCase()
+  const cl=me_ap&&me_no?me_ap+' '+me_no:(me_ap||me_no)
+  const pl=gv('me-plan'),mo=parseInt(gv('me-monto')),un=gv('me-unidad').trim(),ob=gv('me-obs').trim()
   const mecel=document.getElementById('me-celular')?.value?.trim()||''
   const meef=parseFloat(document.getElementById('me-ef')?.value)||0
   const metr=parseFloat(document.getElementById('me-tr')?.value)||0
@@ -1223,7 +1242,7 @@ async function guardarEdit(){
   if(meef>0&&metr>0)mepago='Efectivo $'+Math.round(meef)+' + Transferencia $'+Math.round(metr)
   else if(meef>0)mepago='Efectivo'
   else if(metr>0)mepago='Transferencia'
-  if(!cl||!pl||!mo||isNaN(mo)||mo<=0){sh('me-err');document.getElementById('me-err').textContent='Completa todos los campos.';return}
+  if(!cl||!pl||!mo||isNaN(mo)||mo<=0){sh('me-err');document.getElementById('me-err').textContent='Completa apellido, plan y monto.';return}
   const opActual=aOps.find(x=>x.id===editId)
   const c=categ(mo)
   if(opActual&&!categ(opActual.monto).isVenta&&c.isVenta){
@@ -1391,7 +1410,10 @@ function prevT(){
 }
 async function cargarVenta(){
   hi('nerr');hi('a-nok')
-  const cl=gv('nc').trim(),pl=gv('npl'),mo=parseInt(gv('nm')),un=gv('nu').trim(),cel=gv('ncel').trim(),ob=gv('nob').trim()
+  const nc_ap=(document.getElementById('nc-apellido')?.value||'').trim().toUpperCase()
+  const nc_no=(document.getElementById('nc-nombre')?.value||'').trim().toUpperCase()
+  const cl=nc_ap&&nc_no?nc_ap+' '+nc_no:(nc_ap||nc_no)
+  const pl=gv('npl'),mo=parseInt(gv('nm')),un=gv('nu').trim(),cel=gv('ncel').trim(),ob=gv('nob').trim()
   const nef=parseFloat(document.getElementById('n-ef')?.value)||0
   const ntr=parseFloat(document.getElementById('n-tr')?.value)||0
   let mpago=''
@@ -1400,7 +1422,7 @@ async function cargarVenta(){
   else if(ntr>0)mpago='Transferencia'
   const hoy=new Date().toISOString().slice(0,10)
   const fechaVenta=gv('nfecha')||hoy
-  if(!cl){sh('nerr');document.getElementById('nerr').textContent='Ingresa el nombre del cliente.';return}
+  if(!cl){sh('nerr');document.getElementById('nerr').textContent='Ingresa al menos el apellido del cliente.';return}
   if(!pl){sh('nerr');document.getElementById('nerr').textContent='Selecciona el tipo de plan.';return}
   if(!mo||isNaN(mo)||mo<=0){sh('nerr');document.getElementById('nerr').textContent='Ingresa un monto valido.';return}
   document.getElementById('nbtn').textContent='Guardando...'
@@ -1408,7 +1430,7 @@ async function cargarVenta(){
   const{error}=await db.from('operaciones').insert({fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva',celular:cel,metodo_pago:mpago,carpeta_tesoreria:'pendiente',pago_presentador:null})
   document.getElementById('nbtn').textContent='Guardar operacion'
   if(error){sh('nerr');document.getElementById('nerr').textContent='Error: '+(error.message||error.details||JSON.stringify(error));return}
-  sv('nc','');sv('npl','');sv('nm','');sv('nu','');sv('ncel','');sv('nob','');hi('nprev');document.getElementById('n-ef').value='';document.getElementById('n-tr').value='';document.getElementById('n-pago-prev').textContent=''
+  sv('nc-apellido','');sv('nc-nombre','');sv('npl','');sv('nm','');sv('nu','');sv('ncel','');sv('nob','');hi('nprev');document.getElementById('n-ef').value='';document.getElementById('n-tr').value='';document.getElementById('n-pago-prev').textContent=''
   document.getElementById('nfecha').value=hoy
   document.getElementById('nfecha-warn').style.display='none'
   document.getElementById('a-nok').textContent='Operacion guardada: '+cl+' - '+fmt(mo)
@@ -3765,6 +3787,7 @@ function rRetenciones(){
 
 // ═══ CLIENTES (ADMIN) ═══
 async function guardarCamposCliente(opId){
+  var ap_el=document.getElementById('cl-ap-'+opId)
   var nom=document.getElementById('cl-nom-'+opId)
   var as=document.getElementById('cl-as-'+opId)
   var pl=document.getElementById('cl-pl-'+opId)
@@ -3776,7 +3799,11 @@ async function guardarCamposCliente(opId){
   var monto=parseInt(mo?mo.value:0)
   var cat=categ(monto)
   var upd={
-    cliente:nom.value.trim(),
+    cliente:(function(){
+      var ap=(ap_el?ap_el.value.trim().toUpperCase():'')
+      var no=(nom?nom.value.trim().toUpperCase():'')
+      return ap&&no?ap+' '+no:(ap||no)
+    })(),
     plan:pl?pl.value:'Ahorro',
     monto:monto,
     estado:cat.isVenta?'venta':'reserva',
@@ -3873,8 +3900,7 @@ function rAdmClientes(){
       var asesoresOpts=allUsers.filter(function(u){return u.rol==='asesor'||u.rol==='jefe_ahorro'||u.rol==='jefe_pozo'}).map(function(u){return '<option value="'+u.id+'"'+(u.id===op.asesor_id?' selected':'')+'>'+u.nombre+'</option>'}).join('')
       var infoRows=''
         +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px" onclick="event.stopPropagation()">'
-        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Cliente</div>'
-        +'<input id="cl-nom-'+oid+'" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Apellido(s)</div>'        +'<input id="cl-ap-'+oid+'" placeholder="GARCIA LOPEZ" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Nombre(s)</div>'        +'<input id="cl-nom-'+oid+'" placeholder="JUAN CARLOS" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asesor</div>'
         +'<select id="cl-as-'+oid+'" style="font-size:12px;color:var(--text);background:var(--bg3);border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0">'+asesoresOpts+'</select></div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Plan</div>'
@@ -3902,7 +3928,14 @@ function rAdmClientes(){
         var cel=document.getElementById('cl-cel-'+oid)
         var un=document.getElementById('cl-un-'+oid)
         var obs2=document.getElementById('cl-obs-'+oid)
-        if(nom)nom.value=op.cliente||''
+        var ap2=document.getElementById('cl-ap-'+oid)
+        if(ap2){
+          var partes2=op.cliente?op.cliente.split(' '):[]
+          ap2.value=partes2.length>=2?partes2.slice(0,Math.ceil(partes2.length/2)).join(' '):(op.cliente||'')
+          if(nom)nom.value=partes2.length>=2?partes2.slice(Math.ceil(partes2.length/2)).join(' '):''
+        } else {
+          if(nom)nom.value=op.cliente||''
+        }
         if(mo)mo.value=op.monto||''
         if(cel)cel.value=op.celular||''
         if(un)un.value=op.unidad||''

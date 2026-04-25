@@ -2714,8 +2714,8 @@ function rAdmCom(){
     const p=byP[k]
     const porAs={}
     p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesoreria==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto)}else{porAs[op.asesor_id].comPend+=calcC(op.monto)};porAs[op.asesor_id].ops+=1})
-    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),comJA=opAh.reduce((a,x)=>a+calcJV(x.monto),0)
-    const opPo=p.ops.filter(x=>x.plan==='Pozo'),comJP=opPo.reduce((a,x)=>a+calcJV(x.monto),0)
+    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),comJA=opAh.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
+    const opPo=p.ops.filter(x=>x.plan==='Pozo'),comJP=opPo.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
     const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id&&getPer(x.fecha_pago_presentador||x.fecha_carpeta||x.fecha).key===k)
     const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
     // OB

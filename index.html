@@ -2418,6 +2418,12 @@ async function guardarSOP(key,val){
   const rec=allLlData?allLlData.find(x=>x.periodo_key===key):null
   if(rec)rec.nro_sop=val
 }
+let carpSort={field:'asesor_nombre',dir:'asc'}
+function sortCarp(f){
+  if(carpSort.field===f)carpSort.dir=carpSort.dir==='asc'?'desc':'asc'
+  else{carpSort.field=f;carpSort.dir='asc'}
+  rAdmCarp()
+}
 function rAdmCarp(){
   const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
   vn.forEach(op=>{
@@ -2461,9 +2467,16 @@ function rAdmCarp(){
     if(counts.den>0) badges+='<span class="badge" style="background:var(--red-bg);color:var(--red);font-size:10px">'+counts.den+' den.</span>'
     if(p.nro_sop) badges+='<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">SOP: '+p.nro_sop+'</span>'
 
+    // Ordenar ops
+    const opsOrdenadas=[...p.ops].sort((a,b)=>{
+      let va=a[carpSort.field]||'',vb=b[carpSort.field]||''
+      if(carpSort.field==='monto'){va=a.monto;vb=b.monto}
+      if(typeof va==='number')return carpSort.dir==='asc'?va-vb:vb-va
+      return carpSort.dir==='asc'?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va))
+    })
     // Filas de tabla
     let filas=''
-    p.ops.forEach(op=>{
+    opsOrdenadas.forEach(op=>{
       const c=categ(op.monto)
       const tesCell=op.carpeta_tesoreria==='denegada'&&op.motivo_denegacion
         ?'<div><span class="badge b-den">Denegada</span><div style="font-size:11px;color:var(--red);margin-top:3px;max-width:150px">💬 '+op.motivo_denegacion+'</div></div>'
@@ -2534,7 +2547,11 @@ function rAdmCarp(){
           +'</div>'
         +'</div>'
         +'<div style="overflow-x:auto"><table>'
-          +'<thead><tr><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Cuota</th><th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Llevada</th><th>Acciones</th></tr></thead>'
+          +(function(){
+  var sf=carpSort.field,sd=carpSort.dir
+  function th(f,l){var arr=sf===f?(sd==='asc'?' ↑':' ↓'):' ↕';return '<th style="cursor:pointer;user-select:none;white-space:nowrap" onclick="event.stopPropagation();sortCarp(\"'+f+'\")">'+l+arr+'</th>'}
+  return '<thead><tr>'+th('asesor_nombre','Asesor')+th('cliente','Cliente')+th('plan','Plan')+th('unidad','Unidad')+th('monto','Cuota')+'<th>Cat.</th><th>Com. asesor</th><th>Tesoreria</th><th>Llevada</th><th>Acciones</th></tr></thead>'
+})()
           +'<tbody>'+filas+'</tbody>'
         +'</table></div>'
       +'</div>'

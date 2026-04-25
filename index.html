@@ -614,6 +614,10 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Plan de batalla
       </button>
+      <button class="sb-item" onclick="admTab('prm',this)" id="sb-prm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Premios
+      </button>
     </div>
     <div class="sb-bottom">
       <button class="sb-item" onclick="sh('modal-mypass')" style="color:var(--text2)">
@@ -825,6 +829,48 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
       </div>
     </div>
   </div>
+  <div id="adm-Tprm" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:18px;font-weight:600">🏆 Premios semanales</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Mejor rendimiento por puesto</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select id="prm-semana" onchange="loadPremios()" style="width:auto;font-size:13px"></select>
+        <button onclick="openPrmSemana()" style="font-size:12px;padding:6px 14px">📅 Gestionar semanas</button>
+        <button onclick="openPrmEmpleados()" style="font-size:12px;padding:6px 14px">👥 Empleados</button>
+        <button onclick="cargarAccesosPRM();sh('modal-prm-acceso')" style="font-size:12px;padding:6px 14px">🔒 Accesos</button>
+      </div>
+    </div>
+    <!-- Cargar leads -->
+    <div id="prm-carga" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-bottom:20px"></div>
+    <!-- Ganadores de la semana -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:15px;font-weight:600">🥇 Ganadores de la semana</div>
+        <button class="bp" onclick="calcularGanadores()" style="font-size:12px;padding:6px 16px">Calcular ganadores</button>
+      </div>
+      <div id="prm-ganadores"></div>
+    </div>
+    <!-- Historial -->
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:14px">📋 Historial de ganadores</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <select id="prm-hist-puesto" onchange="loadHistorial()" style="width:auto;font-size:13px">
+          <option value="">Todos los puestos</option>
+          <option value="promotor">Promotor</option>
+          <option value="recepcion">Recepción</option>
+          <option value="pretester">Pretester</option>
+          <option value="host">Host</option>
+          <option value="presentador">Presentador</option>
+          <option value="detector_pozo">Detector de pozo</option>
+          <option value="asesor">Asesor</option>
+        </select>
+      </div>
+      <div id="prm-historial"></div>
+    </div>
+  </div>
+
   <div id="adm-Tpb" class="hidden">
     <!-- PLAN DE BATALLA -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
@@ -896,6 +942,76 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
     <div id="cl-list"></div>
   </div>
 
+  </div>
+</div>
+
+<!-- MODAL SEMANAS PREMIOS -->
+<div id="modal-prm-semana" class="modal-bg hidden">
+  <div class="modal" style="max-width:520px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px">Gestionar semanas de premios</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+      <div class="g2">
+        <div><label>Desde</label><input id="prms-desde" type="date"></div>
+        <div><label>Hasta</label><input id="prms-hasta" type="date"></div>
+      </div>
+      <div><label>Etiqueta (opcional)</label><input id="prms-label" placeholder="Ej: Semana 1 Abril"></div>
+      <button class="bp" onclick="guardarSemana()">Agregar semana</button>
+    </div>
+    <div id="prms-lista" style="max-height:300px;overflow-y:auto"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px">
+      <button onclick="hi('modal-prm-semana')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EMPLEADOS -->
+<div id="modal-prm-empleados" class="modal-bg hidden">
+  <div class="modal" style="max-width:520px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px">Empleados por puesto</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+      <div class="g2">
+        <div><label>Nombre</label><input id="prme-nom" placeholder="Nombre completo"></div>
+        <div><label>Puesto</label>
+          <select id="prme-puesto">
+            <option value="promotor">Promotor</option>
+            <option value="recepcion">Recepcion</option>
+            <option value="pretester">Pretester</option>
+            <option value="host">Host</option>
+            <option value="detector_pozo">Detector de pozo</option>
+          </select>
+        </div>
+      </div>
+      <button class="bp" onclick="guardarEmpleado()">Agregar empleado</button>
+    </div>
+    <div id="prme-lista" style="max-height:350px;overflow-y:auto"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px">
+      <button onclick="hi('modal-prm-empleados')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ACCESO PREMIOS -->
+<div id="modal-prm-acceso" class="modal-bg hidden">
+  <div class="modal" style="max-width:420px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px">Acceso al modulo de premios</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Admin y jefes tienen acceso siempre:</div>
+    <div id="prm-acceso-lista" style="max-height:300px;overflow-y:auto"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+      <button class="bp" onclick="hi('modal-prm-acceso')">Listo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR PAGO PREMIO -->
+<div id="modal-prm-pago" class="modal-bg hidden">
+  <div class="modal" style="max-width:400px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px">Confirmar pago de premio</div>
+    <div id="mpago-info" style="font-size:13px;color:var(--text2);margin-bottom:16px"></div>
+    <div><label>Fecha de pago</label><input id="mpago-fecha" type="date"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="hi('modal-prm-pago')" style="flex:1">Cancelar</button>
+      <button class="bp" onclick="confirmarPago()" style="flex:2">Confirmar pago</button>
+    </div>
   </div>
 </div>
 
@@ -2532,6 +2648,8 @@ async function showAdm(){
   // Precargar accesos plan de batalla
   var pbAcc=await db.from('plan_batalla_acceso').select('*')
   pbAccesos=(pbAcc.data||[]).map(function(x){return x.usuario_id})
+  var prmAcc=await db.from('premios_acceso').select('*')
+  prmAccesos=(prmAcc.data||[]).map(function(x){return x.usuario_id})
   rAdmStats()
   rAdmCarp()
   try{
@@ -3132,7 +3250,7 @@ function pobPer(){
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
+  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb','prm'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   if(t==='co'){pobPer();rAdmCom()}
@@ -3143,6 +3261,7 @@ function admTab(t,btn){
   if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
   if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
   if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
+  if(t==='prm'){initPremios()}
 }
 
 // ═══ CAMBIAR FECHA ═══
@@ -4431,6 +4550,428 @@ function puedeVerPB(){
   var r=CU.role||CU.rol
   if(r==='admin'||r==='jefe_ahorro'||r==='jefe_pozo'||r==='jefe_presentaciones')return true
   return pbAccesos.includes(CU.id)
+}
+
+
+// ═══════════════════════════════════════════════
+// MÓDULO PREMIOS SEMANALES
+// ═══════════════════════════════════════════════
+let prmSemanas=[], prmEmpleados=[], prmLeads=[], prmGanadores=[], prmAccesos=[]
+let prmPagoId=null
+
+const PUESTOS_CONFIG = {
+  promotor:      {label:'Promotor',     icon:'📣', meta:335,  bono:50000, bonoBajo:25000, campo:'leads',   jefe:'mvilca'},
+  recepcion:     {label:'Recepcion',    icon:'🖥️',  meta:583,  bono:50000, bonoBajo:0,    campo:'leads',   jefe:'kvira'},
+  pretester:     {label:'Pretester',    icon:'📋', meta:280,  bono:50000, bonoBajo:0,    campo:'leads',   jefe:'kvira'},
+  host:          {label:'Host',         icon:'🎤', meta:246,  bono:50000, bonoBajo:0,    campo:'leads',   jefe:'kvira'},
+  presentador:   {label:'Presentador',  icon:'🎯', meta:null, bono:50000, bonoBajo:0,    campo:'pct',     jefe:'jefe_presentaciones'},
+  detector_pozo: {label:'Det. Pozo',    icon:'🔍', meta:null, bono:25000, bonoBajo:25000,campo:'leads',   jefe:'kvira'},
+  asesor:        {label:'Asesor',       icon:'💼', meta:null, bono:50000, bonoBajo:0,    campo:'ventas',  jefe:'jefe_ahorro'},
+}
+
+async function initPremios(){
+  const[sem,emp,gan,acc]=await Promise.all([
+    db.from('premios_semanas').select('*').order('desde',{ascending:false}),
+    db.from('empleados_puesto').select('*').eq('activo',true).order('puesto').order('nombre'),
+    db.from('premios_ganadores').select('*').order('semana_desde',{ascending:false}),
+    db.from('premios_acceso').select('*'),
+  ])
+  prmSemanas=sem.data||[]
+  prmEmpleados=emp.data||[]
+  prmGanadores=gan.data||[]
+  prmAccesos=(acc.data||[]).map(x=>x.usuario_id)
+
+  // Si no hay semanas, generar automáticas del mes actual
+  if(!prmSemanas.length) await generarSemanasAuto()
+
+  poblarSelectSemana()
+  loadPremios()
+}
+
+async function generarSemanasAuto(){
+  const hoy=new Date()
+  const y=hoy.getFullYear(), m=hoy.getMonth()
+  const meses=[[y,m],[y,m-1<0?11:m-1]]
+  for(const[ay,am] of meses){
+    const rm=am<0?11:am, ry=am<0?ay-1:ay
+    const diasMes=new Date(ry,rm+1,0).getDate()
+    const ranges=[[1,7],[8,15],[16,22],[23,diasMes]]
+    for(let i=0;i<ranges.length;i++){
+      const[d1,d2]=ranges[i]
+      const desde=new Date(ry,rm,d1).toISOString().slice(0,10)
+      const hasta=new Date(ry,rm,d2).toISOString().slice(0,10)
+      const key=desde+'_'+hasta
+      const label='Sem '+(i+1)+' '+new Date(ry,rm,1).toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+      await db.from('premios_semanas').upsert({semana_key:key,desde,hasta,label,creada_por:'auto'},{onConflict:'semana_key'})
+    }
+  }
+  const res=await db.from('premios_semanas').select('*').order('desde',{ascending:false})
+  prmSemanas=res.data||[]
+}
+
+function poblarSelectSemana(){
+  const sel=document.getElementById('prm-semana')
+  if(!sel)return
+  sel.innerHTML=prmSemanas.map(s=>'<option value="'+s.semana_key+'">'+s.label+'</option>').join('')
+}
+
+async function loadPremios(){
+  const key=document.getElementById('prm-semana')?.value
+  if(!key)return
+  const sem=prmSemanas.find(s=>s.semana_key===key)
+  if(!sem)return
+
+  // Cargar leads de esta semana
+  const res=await db.from('premios_leads').select('*').eq('semana_key',key)
+  prmLeads=res.data||[]
+
+  // Cargar ganadores de esta semana
+  const resG=await db.from('premios_ganadores').select('*').eq('semana_key',key)
+  const ganadoresSem=resG.data||[]
+
+  rPrmCarga(sem)
+  rPrmGanadores(ganadoresSem, sem)
+  loadHistorial()
+}
+
+function puedeCargarPuesto(puesto){
+  if(!CU)return false
+  const r=CU.role||CU.rol
+  if(r==='admin')return true
+  const cfg=PUESTOS_CONFIG[puesto]
+  if(!cfg)return false
+  // Jefe por username o rol
+  if(cfg.jefe===CU.username)return true
+  if(cfg.jefe==='jefe_ahorro'&&(r==='jefe_ahorro'||r==='jefe_pozo'))return true
+  if(cfg.jefe==='jefe_presentaciones'&&r==='jefe_presentaciones')return true
+  if(cfg.jefe==='mvilca'&&CU.username==='mvilca')return true
+  if(cfg.jefe==='kvira'&&CU.username==='kvira')return true
+  return false
+}
+
+function rPrmCarga(sem){
+  const puestosVisibles=Object.keys(PUESTOS_CONFIG).filter(p=>puedeCargarPuesto(p)||CU.role==='admin'||CU.rol==='admin')
+  var out=''
+  puestosVisibles.forEach(function(puesto){
+    const cfg=PUESTOS_CONFIG[puesto]
+    // Empleados de este puesto (o usuarios del sistema para asesor/presentador)
+    var empleados=[]
+    if(puesto==='asesor'){
+      empleados=allUsers.filter(u=>u.rol==='asesor').map(u=>({id:u.id,nombre:u.nombre}))
+    } else if(puesto==='presentador'){
+      empleados=allUsers.filter(u=>u.rol==='presentador').map(u=>({id:u.id,nombre:u.nombre}))
+    } else {
+      empleados=prmEmpleados.filter(e=>e.puesto===puesto)
+    }
+    if(!empleados.length&&puesto!=='asesor'&&puesto!=='presentador')return
+
+    var canLoad=puedeCargarPuesto(puesto)
+    var filas=empleados.map(function(emp){
+      var lead=prmLeads.find(l=>l.empleado_id===emp.id&&l.puesto===puesto)
+      var val=lead?lead.valor:''
+      var campoLabel=cfg.campo==='pct'?'% Entrevistas/Asistentes':cfg.campo==='ventas'?'Ventas':'Leads'
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">'
+        +'<span style="font-size:13px;color:var(--text)">'+emp.nombre+'</span>'
+        +(canLoad
+          ?'<input type="number" min="0" value="'+val+'" placeholder="0" onchange="guardarLead(\''+emp.id+'\',\''+emp.nombre.replace(/'/g,"\\'")+'\',\''+puesto+'\',this.value)" style="width:90px;font-size:13px;padding:4px 8px;text-align:right">'
+          :'<span class="am" style="font-size:13px">'+(val||'-')+'</span>')
+        +'</div>'
+    }).join('')
+
+    out+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      +'<div style="font-size:14px;font-weight:600">'+cfg.icon+' '+cfg.label+'</div>'
+      +(cfg.meta?'<div style="font-size:11px;color:var(--text3)">Meta: '+cfg.meta+' '+cfg.campo+'</div>':'')
+    +'</div>'
+    +filas
+    +'</div>'
+  })
+  html('prm-carga', out||'<div class="card"><div class="es">Sin acceso para cargar</div></div>')
+}
+
+async function guardarLead(empId, empNombre, puesto, valor){
+  const key=document.getElementById('prm-semana')?.value
+  const sem=prmSemanas.find(s=>s.semana_key===key)
+  if(!key||!sem)return
+  const v=parseFloat(valor)||0
+  await db.from('premios_leads').upsert({
+    semana_key:key,
+    semana_desde:sem.desde,
+    semana_hasta:sem.hasta,
+    empleado_id:empId,
+    empleado_nombre:empNombre,
+    puesto:puesto,
+    valor:v,
+    cargado_por:CU.username||CU.nombre
+  },{onConflict:'semana_key,empleado_id'})
+  // Recargar
+  const res=await db.from('premios_leads').select('*').eq('semana_key',key)
+  prmLeads=res.data||[]
+
+  // Notificar al admin por email via Supabase Edge Function (si disponible)
+  // Por ahora solo guardamos
+  mostrarToast('Datos guardados para '+empNombre)
+}
+
+function mostrarToast(msg){
+  const el=document.createElement('div')
+  el.className='aok'
+  el.textContent=msg
+  el.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'
+  document.body.appendChild(el)
+  setTimeout(()=>el.remove(),2500)
+}
+
+async function calcularGanadores(){
+  const key=document.getElementById('prm-semana')?.value
+  const sem=prmSemanas.find(s=>s.semana_key===key)
+  if(!key||!sem){alert('Selecciona una semana');return}
+
+  const ganadoresNuevos=[]
+
+  for(const [puesto,cfg] of Object.entries(PUESTOS_CONFIG)){
+    const leadsDelPuesto=prmLeads.filter(l=>l.puesto===puesto)
+    if(!leadsDelPuesto.length)continue
+
+    // Para asesor: usar ventas reales de la BD en la semana
+    var datos=leadsDelPuesto
+    if(puesto==='asesor'){
+      const opsDelPeriodo=allOps.filter(x=>{
+        const f=x.fecha_carpeta||x.fecha
+        return f>=sem.desde&&f<=sem.hasta&&categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'
+      })
+      const porAsesor={}
+      opsDelPeriodo.forEach(op=>{
+        if(!porAsesor[op.asesor_id])porAsesor[op.asesor_id]={id:op.asesor_id,nombre:op.asesor_nombre,valor:0}
+        porAsesor[op.asesor_id].valor++
+      })
+      datos=Object.values(porAsesor)
+    }
+
+    if(!datos.length)continue
+    const ganador=datos.reduce((a,b)=>b.valor>a.valor?b:a)
+    const alcanzaMeta=cfg.meta?ganador.valor>=cfg.meta:true
+    const bono=cfg.bono>0&&(alcanzaMeta||cfg.bonoBajo>0)?(alcanzaMeta?cfg.bono:cfg.bonoBajo):0
+    if(bono===0)continue
+
+    ganadoresNuevos.push({
+      semana_key:key,
+      semana_desde:sem.desde,
+      semana_hasta:sem.hasta,
+      puesto:puesto,
+      empleado_id:ganador.empleado_id||ganador.id,
+      empleado_nombre:ganador.empleado_nombre||ganador.nombre,
+      valor:ganador.valor,
+      monto_bono:bono,
+      confirmado:false,
+      incentivo_cargado:false,
+      notificacion_enviada:false
+    })
+  }
+
+  if(!ganadoresNuevos.length){alert('No hay datos suficientes para calcular ganadores');return}
+
+  // Guardar ganadores
+  for(const g of ganadoresNuevos){
+    await db.from('premios_ganadores').upsert(g,{onConflict:'semana_key,puesto'})
+  }
+
+  mostrarToast('Ganadores calculados: '+ganadoresNuevos.length+' premios')
+  await loadPremios()
+}
+
+function rPrmGanadores(ganadores, sem){
+  if(!ganadores.length){
+    html('prm-ganadores','<div class="es">Sin ganadores calculados aun. Cargá los datos y presioná "Calcular ganadores".</div>')
+    return
+  }
+  var out='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">'
+  ganadores.forEach(function(g){
+    const cfg=PUESTOS_CONFIG[g.puesto]||{icon:'🏆',label:g.puesto}
+    var estadoColor=g.confirmado?'var(--green)':'var(--amber)'
+    var estadoLabel=g.confirmado?'✓ Pagado':'Pendiente de pago'
+    var incentivoBadge=g.incentivo_cargado?'<span class="badge b-acp" style="font-size:10px">En incentivos</span>':''
+    out+='<div class="card" style="border-left:3px solid '+estadoColor+'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(cfg.icon||'🏆')+' '+(cfg.label||g.puesto)+'</div>'
+        +incentivoBadge
+      +'</div>'
+      +'<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">'+g.empleado_nombre+'</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-bottom:8px">'+g.valor+' '+(cfg.campo==='pct'?'%':cfg.campo==='ventas'?'ventas':'leads')+'</div>'
+      +'<div style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:10px">'+fmt(g.monto_bono)+'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+        +'<span style="font-size:11px;color:'+estadoColor+'">'+estadoLabel+(g.fecha_confirmacion?' · '+fmtD(g.fecha_confirmacion):'')+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;margin-top:10px">'
+        +(!g.confirmado?'<button class="bg" onclick="abrirConfirmarPago(\''+g.id+'\',\''+g.empleado_nombre.replace(/'/g,"\\'")+'\','+g.monto_bono+')" style="font-size:11px;padding:4px 10px">✓ Confirmar pago</button>':'')
+        +(!g.incentivo_cargado?'<button class="bb" onclick="cargarIncentivoPremio(\''+g.id+'\',\''+g.empleado_id+'\',\''+g.empleado_nombre.replace(/'/g,"\\'")+'\','+g.monto_bono+',\''+sem.desde+'\')" style="font-size:11px;padding:4px 10px">+ Incentivo</button>':'')
+      +'</div>'
+    +'</div>'
+  })
+  out+='</div>'
+  html('prm-ganadores', out)
+}
+
+function abrirConfirmarPago(ganadorId, nombre, monto){
+  prmPagoId=ganadorId
+  document.getElementById('mpago-info').innerHTML='<strong>'+nombre+'</strong> — '+fmt(monto)
+  document.getElementById('mpago-fecha').value=new Date().toISOString().slice(0,10)
+  sh('modal-prm-pago')
+}
+
+async function confirmarPago(){
+  if(!prmPagoId)return
+  const fecha=document.getElementById('mpago-fecha').value
+  await db.from('premios_ganadores').update({confirmado:true,fecha_confirmacion:fecha}).eq('id',prmPagoId)
+  hi('modal-prm-pago')
+  prmPagoId=null
+  mostrarToast('Pago confirmado')
+  await loadPremios()
+}
+
+async function cargarIncentivoPremio(ganadorId, empId, empNombre, monto, fecha){
+  // Buscar usuario en la BD para cargar incentivo
+  const usr=allUsers.find(u=>u.id===empId||u.nombre===empNombre)
+  if(!usr){alert('No se encontró el usuario '+empNombre+' en el sistema para cargar incentivo. Cargalo manualmente en Incentivos.');return}
+  const periodo=getPer(fecha).key
+  const{error}=await db.from('incentivos').insert({
+    usuario_id:usr.id,
+    usuario_nombre:usr.nombre,
+    tipo:'semanal',
+    monto:monto,
+    descripcion:'Premio semanal - mejor rendimiento',
+    periodo:periodo,
+    fecha:fecha
+  })
+  if(error){alert('Error al cargar incentivo: '+error.message);return}
+  await db.from('premios_ganadores').update({incentivo_cargado:true}).eq('id',ganadorId)
+  mostrarToast('Incentivo cargado para '+empNombre)
+  await loadAll()
+  await loadPremios()
+}
+
+async function loadHistorial(){
+  const puesto=document.getElementById('prm-hist-puesto')?.value||''
+  let q=db.from('premios_ganadores').select('*').order('semana_desde',{ascending:false}).limit(50)
+  if(puesto)q=q.eq('puesto',puesto)
+  const{data}=await q
+  const hist=data||[]
+  if(!hist.length){html('prm-historial','<div class="es">Sin historial aun</div>');return}
+  var out='<table><thead><tr><th>Semana</th><th>Puesto</th><th>Ganador</th><th>Resultado</th><th>Bono</th><th>Estado</th><th>Incentivo</th></tr></thead><tbody>'
+  hist.forEach(function(g){
+    const cfg=PUESTOS_CONFIG[g.puesto]||{icon:'🏆',label:g.puesto,campo:'leads'}
+    out+='<tr>'
+      +'<td style="font-size:12px">'+fmtD(g.semana_desde)+' al '+fmtD(g.semana_hasta)+'</td>'
+      +'<td>'+(cfg.icon||'')+'  '+(cfg.label||g.puesto)+'</td>'
+      +'<td style="color:var(--text);font-weight:500">'+g.empleado_nombre+'</td>'
+      +'<td class="am">'+g.valor+(cfg.campo==='pct'?'%':' '+(cfg.campo==='ventas'?'ventas':'leads'))+'</td>'
+      +'<td class="ag">'+fmt(g.monto_bono)+'</td>'
+      +'<td>'+(g.confirmado?'<span class="badge b-acp">Pagado</span>':'<span class="badge b-pend">Pendiente</span>')+'</td>'
+      +'<td>'+(g.incentivo_cargado?'<span class="badge b-acp">✓</span>':'<span style="color:var(--text3);font-size:12px">-</span>')+'</td>'
+    +'</tr>'
+  })
+  out+='</tbody></table>'
+  html('prm-historial', out)
+}
+
+// ── Gestión de semanas ──
+function openPrmSemana(){
+  rPrmSemanaLista()
+  sh('modal-prm-semana')
+}
+
+function rPrmSemanaLista(){
+  const lista=document.getElementById('prms-lista')
+  if(!lista)return
+  lista.innerHTML=prmSemanas.map(s=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'
+    +'<div><div style="font-size:13px;color:var(--text)">'+s.label+'</div><div style="font-size:11px;color:var(--text3)">'+fmtD(s.desde)+' al '+fmtD(s.hasta)+'</div></div>'
+    +'<button class="br" onclick="deleteSemana(\''+s.id+'\')" style="font-size:11px;padding:3px 8px">Eliminar</button>'
+  +'</div>').join('')
+}
+
+async function guardarSemana(){
+  const desde=document.getElementById('prms-desde')?.value
+  const hasta=document.getElementById('prms-hasta')?.value
+  const label=document.getElementById('prms-label')?.value||'Semana '+fmtD(desde)
+  if(!desde||!hasta){alert('Completá las fechas');return}
+  const key=desde+'_'+hasta
+  await db.from('premios_semanas').upsert({semana_key:key,desde,hasta,label,creada_por:CU.username||'admin'},{onConflict:'semana_key'})
+  const res=await db.from('premios_semanas').select('*').order('desde',{ascending:false})
+  prmSemanas=res.data||[]
+  poblarSelectSemana()
+  rPrmSemanaLista()
+  mostrarToast('Semana agregada')
+}
+
+async function deleteSemana(id){
+  if(!confirm('Eliminar esta semana?'))return
+  await db.from('premios_semanas').delete().eq('id',id)
+  prmSemanas=prmSemanas.filter(s=>s.id!==id)
+  poblarSelectSemana()
+  rPrmSemanaLista()
+}
+
+// ── Gestión de empleados ──
+function openPrmEmpleados(){
+  rPrmEmpleadosLista()
+  sh('modal-prm-empleados')
+}
+
+function rPrmEmpleadosLista(){
+  const lista=document.getElementById('prme-lista')
+  if(!lista)return
+  const grupos={}
+  prmEmpleados.forEach(e=>{
+    if(!grupos[e.puesto])grupos[e.puesto]=[]
+    grupos[e.puesto].push(e)
+  })
+  lista.innerHTML=Object.entries(grupos).map(([p,emps])=>{
+    const cfg=PUESTOS_CONFIG[p]||{icon:'',label:p}
+    return '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">'+(cfg.icon||'')+' '+(cfg.label||p).toUpperCase()+'</div>'
+      +emps.map(e=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">'
+        +'<span style="font-size:13px;color:var(--text)">'+e.nombre+'</span>'
+        +'<button class="br" onclick="deleteEmpleado(\''+e.id+'\')" style="font-size:11px;padding:2px 7px">✕</button>'
+      +'</div>').join('')
+    +'</div>'
+  }).join('')||'<div class="es">Sin empleados cargados</div>'
+}
+
+async function guardarEmpleado(){
+  const nom=document.getElementById('prme-nom')?.value.trim()
+  const puesto=document.getElementById('prme-puesto')?.value
+  if(!nom){alert('Ingresa el nombre');return}
+  await db.from('empleados_puesto').insert({nombre:nom,puesto,activo:true})
+  const res=await db.from('empleados_puesto').select('*').eq('activo',true).order('puesto').order('nombre')
+  prmEmpleados=res.data||[]
+  document.getElementById('prme-nom').value=''
+  rPrmEmpleadosLista()
+  rPrmCarga(prmSemanas.find(s=>s.semana_key===document.getElementById('prm-semana')?.value)||{})
+}
+
+async function deleteEmpleado(id){
+  await db.from('empleados_puesto').update({activo:false}).eq('id',id)
+  prmEmpleados=prmEmpleados.filter(e=>e.id!==id)
+  rPrmEmpleadosLista()
+}
+
+// ── Accesos ──
+async function cargarAccesosPRM(){
+  const lista=document.getElementById('prm-acceso-lista')
+  if(!lista)return
+  const usuarios=allUsers.filter(u=>!['admin','jefe_ahorro','jefe_pozo','jefe_presentaciones'].includes(u.rol)&&u.username!=='mvilca'&&u.username!=='kvira')
+  lista.innerHTML=usuarios.map(u=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'
+    +'<div><div style="font-size:13px;color:var(--text)">'+u.nombre+'</div><div style="font-size:11px;color:var(--text3)">'+u.rol+'</div></div>'
+    +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" '+(prmAccesos.includes(u.id)?'checked':'')+' onchange="toggleAccesoPRM(\''+u.id+'\',this.checked)" style="width:auto"> Acceso</label>'
+  +'</div>').join('')
+}
+
+async function toggleAccesoPRM(userId,checked){
+  if(checked){
+    await db.from('premios_acceso').upsert({usuario_id:userId,activo:true},{onConflict:'usuario_id'})
+    prmAccesos=[...prmAccesos,userId]
+  } else {
+    await db.from('premios_acceso').delete().eq('usuario_id',userId)
+    prmAccesos=prmAccesos.filter(x=>x!==userId)
+  }
 }
 
 </script>

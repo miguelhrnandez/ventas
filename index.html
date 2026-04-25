@@ -3647,6 +3647,58 @@ function rRetenciones(){
 
 
 // ═══ CLIENTES (ADMIN) ═══
+async function guardarCamposCliente(opId){
+  var nom=document.getElementById('cl-nom-'+opId)
+  var as=document.getElementById('cl-as-'+opId)
+  var pl=document.getElementById('cl-pl-'+opId)
+  var mo=document.getElementById('cl-mo-'+opId)
+  var cel=document.getElementById('cl-cel-'+opId)
+  var un=document.getElementById('cl-un-'+opId)
+  var obs=document.getElementById('cl-obs-'+opId)
+  if(!nom)return
+  var monto=parseInt(mo?mo.value:0)
+  var cat=categ(monto)
+  var upd={
+    cliente:nom.value.trim(),
+    plan:pl?pl.value:'Ahorro',
+    monto:monto,
+    estado:cat.isVenta?'venta':'reserva',
+    celular:cel?cel.value.trim():'',
+    unidad:un?un.value.trim():'',
+    obs:obs?obs.value.trim():''
+  }
+  // Asesor si cambió
+  if(as){
+    var selectedUser=allUsers.find(function(u){return u.id===as.value})
+    if(selectedUser){upd.asesor_id=as.value;upd.asesor_nombre=selectedUser.nombre}
+  }
+  var btn=document.querySelector('[data-cid="'+opId+'"]')
+  if(btn){btn.textContent='Guardando...';btn.disabled=true}
+  await db.from('operaciones').update(upd).eq('id',opId)
+  if(btn){btn.textContent='✓ Guardado';setTimeout(function(){btn.textContent='Guardar cambios';btn.disabled=false},2000)}
+  await loadAll();rAdmClientes();rAdmStats()
+}
+async function guardarCampoCliente(opId, campo, valor){
+  var upd={}
+  if(campo==='monto'){
+    var m=parseInt(valor)
+    if(!m||isNaN(m)||m<=0)return
+    var c=categ(m)
+    upd={monto:m,estado:c.isVenta?'venta':'reserva'}
+  } else {
+    upd[campo]=valor
+  }
+  await db.from('operaciones').update(upd).eq('id',opId)
+  await loadAll()
+  rAdmClientes()
+  rAdmStats()
+}
+async function guardarAsesorCliente(opId, userId, userName){
+  await db.from('operaciones').update({asesor_id:userId,asesor_nombre:userName}).eq('id',opId)
+  await loadAll()
+  rAdmClientes()
+  rAdmStats()
+}
 function toggleClienteAdmin(id){
   clienteAbierto=clienteAbierto===id?null:id
   rAdmClientes()
@@ -3700,19 +3752,45 @@ function rAdmClientes(){
     var detalle=''
     if(abierto){
       // Info principal
+      var oid=String(op.id)
+      var asesoresOpts=allUsers.filter(function(u){return u.rol==='asesor'||u.rol==='jefe_ahorro'||u.rol==='jefe_pozo'}).map(function(u){return '<option value="'+u.id+'"'+(u.id===op.asesor_id?' selected':'')+'>'+u.nombre+'</option>'}).join('')
       var infoRows=''
-        +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px">'
-          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asesor</div><div style="font-size:13px;color:var(--text)">'+op.asesor_nombre+'</div></div>'
-          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Plan</div><div style="font-size:13px;color:var(--text)">'+op.plan+'</div></div>'
-          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Cuota</div><div style="font-size:13px;color:var(--text)" class="am">'+fmt(op.monto)+'</div></div>'
-          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Categoría</div>'+badgeEstado+'</div>'
-          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tesorería</div>'+badgeTes+'</div>'
-          +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Alta</div><div style="font-size:13px;color:var(--text)">'+fmtD(op.fecha)+'</div></div>'
-          +(op.celular?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Celular</div><div style="font-size:13px;color:var(--text)">'+op.celular+'</div></div>':'')
-          +(op.metodo_pago?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Pago</div><div style="font-size:13px;color:var(--text)">'+op.metodo_pago+'</div></div>':'')
-          +(op.unidad?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">ID Reserva</div><div style="font-size:13px;color:var(--text)">'+op.unidad+'</div></div>':'')
-          +(op.presentador_nombre?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Presentador</div><div style="font-size:13px;color:var(--text)">'+op.presentador_nombre+'</div></div>':'')
+        +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px" onclick="event.stopPropagation()">'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Cliente</div>'
+        +'<input id="cl-nom-'+oid+'" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asesor</div>'
+        +'<select id="cl-as-'+oid+'" style="font-size:12px;color:var(--text);background:var(--bg3);border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0">'+asesoresOpts+'</select></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Plan</div>'
+        +'<select id="cl-pl-'+oid+'" style="font-size:12px;color:var(--text);background:var(--bg3);border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0">'
+        +'<option value="Ahorro"'+(op.plan==='Ahorro'?' selected':'')+'>Plan de ahorro</option>'
+        +'<option value="Pozo"'+(op.plan==='Pozo'?' selected':'')+'>Plan de pozo</option>'
+        +'</select></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Cuota</div>'
+        +'<input id="cl-mo-'+oid+'" type="number" style="font-size:13px;color:var(--teal);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0;font-family:var(--mono)"></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Celular</div>'
+        +'<input id="cl-cel-'+oid+'" placeholder="Sin celular" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">ID Reserva</div>'
+        +'<input id="cl-un-'+oid+'" placeholder="-" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Alta</div><div style="font-size:13px;color:var(--text)">'+fmtD(op.fecha)+'</div></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tesoreria</div>'+badgeTes+'</div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px;grid-column:span 2"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Observaciones</div>'
+        +'<input id="cl-obs-'+oid+'" placeholder="Sin observaciones" style="font-size:12px;color:var(--text2);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px;display:flex;align-items:center;justify-content:center">'
+        +'<button data-cid="'+oid+'" onclick="guardarCamposCliente(this.dataset.cid)" style="background:var(--accent);color:#0f0f0f;border:none;border-radius:7px;padding:7px 18px;font-weight:600;cursor:pointer;font-size:13px">Guardar cambios</button></div>'
         +'</div>'
+      // Setear values después de render
+      setTimeout(function(){
+        var nom=document.getElementById('cl-nom-'+oid)
+        var mo=document.getElementById('cl-mo-'+oid)
+        var cel=document.getElementById('cl-cel-'+oid)
+        var un=document.getElementById('cl-un-'+oid)
+        var obs2=document.getElementById('cl-obs-'+oid)
+        if(nom)nom.value=op.cliente||''
+        if(mo)mo.value=op.monto||''
+        if(cel)cel.value=op.celular||''
+        if(un)un.value=op.unidad||''
+        if(obs2)obs2.value=op.obs||''
+      },50)
       // OB
       var obSection=''
       if(op.ob_id){

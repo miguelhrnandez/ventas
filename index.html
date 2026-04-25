@@ -38,7 +38,7 @@ button:active{transform:scale(0.98)}
 .b-jefe_ahorro{background:rgba(96,165,250,0.15);color:var(--blue)}
 .b-jefe_pozo{background:rgba(192,132,252,0.15);color:var(--purple)}
 .b-presentador{background:rgba(251,191,36,0.15);color:var(--amber)}
-.b-jefe_presentaciónes{background:rgba(74,222,128,0.15);color:var(--green)}
+.b-jefe_presentaciones{background:rgba(74,222,128,0.15);color:var(--green)}
 .b-on_boarding{background:rgba(45,212,191,0.15);color:var(--teal)}
 .b-admin{background:rgba(232,25,44,0.15);color:var(--accent)}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 24px}
@@ -572,7 +572,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       </button>
       <button class="sb-item" onclick="admTab('pr',this)" id="sb-pr">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Presentaciónes
+        Presentaciones
       </button>
       <button class="sb-item" onclick="admTab('ob',this)" id="sb-ob">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -581,11 +581,11 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       <div class="sb-sep"></div>
       <button class="sb-item" onclick="admTab('co',this)" id="sb-co">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-        Comisiónes
+        Comisiones
       </button>
       <button class="sb-item" onclick="admTab('ret',this)" id="sb-ret">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Retenciónes OB
+        Retenciones OB
       </button>
       <button class="sb-item" onclick="admTab('to',this)" id="sb-to">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
@@ -598,7 +598,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       </button>
       <button class="sb-item" onclick="admTab('liq',this)" id="sb-liq">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Liquidaciónes
+        Liquidaciones
       </button>
       <button class="sb-item" onclick="admTab('us',this)" id="sb-us">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -646,7 +646,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tco" class="hidden">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
-        <div style="font-size:15px;font-weight:600">Comisiónes por período</div>
+        <div style="font-size:15px;font-weight:600">Comisiones por período</div>
         <select id="adm-fp" onchange="rAdmCom()" style="width:auto;min-width:220px"><option value="">Todos los períodos</option></select>
       </div>
       <div id="adm-cob"></div>
@@ -655,7 +655,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tto" class="hidden">
     <div class="card ox">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-        <div style="font-size:15px;font-weight:600">Todas las operaciónes</div>
+        <div style="font-size:15px;font-weight:600">Todas las operaciones</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <select id="adm-fa" onchange="rAdmTodas()" style="width:auto"></select>
           <select id="adm-fe" onchange="rAdmTodas()" style="width:auto"><option value="">Todos</option><option value="venta_completa">Venta completa</option><option value="venta_bonificada">Venta bonificada</option><option value="reserva">Reserva</option></select>
@@ -732,10 +732,10 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   <div id="adm-Tret" class="hidden">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
-        <div style="font-size:15px;font-weight:600">Retenciónes On Boarding</div>
+        <div style="font-size:15px;font-weight:600">Retenciones On Boarding</div>
         <div style="display:flex;gap:8px">
-          <select id="ret-mes" onchange="rRetenciónes()" style="width:auto;min-width:160px"></select>
-          <select id="ret-ob" onchange="rRetenciónes()" style="width:auto"><option value="">Todas las OB</option></select>
+          <select id="ret-mes" onchange="rRetenciones()" style="width:auto;min-width:160px"></select>
+          <select id="ret-ob" onchange="rRetenciones()" style="width:auto"><option value="">Todas las OB</option></select>
         </div>
       </div>
       <div id="ret-content"></div>
@@ -757,7 +757,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
         </div>
       </div>
       <div class="card">
-        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Liquidaciónes registradas</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">Liquidaciones registradas</div>
         <div id="liq-list"></div>
       </div>
     </div>
@@ -779,7 +779,7 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
               <option value="jefe_ahorro">Jefe de ventas - Ahorro</option>
               <option value="jefe_pozo">Jefe de ventas - Pozo</option>
               <option value="presentador">Presentador</option>
-              <option value="jefe_presentaciónes">Jefe de presentaciónes</option>
+              <option value="jefe_presentaciones">Jefe de presentaciones</option>
               <option value="on_boarding">On Boarding</option>
               <option value="admin">Administrador</option>
               <optgroup id="u-rol-custom-group" label="— Roles personalizados —"></optgroup>
@@ -804,12 +804,12 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
           <div>
             <label style="margin-bottom:8px">Permisos</label>
             <div style="display:flex;flex-direction:column;gap:8px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ops" style="width:auto"> Ver sus operaciónes y comisiónes</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ops" style="width:auto"> Ver sus operaciones y comisiones</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-cargar" style="width:auto"> Cargar ventas/reservas</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pres" style="width:auto"> Ver/cargar presentaciónes</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pres" style="width:auto"> Ver/cargar presentaciones</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ob" style="width:auto"> Ver/cargar on boarding</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-carp" style="width:auto"> Ver carpetas</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-comtodo" style="width:auto"> Ver comisiónes de todo el equipo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-comtodo" style="width:auto"> Ver comisiones de todo el equipo</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-usrs" style="width:auto"> Gestiónar usuarios</label>
             </div>
           </div>
@@ -1109,8 +1109,8 @@ function toggleTema(){
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('SL').classList.contains('hidden'))doLogin()})
 
-const ROL_LABELS={asesor:'Asesor de ventas',jefe_ahorro:'Jefe de ventas Ahorro',jefe_pozo:'Jefe de ventas Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe de presentaciónes',on_boarding:'On Boarding',admin:'Administrador'}
-const ROL_ICONS={asesor:'📊',jefe_ahorro:'👔',jefe_pozo:'👔',presentador:'🎤',jefe_presentaciónes:'🎯',on_boarding:'🤝',admin:'⚙️'}
+const ROL_LABELS={asesor:'Asesor de ventas',jefe_ahorro:'Jefe de ventas Ahorro',jefe_pozo:'Jefe de ventas Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe de presentaciones',on_boarding:'On Boarding',admin:'Administrador'}
+const ROL_ICONS={asesor:'📊',jefe_ahorro:'👔',jefe_pozo:'👔',presentador:'🎤',jefe_presentaciones:'🎯',on_boarding:'🤝',admin:'⚙️'}
 async function showRolPanel(roles){
   showOnly('SRS')
   document.getElementById('srs-nombre').textContent=CU.nombre
@@ -1142,7 +1142,7 @@ async function enterPanel(r){
   else if(r==='asesor')await showAs()
   else if(r==='jefe_ahorro'||r==='jefe_pozo')await showJV()
   else if(r==='presentador')await showPr()
-  else if(r==='jefe_presentaciónes')await showJP()
+  else if(r==='jefe_presentaciones')await showJP()
   else if(r==='on_boarding')await showOB()
 }
 async function doLogin(){
@@ -1167,7 +1167,7 @@ function logout(){CU=null;showOnly('SL');sv('lu','');sv('lp','');document.getEle
 let allObMovs=[],allObPagos=[]
 async function loadAll(){
   const[o,u,l,om,op]=await Promise.all([
-    db.from('operaciónes').select('*').order('fecha',{ascending:false}),
+    db.from('operaciones').select('*').order('fecha',{ascending:false}),
     db.from('usuarios').select('*').order('nombre'),
     db.from('carpetas_llevadas').select('período_key,fecha_llevada,nro_sop,fecha_cierre_custom,fecha_llevar_custom,fecha_cobro_custom'),
     db.from('ob_movimientos').select('*').order('fecha',{ascending:false}),
@@ -1265,11 +1265,11 @@ async function guardarEdit(){
     if(!ok)return
   }
   document.getElementById('me-btn').textContent='Guardando...'
-  const{error}=await db.from('operaciónes').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:mecel,método_pago:mepago||null,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
+  const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:mecel,método_pago:mepago||null,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
   document.getElementById('me-btn').textContent='Guardar cambios'
   if(error){sh('me-err');document.getElementById('me-err').textContent='Error al guardar.';return}
   closeEdit()
-  const{data}=await db.from('operaciónes').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps()
 }
 
@@ -1313,7 +1313,7 @@ async function confirmarDenegar(){
   hi('md-err')
   const motivo=gv('md-motivo').trim()
   document.getElementById('md-btn').textContent='Denegando...'
-  const{error}=await db.from('operaciónes').update({carpeta_tesorería:'denegada',fecha_tesorería:new Date().toISOString().slice(0,10),motivo_denegacion:motivo||null}).eq('id',denegarId)
+  const{error}=await db.from('operaciones').update({carpeta_tesorería:'denegada',fecha_tesorería:new Date().toISOString().slice(0,10),motivo_denegacion:motivo||null}).eq('id',denegarId)
   document.getElementById('md-btn').textContent='Denegar'
   if(error){sh('md-err');document.getElementById('md-err').textContent='Error al guardar.';return}
   closeDenegar()
@@ -1353,11 +1353,11 @@ async function showAs(){
   showOnly('SA')
   const tieneExtra=(CU.roles_extra||[]).length>0
   document.getElementById('SA-sb').innerHTML=mkSidebar([
-    {id:'o',label:'Mis operaciónes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',fn:"aTab('o',document.getElementById('sbitem-o'))"},
+    {id:'o',label:'Mis operaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',fn:"aTab('o',document.getElementById('sbitem-o'))"},
     {id:'n',label:'Cargar nueva venta',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>',fn:"aTab('n',document.getElementById('sbitem-n'))"},
-    {id:'c',label:'Mis comisiónes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"aTab('c',document.getElementById('sbitem-c'))"}
+    {id:'c',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"aTab('c',document.getElementById('sbitem-c'))"}
   ],'o',CU.nombre,'Asesor de ventas',tieneExtra)
-  const{data}=await db.from('operaciónes').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps()
 }
 function rAStats(){
@@ -1366,10 +1366,10 @@ function rAStats(){
   html('a-stats',`<div class="sc"><div class="sv">${vcompl.length}</div><div class="sl">Ventas completas</div></div>
     <div class="sc"><div class="sv">${vbon.length}</div><div class="sl">Ventas bonificadas</div></div>
     <div class="sc"><div class="sv">${res.length}</div><div class="sl">Reservas</div></div>
-    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesorería==='aceptada').reduce((a,x)=>a+calcC(x.monto),0))}</div><div class="sl">Comisiónes confirmadas</div></div>`)
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesorería==='aceptada').reduce((a,x)=>a+calcC(x.monto),0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
 }
 function rAOps(){
-  if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciónes</div>');return}
+  if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciones</div>');return}
   var filas=''
   aOps.forEach(function(op){
     var c=categ(op.monto)
@@ -1441,7 +1441,7 @@ async function cargarVenta(){
   if(!mo||isNaN(mo)||mo<=0){sh('nerr');document.getElementById('nerr').textContent='Ingresa un monto valido.';return}
   document.getElementById('nbtn').textContent='Guardando...'
   const c=categ(mo)
-  const{error}=await db.from('operaciónes').insert({fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva',celular:cel,método_pago:mpago,carpeta_tesorería:'pendiente',pago_presentador:null})
+  const{error}=await db.from('operaciones').insert({fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva',celular:cel,método_pago:mpago,carpeta_tesorería:'pendiente',pago_presentador:null})
   document.getElementById('nbtn').textContent='Guardar operación'
   if(error){sh('nerr');document.getElementById('nerr').textContent='Error: '+(error.message||error.details||JSON.stringify(error));return}
   sv('nc-apellido','');sv('nc-nombre','');sv('npl','');sv('nm','');sv('nu','');sv('ncel','');sv('nob','');hi('nprev');document.getElementById('n-ef').value='';document.getElementById('n-tr').value='';document.getElementById('n-pago-prev').textContent=''
@@ -1449,7 +1449,7 @@ async function cargarVenta(){
   document.getElementById('nfecha-warn').style.display='none'
   document.getElementById('a-nok').textContent='Operación guardada: '+cl+' - '+fmt(mo)
   sh('a-nok');setTimeout(()=>hi('a-nok'),3000)
-  const{data}=await db.from('operaciónes').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();aTab('o',document.querySelector('#SA .nav button'))
 }
 let aComFiltro={desde:'',hasta:''}
@@ -1548,7 +1548,7 @@ async function showJV(){
     {id:'cp',label:'Ventas de mi plan',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',fn:"jvTab('cp',document.getElementById('sbitem-cp'))"},
     {id:'co',label:'Mis cobros',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"jvTab('co',document.getElementById('sbitem-co'))"}
   ],'cp',CU.nombre,rolLabel,false)
-  const{data}=await db.from('operaciónes').select('*').eq('plan',pl).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciones').select('*').eq('plan',pl).order('fecha',{ascending:false})
   jvOps=(data||[]).filter(x=>categ(x.monto).isVenta);rJVStats();rJVCarp()
 }
 function rJVStats(){
@@ -1662,9 +1662,9 @@ let prOps=[]
 async function showPr(){
   showOnly('SPR')
   document.getElementById('SPR-sb').innerHTML=mkSidebar([
-    {id:'pr',label:'Mis presentaciónes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',fn:''}
+    {id:'pr',label:'Mis presentaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',fn:''}
   ],'pr',CU.nombre,'Presentador',false)
-  const{data}=await db.from('operaciónes').select('*').eq('presentador_id',CU.id).order('fecha',{ascending:false})
+  const{data}=await db.from('operaciones').select('*').eq('presentador_id',CU.id).order('fecha',{ascending:false})
   prOps=data||[];rPrStats();rPrOps()
 }
 function rPrStats(){
@@ -1735,8 +1735,8 @@ async function showJP(){
   document.getElementById('SJP-sb').innerHTML=mkSidebar([
     {id:'op',label:'Ventas del equipo',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',fn:"jpTab('op',document.getElementById('sbitem-op'))"},
     {id:'co',label:'Mis cobros',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"jpTab('co',document.getElementById('sbitem-co'))"}
-  ],'op',CU.nombre,'Jefe de Presentaciónes',false)
-  const{data}=await db.from('operaciónes').select('*').not('presentador_id','is',null).order('fecha',{ascending:false})
+  ],'op',CU.nombre,'Jefe de Presentaciones',false)
+  const{data}=await db.from('operaciones').select('*').not('presentador_id','is',null).order('fecha',{ascending:false})
   jpOps=data||[];rJPStats();rJPOps()
 }
 function rJPStats(){
@@ -1746,7 +1746,7 @@ function rJPStats(){
     <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(acp.length*35000)}</div><div class="sl">Mis cobros</div></div>`)
 }
 function rJPOps(){
-  if(!jpOps.length){html('jp-ob','<div class="es">Sin operaciónes del equipo</div>');return}
+  if(!jpOps.length){html('jp-ob','<div class="es">Sin operaciones del equipo</div>');return}
   let filas=''
   jpOps.forEach(op=>{
     filas+='<tr>'
@@ -1832,15 +1832,15 @@ async function showOB(){
   document.getElementById('SOB-sb').innerHTML=mkSidebar([
     {id:'mis',label:'Mis clientes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',fn:"obTab('mis',document.getElementById('sbitem-mis'))"},
     {id:'disp',label:'Ventas disponibles',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',fn:"obTab('disp',document.getElementById('sbitem-disp'))"},
-    {id:'co',label:'Mis comisiónes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"obTab('co',document.getElementById('sbitem-co'))"}
+    {id:'co',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"obTab('co',document.getElementById('sbitem-co'))"}
   ],'mis',CU.nombre,'On Boarding',tieneExtra)
   await loadOBData();rOBStats();rOBMis()
 }
 let obPagos=[]
 async function loadOBData(){
   const[mis,disp,movs,pagos]=await Promise.all([
-    db.from('operaciónes').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
-    db.from('operaciónes').select('*').is('ob_id',null).eq('estado','venta').eq('plan','Ahorro').order('fecha',{ascending:false}),
+    db.from('operaciones').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
+    db.from('operaciones').select('*').is('ob_id',null).eq('estado','venta').eq('plan','Ahorro').order('fecha',{ascending:false}),
     db.from('ob_movimientos').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
     db.from('ob_pagos_cuota').select('*').eq('ob_id',CU.id).order('fecha_pago',{ascending:true})
   ])
@@ -1862,7 +1862,7 @@ function rOBStats(){
   html('ob-stats',`<div class="sc"><div class="sv">${obOps.length}</div><div class="sl">Mis clientes</div></div>
     <div class="sc"><div class="sv">${obPagos.length}</div><div class="sl">Pagos de cuota</div></div>
     <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totCuotas)}</div><div class="sl">Com. cuotas</div></div>
-    <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totGral)}</div><div class="sl">Total comisiónes</div></div>`)
+    <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totGral)}</div><div class="sl">Total comisiones</div></div>`)
 }
 function renderMovHistorial(movs, isAdmin=false){
   if(!movs.length) return '<div style="font-size:12px;color:var(--text3);padding:8px 0">Sin movimientos aun</div>'
@@ -2160,7 +2160,7 @@ async function guardarOBDatos(opId){
   const notas=document.getElementById('obd-notas')?.value.trim()
   const cel=document.getElementById('obd-cel')?.value.trim()
   const unidad=document.getElementById('obd-unidad')?.value.trim()
-  const{error}=await db.from('operaciónes').update({ob_teléfono:tel||null,ob_email:email||null,ob_notas:notas||null,celular:cel||null,unidad:unidad||null}).eq('id',opId)
+  const{error}=await db.from('operaciones').update({ob_teléfono:tel||null,ob_email:email||null,ob_notas:notas||null,celular:cel||null,unidad:unidad||null}).eq('id',opId)
   if(error){const e=document.getElementById('obd-err');if(e){e.textContent='Error: '+error.message;e.style.display='block'}return}
   document.getElementById('ob-modal').remove()
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
@@ -2168,7 +2168,7 @@ async function guardarOBDatos(opId){
 }
 async function devolverOBCliente(opId,cliente){
   if(!confirm('Devolver a '+cliente+' al pool de clientes disponibles?\nSe quitará de tu lista pero se mantendrán todos los datos cargados.'))return
-  await db.from('operaciónes').update({ob_id:null,ob_nombre:null}).eq('id',opId)
+  await db.from('operaciones').update({ob_id:null,ob_nombre:null}).eq('id',opId)
   obClienteAbierto=null
   await loadOBData();rOBStats();rOBMis();rOBDisp()
 }
@@ -2192,7 +2192,7 @@ function openOBBaja(opId,cliente){
 }
 async function guardarOBBaja(opId){
   const motivo=document.getElementById('ob-baja-motivo')?.value.trim()
-  const{error}=await db.from('operaciónes').update({ob_baja:true,ob_motivo_baja:motivo||null}).eq('id',opId)
+  const{error}=await db.from('operaciones').update({ob_baja:true,ob_motivo_baja:motivo||null}).eq('id',opId)
   if(error){const e=document.getElementById('ob-baja-err');if(e){e.textContent='Error: '+error.message;e.style.display='block'}return}
   document.getElementById('ob-modal').remove()
   obClienteAbierto=null
@@ -2201,7 +2201,7 @@ async function guardarOBBaja(opId){
 }
 async function reactivarOBCliente(opId){
   if(!confirm('Reactivar este cliente?'))return
-  await db.from('operaciónes').update({ob_baja:false,ob_motivo_baja:null}).eq('id',opId)
+  await db.from('operaciones').update({ob_baja:false,ob_motivo_baja:null}).eq('id',opId)
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
   else{await loadOBData();rOBStats();rOBMis()}
 }
@@ -2233,7 +2233,7 @@ function rOBDisp(){
   </tr>`).join('')}</tbody></table>`)
 }
 async function asignOB(opId){
-  await db.from('operaciónes').update({ob_id:CU.id,ob_nombre:CU.nombre}).eq('id',opId)
+  await db.from('operaciones').update({ob_id:CU.id,ob_nombre:CU.nombre}).eq('id',opId)
   await loadOBData();rOBStats();rOBMis();rOBDisp()
 }
 
@@ -2368,7 +2368,7 @@ function rOBCom(){
       +'</div>'
     +'</div>'
   +'</div>'
-  if(!ks.length){html('ob-cob',filtros+'<div class="card"><div class="es">Sin comisiónes en ese período</div></div>');return}
+  if(!ks.length){html('ob-cob',filtros+'<div class="card"><div class="es">Sin comisiones en ese período</div></div>');return}
   let out=filtros
   ks.forEach(k=>{
     const p=byP[k]
@@ -2486,7 +2486,7 @@ async function adminVerClientesOB(){
 
 
 async function setOBPago(opId,estado){
-  await db.from('operaciónes').update({pago_ob:estado}).eq('id',opId)
+  await db.from('operaciones').update({pago_ob:estado}).eq('id',opId)
   await loadAll();adminVerClientesOB()
 }
 function rAdmOBAsign(){
@@ -2509,7 +2509,7 @@ function rAdmOBAsign(){
 async function asignOBAdmin(opId,val){
   if(!val)return
   const[obId,obNombre]=val.split('|')
-  await db.from('operaciónes').update({ob_id:obId,ob_nombre:obNombre}).eq('id',opId)
+  await db.from('operaciones').update({ob_id:obId,ob_nombre:obNombre}).eq('id',opId)
   await loadAll();rAdmOBAsign()
 }
 function adminAgregarMovOB(opId,cliente,obId,obNombre){
@@ -2533,7 +2533,7 @@ async function showAdm(){
   rAdmStats()
   rAdmCarp()
   try{
-    await Promise.all([loadIncentivos(),loadLiquidaciónes(),loadRolesCustom()])
+    await Promise.all([loadIncentivos(),loadLiquidaciones(),loadRolesCustom()])
     poblarRolCustomSelect()
     rRoles()
   }catch(e){
@@ -2546,7 +2546,7 @@ function rAdmStats(){
   html('adm-stats',`<div class="sc"><div class="sv">${vn.length}</div><div class="sl">Ventas totales</div></div>
     <div class="sc"><div class="sv">${rs.length}</div><div class="sl">Reservas</div></div>
     <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Aceptadas tesorería</div></div>
-    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(totComAsesores)}</div><div class="sl">Comisiónes asesores</div></div>`)
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(totComAsesores)}</div><div class="sl">Comisiones asesores</div></div>`)
 }
 let carpetaAbierta=null
 function toggleCarpeta(k){
@@ -2714,7 +2714,7 @@ function rAdmCarp(){
 
 
 async function setTes(id,estado){
-  await db.from('operaciónes').update({carpeta_tesorería:estado,fecha_tesorería:new Date().toISOString().slice(0,10)}).eq('id',id)
+  await db.from('operaciones').update({carpeta_tesorería:estado,fecha_tesorería:new Date().toISOString().slice(0,10)}).eq('id',id)
   await loadAll();rAdmCarp();rAdmStats()
 }
 async function markLL(key){
@@ -2723,7 +2723,7 @@ async function markLL(key){
   const opsDelPeríodo=allOps.filter(x=>categ(x.monto).isVenta&&getPer(x.fecha).key===key)
   if(opsDelPeríodo.length){
     const ids=opsDelPeríodo.map(x=>x.id)
-    await db.from('operaciónes').update({carpeta_llevada:true}).in('id',ids)
+    await db.from('operaciones').update({carpeta_llevada:true}).in('id',ids)
   }
   await loadAll();rAdmCarp()
 }
@@ -2765,7 +2765,7 @@ async function guardarMoverPres(){
   // Usar el sábado de esa carpeta como fecha_pago_presentador
   const partes=perKey.split('_')
   const nuevaFecha=partes[0]
-  await db.from('operaciónes').update({fecha_pago_presentador:nuevaFecha}).eq('id',moverPresOpId)
+  await db.from('operaciones').update({fecha_pago_presentador:nuevaFecha}).eq('id',moverPresOpId)
   document.getElementById('modal-mover-pres').remove()
   moverPresOpId=null
   await loadAll();rAdmPres()
@@ -2819,7 +2819,7 @@ function rAdmPres(){
   else if(filtro==='pendiente')ops=vn.filter(x=>x.presentador_id&&x.pago_presentador==='pendiente')
   else if(filtro==='aceptado')ops=vn.filter(x=>x.pago_presentador==='aceptado')
   else if(filtro==='denegado')ops=vn.filter(x=>x.pago_presentador==='denegado')
-  if(!ops.length){html('adm-prb','<div class="es">Sin operaciónes</div>');return}
+  if(!ops.length){html('adm-prb','<div class="es">Sin operaciones</div>');return}
   html('adm-prb',`<table><thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Plan</th><th>Presentador</th><th>Estado</th><th>Accion</th></tr></thead>
   <tbody>${ops.map(op=>`<tr>
     <td><div>${fmtD(op.fecha)}</div>${op.fecha_carga&&op.fecha_carga!==op.fecha?'<div style="font-size:10px;color:var(--amber);margin-top:1px">cargada '+fmtD(op.fecha_carga)+'</div>':''}</td><td style="color:var(--text)">${op.asesor_nombre}</td><td>${op.cliente}</td><td>${op.plan}</td>
@@ -2838,11 +2838,11 @@ function rAdmPres(){
 }
 async function asignPres(opId,presId){
   const pres=allUsers.find(x=>x.id===presId)
-  await db.from('operaciónes').update({presentador_id:presId||null,presentador_nombre:pres?pres.nombre:null,pago_presentador:presId?'pendiente':null}).eq('id',opId)
+  await db.from('operaciones').update({presentador_id:presId||null,presentador_nombre:pres?pres.nombre:null,pago_presentador:presId?'pendiente':null}).eq('id',opId)
   await loadAll();rAdmPres()
 }
 async function setPagoPres(opId,estado){
-  await db.from('operaciónes').update({pago_presentador:estado}).eq('id',opId)
+  await db.from('operaciones').update({pago_presentador:estado}).eq('id',opId)
   await loadAll();rAdmPres();rAdmStats()
 }
 function toggleComDet(id){
@@ -2855,13 +2855,13 @@ function toggleComDet(id){
 }
 let admComSort={field:"total",dir:"desc"}
 function rAdmCom(){
-  // Comisiónes agrupadas igual que las carpetas (fecha_carpeta || fecha)
+  // Comisiones agrupadas igual que las carpetas (fecha_carpeta || fecha)
   const filtro=gv('adm-fp')
   const vn=allOps.filter(x=>categ(x.monto).isVenta),byP={}
   vn.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);if(filtro&&p.key!==filtro)return;if(!byP[p.key])byP[p.key]={label:p.label,cob:p.cob,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   if(!ks.length){html('adm-cob','<div class="es">Sin datos</div>');return}
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe Pres.',on_boarding:'On Boarding'}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
   html('adm-cob',ks.map(k=>{
     const p=byP[k]
     const porAs={}
@@ -2887,7 +2887,7 @@ function rAdmCom(){
     })
     const comOBTotal=Object.values(obMap).reduce((a,x)=>a+x.comInc+x.comAh,0)
     const totGen=Object.values(porAs).reduce((a,x)=>a+x.com,0)+comJA+comJP+comPres+comJPres+comOBTotal
-    const jefeAh=allUsers.find(x=>x.rol==='jefe_ahorro'),jefePo=allUsers.find(x=>x.rol==='jefe_pozo'),jefeJP=allUsers.find(x=>x.rol==='jefe_presentaciónes')
+    const jefeAh=allUsers.find(x=>x.rol==='jefe_ahorro'),jefePo=allUsers.find(x=>x.rol==='jefe_pozo'),jefeJP=allUsers.find(x=>x.rol==='jefe_presentaciones')
     return`<div style="margin-bottom:28px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div style="font-size:14px;font-weight:600;color:var(--text)">${p.label}</div>
@@ -2897,7 +2897,7 @@ function rAdmCom(){
       <table><thead><tr><th style="cursor:pointer" onclick="admComSort.field='nombre';rAdmCom()">Persona ↕</th><th>Rol</th><th>Detalle</th><th>Estado carpeta</th><th style="cursor:pointer" onclick="admComSort.field='total';rAdmCom()">Total a cobrar ↕</th></tr></thead>
       <tbody>
         ${(()=>{
-          const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentadores',jefe_presentaciónes:'Jefe Pres.',on_boarding:'On Boarding'}
+          const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentadores',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding'}
           let rows=[
             ...Object.values(porAs).map(r=>{
               const acpCount=p.ops.filter(x=>x.asesor_id===r.aid&&x.carpeta_tesorería==='aceptada').length
@@ -2917,7 +2917,7 @@ function rAdmCom(){
                 porPres[op.presentador_id].cnt++
               })
               const rowsPres=Object.values(porPres).map(pr=>({nombre:pr.nombre,rolKey:'presentador',presId:pr.id,total:pr.cnt*74000,det:pr.cnt+' venta'+(pr.cnt!==1?'s':'')+' - $74.000 c/u',colorCls:'ag'}))
-              const rowJPres=presAcp.length>0?[{nombre:jefeJP?jefeJP.nombre:'Jefe Pres.',rolKey:'jefe_presentaciónes',opsJefe:presAcp,total:comJPres,det:presAcp.length+' venta'+(presAcp.length!==1?'s':'')+' - $35.000 c/u',colorCls:'ag'}]:[]
+              const rowJPres=presAcp.length>0?[{nombre:jefeJP?jefeJP.nombre:'Jefe Pres.',rolKey:'jefe_presentaciones',opsJefe:presAcp,total:comJPres,det:presAcp.length+' venta'+(presAcp.length!==1?'s':'')+' - $35.000 c/u',colorCls:'ag'}]:[]
               return[...rowsPres,...rowJPres]
             })(),
             ...Object.entries(obMap).map(([obId,ob])=>({nombre:ob.nombre,rolKey:'on_boarding',obId:obId,obMovs:ob.movs,total:ob.comInc+ob.comAh,det:'Inc: '+fmt(ob.comInc)+' + Ah: '+fmt(ob.comAh),colorCls:'at'}))
@@ -2955,7 +2955,7 @@ function rAdmCom(){
                 +'</div>'
               })
               detalleHtml+='</div></td></tr>'
-            } else if(r.rolKey==='jefe_presentaciónes'&&r.opsJefe){
+            } else if(r.rolKey==='jefe_presentaciones'&&r.opsJefe){
               detalleHtml='<tr id="comdet-'+k+'-jp2" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
               r.opsJefe.forEach(function(op){
                 detalleHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">'
@@ -2987,7 +2987,7 @@ function rAdmCom(){
               })
               detalleHtml+='</div></td></tr>'
             }
-            var detId='comdet-'+k+'-'+(r.aid||(r.rolKey==='jefe_ahorro'?'ja':r.rolKey==='jefe_pozo'?'jp':r.rolKey==='jefe_presentaciónes'?'jp2':r.presId?'pr-'+r.presId:r.obId?'ob-'+r.obId:r.rolKey))
+            var detId='comdet-'+k+'-'+(r.aid||(r.rolKey==='jefe_ahorro'?'ja':r.rolKey==='jefe_pozo'?'jp':r.rolKey==='jefe_presentaciones'?'jp2':r.presId?'pr-'+r.presId:r.obId?'ob-'+r.obId:r.rolKey))
             var onclk=detalleHtml?" onclick=\"toggleComDet('"+detId+"')\"":''
             var mainRow='<tr style="cursor:'+(detalleHtml?'pointer':'default')+'"'+onclk+'>'
               +'<td style="color:var(--text)">'+(detalleHtml?'<span style="color:var(--text3);margin-right:6px" id="arr-'+detId+'">›</span>':'')+r.nombre+'</td>'
@@ -3012,7 +3012,7 @@ function rAdmTodas(){
   if(fe==='reserva')ops=ops.filter(x=>!categ(x.monto).isVenta)
   else if(fe==='venta_completa')ops=ops.filter(x=>x.monto>=200000)
   else if(fe==='venta_bonificada')ops=ops.filter(x=>x.monto>=100000&&x.monto<200000)
-  if(!ops.length){html('adm-tob','<div class="es">Sin operaciónes</div>');return}
+  if(!ops.length){html('adm-tob','<div class="es">Sin operaciones</div>');return}
   const sf=admTodasSort.field,sd=admTodasSort.dir
   ops.sort((a,b)=>{
     let va=a[sf]||'',vb=b[sf]||''
@@ -3066,7 +3066,7 @@ function sortAdmTodas(f){
 }
 function rAdmUsers(){
   if(!allUsers.length){html('adm-usb','<div class="es">No hay usuarios aun</div>');return}
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe Presentaciónes',on_boarding:'On Boarding'}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Presentaciones',on_boarding:'On Boarding'}
   html('adm-usb',allUsers.map(u=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
       <div>
@@ -3138,7 +3138,7 @@ function admTab(t,btn){
   if(t==='us'){rAdmUsers();rRoles();poblarRolCustomSelect()}
   if(t==='pr')rAdmPres()
   if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
-  if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciónes()}
+  if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
   if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
   if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
 }
@@ -3167,7 +3167,7 @@ async function guardarFecha(){
   const f=document.getElementById('mf-fecha').value
   if(!f){sh('mf-err');document.getElementById('mf-err').textContent='Selecciona una fecha.';return}
   document.getElementById('mf-btn').textContent='Guardando...'
-  const{error}=await db.from('operaciónes').update({fecha:f}).eq('id',fechaEditId)
+  const{error}=await db.from('operaciones').update({fecha:f}).eq('id',fechaEditId)
   document.getElementById('mf-btn').textContent='Guardar fecha'
   if(error){sh('mf-err');document.getElementById('mf-err').textContent='Error al guardar.';return}
   closeFecha()
@@ -3244,25 +3244,25 @@ async function delIncentivo(id){
 }
 
 // ═══ LIQUIDACIONES ═══
-let allLiquidaciónes=[]
-async function loadLiquidaciónes(){
-  try{const{data}=await db.from('liquidaciónes').select('*').order('fecha_liquidación',{ascending:false});allLiquidaciónes=data||[]}catch(e){allLiquidaciónes=[]}
+let allLiquidaciones=[]
+async function loadLiquidaciones(){
+  try{const{data}=await db.from('liquidaciones').select('*').order('fecha_liquidación',{ascending:false});allLiquidaciones=data||[]}catch(e){allLiquidaciones=[]}
 }
 async function cargarLiquidación(){
   hi('liq-err');hi('liq-ok')
   const uid=gv('liq-usr'),monto=parseFloat(gv('liq-monto')),fecha=gv('liq-fecha'),desc=gv('liq-desc').trim()
   if(!uid||!monto||!fecha){sh('liq-err');document.getElementById('liq-err').textContent='Completa los campos obligatorios.';return}
   const usr=allUsers.find(x=>x.id===uid)
-  const{error}=await db.from('liquidaciónes').insert({usuario_id:uid,usuario_nombre:usr.nombre,monto,descripción:desc,fecha_liquidación:fecha,estado:'pendiente'})
+  const{error}=await db.from('liquidaciones').insert({usuario_id:uid,usuario_nombre:usr.nombre,monto,descripción:desc,fecha_liquidación:fecha,estado:'pendiente'})
   if(error){sh('liq-err');document.getElementById('liq-err').textContent='Error al guardar.';return}
   sv('liq-usr','');sv('liq-monto','');sv('liq-fecha','');sv('liq-desc','')
   sh('liq-ok');setTimeout(()=>hi('liq-ok'),3000)
-  await loadLiquidaciónes();rLiquidaciónes()
+  await loadLiquidaciones();rLiquidaciones()
 }
-function rLiquidaciónes(){
-  if(!allLiquidaciónes.length){html('liq-list','<div class="es">Sin liquidaciónes registradas</div>');return}
+function rLiquidaciones(){
+  if(!allLiquidaciones.length){html('liq-list','<div class="es">Sin liquidaciones registradas</div>');return}
   html('liq-list',`<table><thead><tr><th>Empleado</th><th>Monto</th><th>Fecha liq.</th><th>Descripción</th><th>Estado</th><th>Accion</th></tr></thead>
-  <tbody>${allLiquidaciónes.map(l=>`<tr>
+  <tbody>${allLiquidaciones.map(l=>`<tr>
     <td style="color:var(--text)">${l.usuario_nombre}</td>
     <td class="ag">${fmt(l.monto)}</td>
     <td>${fmtD(l.fecha_liquidación)}</td>
@@ -3277,13 +3277,13 @@ function rLiquidaciónes(){
 async function pagarLiq(id){
   const fecha=prompt('Fecha de pago por RRHH (AAAA-MM-DD):',new Date().toISOString().slice(0,10))
   if(!fecha)return
-  await db.from('liquidaciónes').update({estado:'pagado',fecha_pago:fecha}).eq('id',id)
-  await loadLiquidaciónes();rLiquidaciónes()
+  await db.from('liquidaciones').update({estado:'pagado',fecha_pago:fecha}).eq('id',id)
+  await loadLiquidaciones();rLiquidaciones()
 }
 async function delLiq(id){
   if(!confirm('Eliminar esta liquidación?'))return
-  await db.from('liquidaciónes').delete().eq('id',id)
-  await loadLiquidaciónes();rLiquidaciónes()
+  await db.from('liquidaciones').delete().eq('id',id)
+  await loadLiquidaciones();rLiquidaciones()
 }
 
 // ═══ ROLES PERSONALIZADOS ═══
@@ -3291,7 +3291,7 @@ let allRolesCustom=[]
 async function loadRolesCustom(){
   try{const{data}=await db.from('roles_custom').select('*').order('nombre');allRolesCustom=data||[]}catch(e){allRolesCustom=[]}
 }
-const PERMISOS_LABELS={ops:'Ver operaciónes y comisiónes',cargar:'Cargar ventas/reservas',pres:'Ver/cargar presentaciónes',ob:'Ver/cargar on boarding',carp:'Ver carpetas',comtodo:'Ver comisiónes del equipo',usrs:'Gestiónar usuarios'}
+const PERMISOS_LABELS={ops:'Ver operaciones y comisiones',cargar:'Cargar ventas/reservas',pres:'Ver/cargar presentaciones',ob:'Ver/cargar on boarding',carp:'Ver carpetas',comtodo:'Ver comisiones del equipo',usrs:'Gestiónar usuarios'}
 async function crearRol(){
   hi('rol-err');hi('rol-ok')
   const nom=gv('rol-nom').trim()
@@ -3329,10 +3329,10 @@ function poblarRolCustomSelect(){
   }
 }
 function getRolSelectOptions(currentRol, currentCustomId){
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
   const base=[
     {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
-    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciónes',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
   ]
   const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
   const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
@@ -3364,10 +3364,10 @@ async function rMisIncentivos(containerId,userId){
     <td style="font-size:12px;color:var(--text3)">${i.descripción||'-'}</td>
   </tr>`).join('')}</tbody></table>`)
 }
-async function rMisLiquidaciónes(containerId,userId){
-  const{data}=await db.from('liquidaciónes').select('*').eq('usuario_id',userId).order('fecha_liquidación',{ascending:false})
+async function rMisLiquidaciones(containerId,userId){
+  const{data}=await db.from('liquidaciones').select('*').eq('usuario_id',userId).order('fecha_liquidación',{ascending:false})
   const items=data||[]
-  if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin liquidaciónes registradas</div>');return}
+  if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin liquidaciones registradas</div>');return}
   html(containerId,`<table><thead><tr><th>Fecha</th><th>Monto</th><th>Descripción</th><th>Estado</th></tr></thead>
   <tbody>${items.map(l=>`<tr>
     <td>${fmtD(l.fecha_liquidación)}</td>
@@ -3381,7 +3381,7 @@ async function rMisLiquidaciónes(containerId,userId){
 const _origShowAdm=showAdm
 showAdm=async function(){
   await _origShowAdm()
-  await Promise.all([loadIncentivos(),loadLiquidaciónes(),loadRolesCustom()])
+  await Promise.all([loadIncentivos(),loadLiquidaciones(),loadRolesCustom()])
   poblarRolCustomSelect()
 }
 
@@ -3403,7 +3403,7 @@ admTab=function(t,btn){
     sh('adm-Tliq')
     document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
-    poblarSelUsrIncentivos();rLiquidaciónes()
+    poblarSelUsrIncentivos();rLiquidaciones()
     return
   }
   if(t==='ob'){
@@ -3419,7 +3419,7 @@ admTab=function(t,btn){
     sh('adm-Tret')
     document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
     if(btn)btn.classList.add('active')
-    poblarFiltrosRet();rRetenciónes()
+    poblarFiltrosRet();rRetenciones()
     return
   }
   _origAdmTab(t,btn)
@@ -3455,7 +3455,7 @@ const _origAddUsuario2=addUsuario
 const _origRAdmUsers=rAdmUsers
 rAdmUsers=function(){
   if(!allUsers.length){html('adm-usb','<div class="es">No hay usuarios aun</div>');return}
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciónes:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
   html('adm-usb',allUsers.map(u=>{
     const rolNom=u.rol==='custom'?(allRolesCustom.find(x=>x.id===u.rol_custom_id)?.nombre||'Personalizado'):rl[u.rol]||u.rol
     const pass=u.password_visible||u.password||'—'
@@ -3509,7 +3509,7 @@ function poblarRolCustomSelect(){
 function getRolSelectOptions(currentRol,currentCustomId){
   const base=[
     {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
-    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciónes',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
   ]
   const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
   const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
@@ -3558,10 +3558,10 @@ async function deleteOp(id,source){
   var op=(source==='asesor'?aOps:allOps).find(function(x){return x.id===id})
   if(!op)return
   if(!confirm('Eliminar la operación de '+op.cliente+'?\n\nEsta accion no se puede deshacer.'))return
-  var res=await db.from('operaciónes').delete().eq('id',id)
+  var res=await db.from('operaciones').delete().eq('id',id)
   if(res.error){alert('Error al eliminar.');return}
   if(source==='asesor'){
-    var d=await db.from('operaciónes').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
+    var d=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
     aOps=d.data||[];rAStats();rAOps()
   } else {
     await loadAll();rAdmCarp();rAdmStats()
@@ -3637,7 +3637,7 @@ async function guardarMover(){
     nuevaFecha=p.sat.toISOString().slice(0,10)
   }
   document.getElementById('mmov-btn').textContent='Moviendo...'
-  var res=await db.from('operaciónes').update({fecha_carpeta:nuevaFecha}).eq('id',moverOpId)
+  var res=await db.from('operaciones').update({fecha_carpeta:nuevaFecha}).eq('id',moverOpId)
   document.getElementById('mmov-btn').textContent='Mover operación'
   if(res.error){sh('mmov-err');document.getElementById('mmov-err').textContent='Error al guardar.';return}
   hi('modal-mover')
@@ -3730,10 +3730,10 @@ function limpiarFiltro(id1,id2,fn){
   else if(fn==='rOBCom')rOBCom()
 }
 function calcRet(nro,dia){const t=OB_COM[nro];if(!t)return 0;return dia<=10?t.a:t.d}
-function rRetenciónes(){
+function rRetenciones(){
   const mes=document.getElementById('ret-mes')?.value||''
   const obFiltro=document.getElementById('ret-ob')?.value||''
-  if(!mes){html('ret-content','<div class="es">No hay datos de retenciónes aun</div>');return}
+  if(!mes){html('ret-content','<div class="es">No hay datos de retenciones aun</div>');return}
   const partes=mes.split('-')
   const anio=parseInt(partes[0]),mesN=parseInt(partes[1])
   let pagos=allObPagos.filter(p=>{
@@ -3741,7 +3741,7 @@ function rRetenciónes(){
     return d.getFullYear()===anio&&(d.getMonth()+1)===mesN
   })
   if(obFiltro)pagos=pagos.filter(p=>p.ob_id===obFiltro)
-  if(!pagos.length){html('ret-content','<div class="es">Sin retenciónes en este período</div>');return}
+  if(!pagos.length){html('ret-content','<div class="es">Sin retenciones en este período</div>');return}
   const porOB={}
   pagos.forEach(p=>{
     if(!porOB[p.ob_id])porOB[p.ob_id]={nombre:p.ob_nombre,antes:[],despues:[]}
@@ -3792,7 +3792,7 @@ function rRetenciónes(){
   html('ret-content',`
     <div style="background:var(--bg3);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
       <div style="font-size:13px;color:var(--text2)">${pagos.length} pagos registrados</div>
-      <div><div class="at" style="font-size:20px;font-weight:700">${fmt(totGral)}</div><div style="font-size:11px;color:var(--text3)">total retenciónes del mes</div></div>
+      <div><div class="at" style="font-size:20px;font-weight:700">${fmt(totGral)}</div><div style="font-size:11px;color:var(--text3)">total retenciones del mes</div></div>
     </div>
     ${rows}
   `)
@@ -3832,7 +3832,7 @@ async function guardarCamposCliente(opId){
   }
   var btn=document.querySelector('[data-cid="'+opId+'"]')
   if(btn){btn.textContent='Guardando...';btn.disabled=true}
-  await db.from('operaciónes').update(upd).eq('id',opId)
+  await db.from('operaciones').update(upd).eq('id',opId)
   if(btn){btn.textContent='✓ Guardado';setTimeout(function(){btn.textContent='Guardar cambios';btn.disabled=false},2000)}
   await loadAll();rAdmClientes();rAdmStats()
 }
@@ -3846,13 +3846,13 @@ async function guardarCampoCliente(opId, campo, valor){
   } else {
     upd[campo]=valor
   }
-  await db.from('operaciónes').update(upd).eq('id',opId)
+  await db.from('operaciones').update(upd).eq('id',opId)
   await loadAll()
   rAdmClientes()
   rAdmStats()
 }
 async function guardarAsesorCliente(opId, userId, userName){
-  await db.from('operaciónes').update({asesor_id:userId,asesor_nombre:userName}).eq('id',opId)
+  await db.from('operaciones').update({asesor_id:userId,asesor_nombre:userName}).eq('id',opId)
   await loadAll()
   rAdmClientes()
   rAdmStats()
@@ -4403,7 +4403,7 @@ async function cargarAccesosPB(){
   var lista=document.getElementById('pb-acceso-lista')
   if(!lista)return
   var usuarios=allUsers.filter(function(u){
-    return u.rol!=='admin'&&u.rol!=='jefe_ahorro'&&u.rol!=='jefe_pozo'&&u.rol!=='jefe_presentaciónes'
+    return u.rol!=='admin'&&u.rol!=='jefe_ahorro'&&u.rol!=='jefe_pozo'&&u.rol!=='jefe_presentaciones'
   })
   lista.innerHTML=usuarios.map(function(u){
     var checked=pbAccesos.includes(u.id)
@@ -4427,7 +4427,7 @@ async function toggleAccesoPB(userId,checked){
 function puedeVerPB(){
   if(!CU)return false
   var r=CU.role||CU.rol
-  if(r==='admin'||r==='jefe_ahorro'||r==='jefe_pozo'||r==='jefe_presentaciónes')return true
+  if(r==='admin'||r==='jefe_ahorro'||r==='jefe_pozo'||r==='jefe_presentaciones')return true
   return pbAccesos.includes(CU.id)
 }
 

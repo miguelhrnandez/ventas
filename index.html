@@ -1563,6 +1563,8 @@ async function cargarVenta(){
   const{error}=await db.from('operaciones').insert({fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva',celular:cel,metodo_pago:mpago,carpeta_tesoreria:'pendiente',pago_presentador:null})
   document.getElementById('nbtn').textContent='Guardar operacion'
   if(error){sh('nerr');document.getElementById('nerr').textContent='Error: '+(error.message||error.details||JSON.stringify(error));return}
+  // Auto-actualizar leads de asesor en premios semanales
+  try{await actualizarLeadAsesorPremio(CU.id, CU.nombre, fechaVenta)}catch(e){}
   sv('nc-apellido','');sv('nc-nombre','');sv('npl','');sv('nm','');sv('nu','');sv('ncel','');sv('nob','');hi('nprev');document.getElementById('n-ef').value='';document.getElementById('n-tr').value='';document.getElementById('n-pago-prev').textContent=''
   document.getElementById('nfecha').value=hoy
   document.getElementById('nfecha-warn').style.display='none'
@@ -4554,6 +4556,38 @@ function puedeVerPB(){
 }
 
 
+// ═══ AUTO-ACTUALIZAR LEADS ASESOR EN PREMIOS ═══
+async function actualizarLeadAsesorPremio(asesorId, asesorNombre, fechaVenta){
+  // Encontrar la semana que corresponde a la fecha de alta
+  var res=await db.from('premios_semanas').select('*')
+  var semanas=res.data||[]
+  var sem=semanas.find(function(s){return fechaVenta>=s.desde&&fechaVenta<=s.hasta})
+  if(!sem)return
+
+  // Contar ventas bonificadas y completas del asesor en esa semana usando fecha de alta
+  var{data:ops}=await db.from('operaciones')
+    .select('id,monto,fecha')
+    .eq('asesor_id',asesorId)
+    .gte('fecha',sem.desde)
+    .lte('fecha',sem.hasta)
+    .in('estado',['venta'])
+  
+  var ventas=(ops||[]).filter(function(op){return op.monto>=100000}).length
+
+  if(ventas===0)return
+
+  await db.from('premios_leads').upsert({
+    semana_key:sem.semana_key,
+    semana_desde:sem.desde,
+    semana_hasta:sem.hasta,
+    empleado_id:asesorId,
+    empleado_nombre:asesorNombre,
+    puesto:'asesor',
+    valor:ventas,
+    cargado_por:'auto'
+  },{onConflict:'semana_key,empleado_id'})
+}
+
 // ═══ PANEL JEFE CAPTACION / PROMOTORES ═══
 async function showPremios(){
   // Cargar datos necesarios
@@ -4587,7 +4621,7 @@ const PUESTOS_CONFIG = {
   pretester:     {label:'Pretester',    icon:'📋', meta:280,  bono:50000, bonoBajo:0,    campo:'leads',   jefe:'kvira'},
   host:          {label:'Host',         icon:'🎤', meta:246,  bono:50000, bonoBajo:0,    campo:'leads',   jefe:'kvira'},
   presentador:   {label:'Presentador',  icon:'🎯', meta:null, bono:50000, bonoBajo:0,    campo:'pct',     jefe:'jefe_presentaciones'},
-  detector_pozo: {label:'Det. Pozo',    icon:'🔍', meta:null, bono:25000, bonoBajo:25000,campo:'leads',   jefe:'kvira'},
+  detector_pozo: {label:'Det. Pozo',    icon:'🔍', meta:null, bono:25000, bonoBajo:25000,campo:'leads',   jefe:'admin'},
   asesor:        {label:'Asesor',       icon:'💼', meta:null, bono:50000, bonoBajo:0,    campo:'ventas',  jefe:'jefe_ahorro'},
 }
 

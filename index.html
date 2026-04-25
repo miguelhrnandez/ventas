@@ -2852,8 +2852,8 @@ function rAdmCom(){
     const p=byP[k]
     const porAs={}
     p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesoreria==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto)}else{porAs[op.asesor_id].comPend+=calcC(op.monto)};porAs[op.asesor_id].ops+=1})
-    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),comJA=opAh.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
-    const opPo=p.ops.filter(x=>x.plan==='Pozo'),comJP=opPo.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
+    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),opAhAcp=opAh.filter(x=>x.carpeta_tesoreria==='aceptada'),comJA=opAhAcp.reduce((a,x)=>a+calcJV(x.monto),0)
+    const opPo=p.ops.filter(x=>x.plan==='Pozo'),opPoAcp=opPo.filter(x=>x.carpeta_tesoreria==='aceptada'),comJP=opPoAcp.reduce((a,x)=>a+calcJV(x.monto),0)
     const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id&&getPer(x.fecha_pago_presentador||x.fecha_carpeta||x.fecha).key===k)
     const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
     // OB
@@ -2893,8 +2893,8 @@ function rAdmCom(){
                 '<span class="badge b-pend">'+pendCount+' pendiente'+(pendCount!==1?'s':'')+'</span>'
               return{nombre:r.nombre,rolKey:'asesor',aid:r.aid,total:r.com,comPend:r.comPend,det:r.ops+' venta'+(r.ops!==1?'s':'')+' - 50% c/tope $250k',colorCls:'ag',carpetaStatus:status}
             }),
-            ...(comJA>0?[{nombre:jefeAh?jefeAh.nombre:'Jefe Ahorro',rolKey:'jefe_ahorro',opsJefe:opAh,total:comJA,det:opAh.length+' ventas ahorro - 16.5%',colorCls:'ag'}]:[]),
-            ...(comJP>0?[{nombre:jefePo?jefePo.nombre:'Jefe Pozo',rolKey:'jefe_pozo',opsJefe:opPo,total:comJP,det:opPo.length+' ventas pozo - 16.5%',colorCls:'ag'}]:[]),
+            ...(comJA>0?[{nombre:jefeAh?jefeAh.nombre:'Jefe Ahorro',rolKey:'jefe_ahorro',opsJefe:opAh,total:comJA,det:opAhAcp.length+' ventas aceptadas ahorro - 16.5%'+(opAh.length-opAhAcp.length>0?' ('+( opAh.length-opAhAcp.length)+' denegadas/pend.)':''),colorCls:'ag'}]:[]),
+            ...(comJP>0?[{nombre:jefePo?jefePo.nombre:'Jefe Pozo',rolKey:'jefe_pozo',opsJefe:opPo,total:comJP,det:opPoAcp.length+' ventas aceptadas pozo - 16.5%'+(opPo.length-opPoAcp.length>0?' ('+(opPo.length-opPoAcp.length)+' denegadas/pend.)':''),colorCls:'ag'}]:[]),
             ...(()=>{
               // Desglosar por presentador individual
               const porPres={}

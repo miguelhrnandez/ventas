@@ -588,6 +588,10 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Clientes
       </button>
+      <button class="sb-item" onclick="admTab('pb',this)" id="sb-pb">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Plan de batalla
+      </button>
     </div>
     <div class="sb-bottom">
       <button class="sb-item" onclick="sh('modal-mypass')" style="color:var(--text2)">
@@ -799,6 +803,47 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
       </div>
     </div>
   </div>
+  <div id="adm-Tpb" class="hidden">
+    <!-- PLAN DE BATALLA -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:18px;font-weight:600">Plan de batalla</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Seguimiento del funnel de ventas por mes</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="pb-mes" onchange="loadPB()" style="width:auto;font-size:13px"></select>
+        <button class="bp" onclick="abrirPBMetas()" style="font-size:12px;padding:6px 14px">⚙ Configurar metas</button>
+        <button onclick="sh('modal-pb-acceso')" style="font-size:12px;padding:6px 14px">👥 Accesos</button>
+      </div>
+    </div>
+    <!-- Stats resumen -->
+    <div id="pb-stats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px"></div>
+    <!-- Tabla funnel -->
+    <div class="card" style="margin-bottom:16px;overflow-x:auto">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px">Funnel del mes</div>
+      <div id="pb-funnel"></div>
+    </div>
+    <!-- Tabla diaria -->
+    <div class="card" style="overflow-x:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:14px;font-weight:600">Datos diarios</div>
+        <button class="bg" onclick="openPBDia()" style="font-size:12px;padding:5px 12px">+ Cargar día</button>
+      </div>
+      <div id="pb-diario"></div>
+    </div>
+    <!-- Tabla tasas y target -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Tasas de conversión</div>
+        <div id="pb-tasas"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Escenarios de ventas</div>
+        <div id="pb-target"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="adm-Tcl" class="hidden">
     <div class="card" style="margin-bottom:14px;padding:14px 16px">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
@@ -829,6 +874,74 @@ body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
     <div id="cl-list"></div>
   </div>
 
+  </div>
+</div>
+
+<!-- MODAL METAS PLAN BATALLA -->
+<div id="modal-pb-metas" class="modal-bg hidden">
+  <div class="modal" style="max-width:560px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px">Configurar metas del mes</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label>Mes</label><input id="pbm-mes" type="month"></div>
+      <div><label>Días del mes</label><input id="pbm-dias" type="number" value="30"></div>
+      <div><label>Meta Leads</label><input id="pbm-leads" type="number" placeholder="0"></div>
+      <div><label>Meta Pretests</label><input id="pbm-pretests" type="number" placeholder="0"></div>
+      <div><label>Meta Tests</label><input id="pbm-tests" type="number" placeholder="0"></div>
+      <div><label>Meta Asistentes</label><input id="pbm-asistentes" type="number" placeholder="0"></div>
+      <div><label>Meta Entrevistas</label><input id="pbm-entrevistas" type="number" placeholder="0"></div>
+      <div><label>Meta Ventas ≥100k</label><input id="pbm-v100" type="number" placeholder="0"></div>
+      <div><label>Meta Ventas ≥200k</label><input id="pbm-v200" type="number" placeholder="0"></div>
+      <div><label>Horas por día</label><input id="pbm-horas" type="number" value="10"></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin:16px 0 10px">Tasas objetivo</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label>Pretest / Leads (%)</label><input id="pbm-t1" type="number" step="0.01" placeholder="70"></div>
+      <div><label>Test / Pretest (%)</label><input id="pbm-t2" type="number" step="0.01" placeholder="48"></div>
+      <div><label>Asistentes / Test (%)</label><input id="pbm-t3" type="number" step="0.01" placeholder="88"></div>
+      <div><label>Entrevistas / Asistentes (%)</label><input id="pbm-t4" type="number" step="0.01" placeholder="75"></div>
+      <div><label>Ventas / Entrevistas (%)</label><input id="pbm-t5" type="number" step="0.01" placeholder="2.5"></div>
+    </div>
+    <div id="pbm-ok" class="hidden aok" style="margin-top:12px">Metas guardadas</div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="hi('modal-pb-metas')" style="flex:1">Cancelar</button>
+      <button class="bp" onclick="guardarPBMetas()" style="flex:2">Guardar metas</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CARGAR DÍA -->
+<div id="modal-pb-dia" class="modal-bg hidden">
+  <div class="modal" style="max-width:480px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:18px">Cargar datos del día</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:span 2"><label>Fecha</label><input id="pbd-fecha" type="date"></div>
+      <div><label>Tráfico vereda</label><input id="pbd-trafico" type="number" placeholder="0"></div>
+      <div><label>Leads</label><input id="pbd-leads" type="number" placeholder="0"></div>
+      <div><label>Pretests</label><input id="pbd-pretests" type="number" placeholder="0"></div>
+      <div><label>Tests</label><input id="pbd-tests" type="number" placeholder="0"></div>
+      <div><label>Asistentes</label><input id="pbd-asistentes" type="number" placeholder="0"></div>
+      <div><label>Entrevistas</label><input id="pbd-entrevistas" type="number" placeholder="0"></div>
+      <div><label>Ventas ≥100k</label><input id="pbd-v100" type="number" placeholder="0"></div>
+      <div><label>Ventas ≥200k</label><input id="pbd-v200" type="number" placeholder="0"></div>
+    </div>
+    <div id="pbd-ok" class="hidden aok" style="margin-top:12px">Datos guardados</div>
+    <div id="pbd-err" class="hidden em" style="margin-top:8px"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="hi('modal-pb-dia')" style="flex:1">Cancelar</button>
+      <button class="bp" onclick="guardarPBDia()" style="flex:2" id="pbd-btn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ACCESOS PLAN BATALLA -->
+<div id="modal-pb-acceso" class="modal-bg hidden">
+  <div class="modal" style="max-width:420px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px">Acceso al Plan de batalla</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Admin y jefes tienen acceso siempre. Podés dar acceso a otros usuarios:</div>
+    <div id="pb-acceso-lista" style="max-height:300px;overflow-y:auto"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+      <button class="bp" onclick="hi('modal-pb-acceso')">Listo</button>
+    </div>
   </div>
 </div>
 
@@ -2378,6 +2491,9 @@ async function showAdm(){
   const nomAdm=CU&&CU.nombre?CU.nombre:'Administrador'
   document.getElementById('adm-nom-display').textContent=nomAdm
   await loadAll()
+  // Precargar accesos plan de batalla
+  var pbAcc=await db.from('plan_batalla_acceso').select('*')
+  pbAccesos=(pbAcc.data||[]).map(function(x){return x.usuario_id})
   rAdmStats()
   rAdmCarp()
   try{
@@ -2978,7 +3094,7 @@ function pobPer(){
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq','ob','ret','cl'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
+  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   if(t==='co'){pobPer();rAdmCom()}
@@ -2988,6 +3104,7 @@ function admTab(t,btn){
   if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
   if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
   if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
+  if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
 }
 
 // ═══ CAMBIAR FECHA ═══
@@ -3857,6 +3974,415 @@ function rAdmClientes(){
   html('cl-list',out)
 }
 
+
+// ═══ PLAN DE BATALLA ═══
+let pbDatos=[], pbMetas=null, pbAccesos=[]
+
+function poblarMesPB(){
+  const sel=document.getElementById('pb-mes')
+  if(!sel)return
+  const meses=[]
+  const hoy=new Date()
+  for(let i=0;i<12;i++){
+    const d=new Date(hoy.getFullYear(), hoy.getMonth()-i, 1)
+    const key=d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0'))
+    const label=d.toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+    meses.push({key,label})
+  }
+  sel.innerHTML=meses.map(m=>'<option value="'+m.key+'">'+m.label.charAt(0).toUpperCase()+m.label.slice(1)+'</option>').join('')
+}
+
+async function loadPB(){
+  const mes=document.getElementById('pb-mes')?.value
+  if(!mes)return
+  const[datos,metas]=await Promise.all([
+    db.from('plan_batalla').select('*').eq('mes',mes).order('fecha'),
+    db.from('plan_batalla_metas').select('*').eq('mes',mes).single()
+  ])
+  pbDatos=datos.data||[]
+  pbMetas=metas.data||null
+  rPBStats()
+  rPBFunnel()
+  rPBDiario()
+  rPBTasas()
+  rPBTarget()
+}
+
+function rPBStats(){
+  const tot=pbDatos.reduce((a,d)=>({
+    leads:a.leads+(d.leads||0),
+    pretests:a.pretests+(d.pretests||0),
+    tests:a.tests+(d.tests||0),
+    asistentes:a.asistentes+(d.asistentes||0),
+    entrevistas:a.entrevistas+(d.entrevistas||0),
+    ventas_100k:a.ventas_100k+(d.ventas_100k||0),
+    ventas_200k:a.ventas_200k+(d.ventas_200k||0),
+    trafico_vereda:a.trafico_vereda+(d.trafico_vereda||0)
+  }),{leads:0,pretests:0,tests:0,asistentes:0,entrevistas:0,ventas_100k:0,ventas_200k:0,trafico_vereda:0})
+
+  var stats=[
+    {label:'Tráfico vereda',val:tot.trafico_vereda.toLocaleString('es-AR'),color:'var(--text2)'},
+    {label:'Leads',val:tot.leads.toLocaleString('es-AR'),meta:pbMetas?.meta_leads,color:'var(--blue)'},
+    {label:'Pretests',val:tot.pretests.toLocaleString('es-AR'),meta:pbMetas?.meta_pretests,color:'var(--purple)'},
+    {label:'Tests',val:tot.tests.toLocaleString('es-AR'),meta:pbMetas?.meta_tests,color:'var(--amber)'},
+    {label:'Asistentes',val:tot.asistentes.toLocaleString('es-AR'),meta:pbMetas?.meta_asistentes,color:'var(--teal)'},
+    {label:'Entrevistas',val:tot.entrevistas.toLocaleString('es-AR'),meta:pbMetas?.meta_entrevistas,color:'var(--text)'},
+    {label:'Ventas ≥100k',val:tot.ventas_100k,meta:pbMetas?.meta_ventas_100k,color:'var(--green)'},
+    {label:'Ventas ≥200k',val:tot.ventas_200k,meta:pbMetas?.meta_ventas_200k,color:'var(--accent)'},
+  ]
+  var out=''
+  stats.forEach(function(s){
+    var pct=s.meta>0?Math.round((parseInt(s.val)||0)/s.meta*100):null
+    var pctColor=pct!=null?(pct>=100?'var(--green)':pct>=70?'var(--amber)':'var(--red)'):'transparent'
+    out+='<div class="sc">'
+      +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">'+s.label+'</div>'
+      +'<div style="font-size:20px;font-weight:700;color:'+s.color+';font-family:var(--mono)">'+s.val+'</div>'
+      +(s.meta?'<div style="font-size:11px;color:var(--text3);margin-top:4px">Meta: '+s.meta.toLocaleString('es-AR')+'</div>':'')
+      +(pct!=null?'<div style="font-size:12px;font-weight:600;color:'+pctColor+';margin-top:2px">'+pct+'%</div>':'')
+    +'</div>'
+  })
+  html('pb-stats',out)
+}
+
+function rPBFunnel(){
+  if(!pbMetas){
+    html('pb-funnel','<div class="es">Configurá las metas del mes primero</div>')
+    return
+  }
+  const tot=pbDatos.reduce((a,d)=>({
+    leads:a.leads+(d.leads||0),pretests:a.pretests+(d.pretests||0),
+    tests:a.tests+(d.tests||0),asistentes:a.asistentes+(d.asistentes||0),
+    entrevistas:a.entrevistas+(d.entrevistas||0),ventas_100k:a.ventas_100k+(d.ventas_100k||0),ventas_200k:a.ventas_200k+(d.ventas_200k||0)
+  }),{leads:0,pretests:0,tests:0,asistentes:0,entrevistas:0,ventas_100k:0,ventas_200k:0})
+
+  // Calcular semanas
+  const mes=document.getElementById('pb-mes')?.value
+  if(!mes)return
+  const [y,m]=mes.split('-').map(Number)
+  const semanas=calcSemanasMes(y,m)
+
+  var filas=[
+    {label:'LEADS',alcanzado:tot.leads,meta:pbMetas.meta_leads},
+    {label:'PRETESTS',alcanzado:tot.pretests,meta:pbMetas.meta_pretests},
+    {label:'TESTS',alcanzado:tot.tests,meta:pbMetas.meta_tests},
+    {label:'ASISTENTES',alcanzado:tot.asistentes,meta:pbMetas.meta_asistentes},
+    {label:'ENTREVISTAS',alcanzado:tot.entrevistas,meta:pbMetas.meta_entrevistas},
+    {label:'VENTAS ≥100K',alcanzado:tot.ventas_100k,meta:pbMetas.meta_ventas_100k},
+    {label:'VENTAS ≥200K',alcanzado:tot.ventas_200k,meta:pbMetas.meta_ventas_200k},
+  ]
+
+  var semanasHeader=semanas.map(function(s){return '<th colspan="3" style="text-align:center;border-left:1px solid var(--border)">'+s.label+'</th>'}).join('')
+  var out='<table>'
+    +'<thead><tr>'
+    +'<th></th><th>ALCANZADO</th><th>META</th><th>FALTAN</th>'
+    +semanasHeader
+    +'</tr>'
+    +'<tr><th></th><th></th><th></th><th></th>'
+    +semanas.map(function(){return '<th style="border-left:1px solid var(--border)">ALCANZADO</th><th>META</th><th>FALTAN</th>'}).join('')
+    +'</tr></thead><tbody>'
+
+  filas.forEach(function(f){
+    var faltan=f.meta-f.alcanzado
+    var pct=f.meta>0?f.alcanzado/f.meta:0
+    var color=pct>=1?'var(--green)':pct>=0.7?'var(--amber)':'var(--red)'
+    var metaSem=f.meta>0?semanas.map(function(s){return Math.round(f.meta*(s.dias/pbMetas.dias_mes))}):semanas.map(function(){return 0})
+
+    out+='<tr>'
+      +'<td style="font-weight:600;color:var(--text);white-space:nowrap">'+f.label+'</td>'
+      +'<td style="color:'+color+';font-weight:600;font-family:var(--mono)">'+f.alcanzado+'</td>'
+      +'<td style="font-family:var(--mono)">'+f.meta+'</td>'
+      +'<td style="color:'+(faltan>0?'var(--red)':'var(--green)')+';font-family:var(--mono)">'+(faltan>0?'+':'')+faltan+'</td>'
+
+    semanas.forEach(function(s,i){
+      var alcSem=pbDatos.filter(function(d){return d.fecha>=s.desde&&d.fecha<=s.hasta}).reduce(function(a,d){return a+(d[mapField(f.label)]||0)},0)
+      var metaSemVal=metaSem[i]
+      var faltaSem=metaSemVal-alcSem
+      var pctSem=metaSemVal>0?alcSem/metaSemVal:0
+      var cSem=pctSem>=1?'var(--green)':pctSem>=0.7?'var(--amber)':'var(--red)'
+      out+='<td style="border-left:1px solid var(--border);color:'+cSem+';font-weight:600;font-family:var(--mono)">'+alcSem+'</td>'
+        +'<td style="font-family:var(--mono)">'+metaSemVal+'</td>'
+        +'<td style="color:'+(faltaSem>0?'var(--red)':'var(--green)')+';font-family:var(--mono)">'+(faltaSem>0?'+':'')+Math.round(faltaSem)+'</td>'
+    })
+    out+='</tr>'
+  })
+  out+='</tbody></table>'
+  html('pb-funnel',out)
+}
+
+function mapField(label){
+  var m={LEADS:'leads',PRETESTS:'pretests',TESTS:'tests',ASISTENTES:'asistentes',ENTREVISTAS:'entrevistas','VENTAS ≥100K':'ventas_100k','VENTAS ≥200K':'ventas_200k'}
+  return m[label]||'leads'
+}
+
+function calcSemanasMes(y,m){
+  // Semanas de sábado a viernes dentro del mes
+  var semanas=[]
+  var primerDia=new Date(y,m-1,1)
+  var ultimoDia=new Date(y,m,0)
+  var d=new Date(primerDia)
+  // Ir al primer sábado
+  while(d.getDay()!==6)d.setDate(d.getDate()+1)
+  if(d>ultimoDia){
+    // Todo el mes es una sola semana
+    var ds=primerDia.toISOString().slice(0,10)
+    var hs=ultimoDia.toISOString().slice(0,10)
+    return [{label:'Sem 1',desde:ds,hasta:hs,dias:ultimoDia.getDate()-primerDia.getDate()+1}]
+  }
+  var n=1
+  var cur=new Date(primerDia)
+  while(cur<=ultimoDia){
+    var inicio=new Date(cur)
+    var fin=new Date(cur)
+    fin.setDate(fin.getDate()+6) // viernes
+    if(fin>ultimoDia)fin=new Date(ultimoDia)
+    var dias=Math.floor((fin-inicio)/(1000*3600*24))+1
+    semanas.push({
+      label:'Sem '+n,
+      desde:inicio.toISOString().slice(0,10),
+      hasta:fin.toISOString().slice(0,10),
+      dias:dias
+    })
+    cur=new Date(fin)
+    cur.setDate(cur.getDate()+1)
+    n++
+    if(n>10)break
+  }
+  return semanas
+}
+
+function rPBDiario(){
+  if(!pbDatos.length){html('pb-diario','<div class="es">Sin datos cargados aún</div>');return}
+  var out='<table><thead><tr>'
+    +'<th>Fecha</th><th>Tráfico</th><th>Leads</th><th>T/L%</th><th>Pretests</th><th>Tests</th><th>Asistentes</th><th>Entrevistas</th><th>V≥100k</th><th>V≥200k</th><th>V/L%</th><th></th>'
+  +'</tr></thead><tbody>'
+  var sorted=[...pbDatos].sort(function(a,b){return b.fecha.localeCompare(a.fecha)})
+  sorted.forEach(function(d){
+    var tl=d.leads>0&&d.trafico_vereda>0?((d.leads/d.trafico_vereda)*100).toFixed(1)+'%':'-'
+    var vl=d.leads>0?((d.ventas_200k/d.leads)*100).toFixed(2)+'%':'-'
+    out+='<tr>'
+      +'<td style="font-family:var(--mono);font-size:12px">'+fmtD(d.fecha)+'</td>'
+      +'<td>'+d.trafico_vereda+'</td>'
+      +'<td style="color:var(--blue);font-weight:600">'+d.leads+'</td>'
+      +'<td style="font-size:12px;color:var(--text3)">'+tl+'</td>'
+      +'<td>'+d.pretests+'</td>'
+      +'<td>'+d.tests+'</td>'
+      +'<td>'+d.asistentes+'</td>'
+      +'<td>'+d.entrevistas+'</td>'
+      +'<td style="color:var(--green);font-weight:600">'+d.ventas_100k+'</td>'
+      +'<td style="color:var(--accent);font-weight:600">'+d.ventas_200k+'</td>'
+      +'<td style="font-size:12px;color:var(--text3)">'+vl+'</td>'
+      +'<td><button onclick="editPBDia(\''+d.id+'\')" style="font-size:11px;padding:2px 8px;background:var(--blue-bg);border:1px solid rgba(96,165,250,0.2);border-radius:5px;color:var(--blue);cursor:pointer">✏</button>'
+      +'<button onclick="delPBDia(\''+d.id+'\')" style="font-size:11px;padding:2px 8px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:5px;color:var(--red);cursor:pointer;margin-left:4px">🗑</button></td>'
+    +'</tr>'
+  })
+  out+='</tbody></table>'
+  html('pb-diario',out)
+}
+
+function rPBTasas(){
+  var tot=pbDatos.reduce(function(a,d){return{
+    leads:a.leads+(d.leads||0),pretests:a.pretests+(d.pretests||0),
+    tests:a.tests+(d.tests||0),asistentes:a.asistentes+(d.asistentes||0),
+    entrevistas:a.entrevistas+(d.entrevistas||0),ventas_100k:a.ventas_100k+(d.ventas_100k||0),ventas_200k:a.ventas_200k+(d.ventas_200k||0)
+  }},{leads:0,pretests:0,tests:0,asistentes:0,entrevistas:0,ventas_100k:0,ventas_200k:0})
+
+  function pct(a,b){return b>0?((a/b)*100).toFixed(1)+'%':'-'}
+  function tgt(v){return pbMetas?(v*100).toFixed(1)+'%':'-'}
+  function diff(real,meta){
+    if(!pbMetas||real==='-')return''
+    var rv=parseFloat(real),mv=parseFloat(meta)
+    if(isNaN(rv)||isNaN(mv))return''
+    var d=(rv-mv).toFixed(1)
+    return '<span style="color:'+(rv>=mv?'var(--green)':'var(--red)')+'"> ('+( rv>=mv?'+':'')+d+')</span>'
+  }
+
+  var tasas=[
+    {label:'Pretest / Leads',real:pct(tot.pretests,tot.leads),meta:pbMetas?tgt(pbMetas.tasa_pretest_leads):'-'},
+    {label:'Test / Pretest',real:pct(tot.tests,tot.pretests),meta:pbMetas?tgt(pbMetas.tasa_test_pretest):'-'},
+    {label:'Asistentes / Test',real:pct(tot.asistentes,tot.tests),meta:pbMetas?tgt(pbMetas.tasa_asistentes_test):'-'},
+    {label:'Entrevistas / Asistentes',real:pct(tot.entrevistas,tot.asistentes),meta:pbMetas?tgt(pbMetas.tasa_entrevistas_asistentes):'-'},
+    {label:'Ventas / Entrevistas',real:pct(tot.ventas_100k,tot.entrevistas),meta:pbMetas?tgt(pbMetas.tasa_ventas_entrevistas):'-'},
+  ]
+
+  var out='<table><thead><tr><th>Tasa</th><th>Real</th><th>Objetivo</th></tr></thead><tbody>'
+  tasas.forEach(function(t){
+    out+='<tr><td style="color:var(--text)">'+t.label+'</td>'
+      +'<td style="font-family:var(--mono);font-weight:600">'+t.real+diff(t.real,t.meta)+'</td>'
+      +'<td style="font-family:var(--mono);color:var(--text3)">'+t.meta+'</td></tr>'
+  })
+  out+='</tbody></table>'
+  html('pb-tasas',out)
+}
+
+function rPBTarget(){
+  if(!pbMetas){html('pb-target','<div class="es">Configurá las metas primero</div>');return}
+  var diasRestantes=calcDiasRestantesMes()
+  var tot=pbDatos.reduce(function(a,d){return{entrevistas:a.entrevistas+(d.entrevistas||0),ventas_200k:a.ventas_200k+(d.ventas_200k||0)}},{entrevistas:0,ventas_200k:0})
+  var tasaReal=tot.entrevistas>0?tot.ventas_200k/tot.entrevistas:pbMetas.tasa_ventas_entrevistas
+  var metaDiaria=pbMetas.dias_mes>0?(pbMetas.meta_ventas_200k-tot.ventas_200k)/Math.max(diasRestantes,1):0
+  var metaPorHora=pbMetas.horas_dia>0?metaDiaria/pbMetas.horas_dia:0
+
+  var escenarios=[200,175,150,125,100,75]
+  var out='<div style="margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div class="sc" style="padding:10px"><div style="font-size:10px;color:var(--text3)">Meta diaria restante</div><div style="font-size:18px;font-weight:700;color:var(--accent)">'+(metaDiaria>0?metaDiaria.toFixed(1):'0')+'</div></div>'
+    +'<div class="sc" style="padding:10px"><div style="font-size:10px;color:var(--text3)">Meta por hora</div><div style="font-size:18px;font-weight:700;color:var(--amber)">'+(metaPorHora>0?metaPorHora.toFixed(1):'0')+'</div></div>'
+  +'</div>'
+  out+='<table><thead><tr><th>Ventas objetivo</th><th>Asesores</th><th>V/asesor</th><th>Tasa requerida</th></tr></thead><tbody>'
+  var asesores=allUsers.filter(function(u){return u.rol==='asesor'}).length||10
+  var entrevistasProy=pbMetas.meta_entrevistas||0
+  escenarios.forEach(function(v){
+    var vPorAs=v/asesores
+    var tasaReq=entrevistasProy>0?v/entrevistasProy:0
+    out+='<tr><td style="font-weight:600;color:var(--text)">'+v+'</td><td>'+asesores+'</td>'
+      +'<td style="font-family:var(--mono)">'+vPorAs.toFixed(1)+'</td>'
+      +'<td style="font-family:var(--mono);color:'+(tasaReq<=(pbMetas.tasa_ventas_entrevistas||0.1)?'var(--green)':'var(--amber)')+'">'+( tasaReq*100).toFixed(1)+'%</td></tr>'
+  })
+  out+='</tbody></table>'
+  html('pb-target',out)
+}
+
+function calcDiasRestantesMes(){
+  var mes=document.getElementById('pb-mes')?.value
+  if(!mes)return0
+  var hoy=new Date()
+  var mesActual=hoy.getFullYear()+'-'+(String(hoy.getMonth()+1).padStart(2,'0'))
+  if(mes!==mesActual)return0
+  var ultimoDia=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate()
+  return ultimoDia-hoy.getDate()
+}
+
+function abrirPBMetas(){
+  var mes=document.getElementById('pb-mes')?.value||new Date().toISOString().slice(0,7)
+  sv('pbm-mes',mes)
+  if(pbMetas){
+    sv('pbm-dias',pbMetas.dias_mes||30)
+    sv('pbm-leads',pbMetas.meta_leads||0)
+    sv('pbm-pretests',pbMetas.meta_pretests||0)
+    sv('pbm-tests',pbMetas.meta_tests||0)
+    sv('pbm-asistentes',pbMetas.meta_asistentes||0)
+    sv('pbm-entrevistas',pbMetas.meta_entrevistas||0)
+    sv('pbm-v100',pbMetas.meta_ventas_100k||0)
+    sv('pbm-v200',pbMetas.meta_ventas_200k||0)
+    sv('pbm-horas',pbMetas.horas_dia||10)
+    sv('pbm-t1',pbMetas.tasa_pretest_leads?(pbMetas.tasa_pretest_leads*100).toFixed(1):0)
+    sv('pbm-t2',pbMetas.tasa_test_pretest?(pbMetas.tasa_test_pretest*100).toFixed(1):0)
+    sv('pbm-t3',pbMetas.tasa_asistentes_test?(pbMetas.tasa_asistentes_test*100).toFixed(1):0)
+    sv('pbm-t4',pbMetas.tasa_entrevistas_asistentes?(pbMetas.tasa_entrevistas_asistentes*100).toFixed(1):0)
+    sv('pbm-t5',pbMetas.tasa_ventas_entrevistas?(pbMetas.tasa_ventas_entrevistas*100).toFixed(1):0)
+  }
+  hi('pbm-ok')
+  sh('modal-pb-metas')
+}
+function openPBDia(editData){
+  sv('pbd-fecha',editData?editData.fecha:new Date().toISOString().slice(0,10))
+  sv('pbd-trafico',editData?editData.trafico_vereda:'')
+  sv('pbd-leads',editData?editData.leads:'')
+  sv('pbd-pretests',editData?editData.pretests:'')
+  sv('pbd-tests',editData?editData.tests:'')
+  sv('pbd-asistentes',editData?editData.asistentes:'')
+  sv('pbd-entrevistas',editData?editData.entrevistas:'')
+  sv('pbd-v100',editData?editData.ventas_100k:'')
+  sv('pbd-v200',editData?editData.ventas_200k:'')
+  document.getElementById('modal-pb-dia').dataset.editId=editData?editData.id:''
+  hi('pbd-ok');hi('pbd-err')
+  sh('modal-pb-dia')
+}
+
+function editPBDia(id){
+  var d=pbDatos.find(function(x){return x.id===id})
+  if(d)openPBDia(d)
+}
+
+async function delPBDia(id){
+  if(!confirm('Eliminar este día?'))return
+  await db.from('plan_batalla').delete().eq('id',id)
+  await loadPB()
+}
+
+async function guardarPBDia(){
+  var editId=document.getElementById('modal-pb-dia').dataset.editId
+  var mes=document.getElementById('pb-mes')?.value
+  var fecha=gv('pbd-fecha')
+  if(!fecha||!mes){sh('pbd-err');document.getElementById('pbd-err').textContent='Seleccioná una fecha.';return}
+  var data={
+    mes:mes,fecha:fecha,
+    trafico_vereda:parseInt(gv('pbd-trafico'))||0,
+    leads:parseInt(gv('pbd-leads'))||0,
+    pretests:parseInt(gv('pbd-pretests'))||0,
+    tests:parseInt(gv('pbd-tests'))||0,
+    asistentes:parseInt(gv('pbd-asistentes'))||0,
+    entrevistas:parseInt(gv('pbd-entrevistas'))||0,
+    ventas_100k:parseInt(gv('pbd-v100'))||0,
+    ventas_200k:parseInt(gv('pbd-v200'))||0
+  }
+  document.getElementById('pbd-btn').textContent='Guardando...'
+  var res=editId
+    ?await db.from('plan_batalla').update(data).eq('id',editId)
+    :await db.from('plan_batalla').upsert(data,{onConflict:'fecha'})
+  document.getElementById('pbd-btn').textContent='Guardar'
+  if(res.error){sh('pbd-err');document.getElementById('pbd-err').textContent='Error al guardar.';return}
+  sh('pbd-ok');setTimeout(function(){hi('pbd-ok');hi('modal-pb-dia')},1500)
+  await loadPB()
+}
+
+async function guardarPBMetas(){
+  var mes=gv('pbm-mes')
+  if(!mes){alert('Seleccioná el mes');return}
+  var data={
+    mes:mes,
+    dias_mes:parseInt(gv('pbm-dias'))||30,
+    meta_leads:parseInt(gv('pbm-leads'))||0,
+    meta_pretests:parseInt(gv('pbm-pretests'))||0,
+    meta_tests:parseInt(gv('pbm-tests'))||0,
+    meta_asistentes:parseInt(gv('pbm-asistentes'))||0,
+    meta_entrevistas:parseInt(gv('pbm-entrevistas'))||0,
+    meta_ventas_100k:parseInt(gv('pbm-v100'))||0,
+    meta_ventas_200k:parseInt(gv('pbm-v200'))||0,
+    horas_dia:parseInt(gv('pbm-horas'))||10,
+    tasa_pretest_leads:(parseFloat(gv('pbm-t1'))||0)/100,
+    tasa_test_pretest:(parseFloat(gv('pbm-t2'))||0)/100,
+    tasa_asistentes_test:(parseFloat(gv('pbm-t3'))||0)/100,
+    tasa_entrevistas_asistentes:(parseFloat(gv('pbm-t4'))||0)/100,
+    tasa_ventas_entrevistas:(parseFloat(gv('pbm-t5'))||0)/100
+  }
+  await db.from('plan_batalla_metas').upsert(data,{onConflict:'mes'})
+  sh('pbm-ok');setTimeout(function(){hi('pbm-ok');hi('modal-pb-metas')},1500)
+  await loadPB()
+}
+
+async function cargarAccesosPB(){
+  var res=await db.from('plan_batalla_acceso').select('*')
+  pbAccesos=(res.data||[]).map(function(x){return x.usuario_id})
+  var lista=document.getElementById('pb-acceso-lista')
+  if(!lista)return
+  var usuarios=allUsers.filter(function(u){
+    return u.rol!=='admin'&&u.rol!=='jefe_ahorro'&&u.rol!=='jefe_pozo'&&u.rol!=='jefe_presentaciones'
+  })
+  lista.innerHTML=usuarios.map(function(u){
+    var checked=pbAccesos.includes(u.id)
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'
+      +'<div><div style="font-size:13px;color:var(--text)">'+u.nombre+'</div><div style="font-size:11px;color:var(--text3)">'+u.rol+'</div></div>'
+      +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+      +'<input type="checkbox" '+(checked?'checked':'')+' onchange="toggleAccesoPB(\''+u.id+'\',this.checked)" style="width:auto"> Acceso</label>'
+    +'</div>'
+  }).join('')
+}
+
+async function toggleAccesoPB(userId,checked){
+  if(checked){
+    await db.from('plan_batalla_acceso').upsert({usuario_id:userId,activo:true},{onConflict:'usuario_id'})
+  } else {
+    await db.from('plan_batalla_acceso').delete().eq('usuario_id',userId)
+  }
+  pbAccesos=checked?[...pbAccesos,userId]:pbAccesos.filter(function(x){return x!==userId})
+}
+
+function puedeVerPB(){
+  if(!CU)return false
+  var r=CU.role||CU.rol
+  if(r==='admin'||r==='jefe_ahorro'||r==='jefe_pozo'||r==='jefe_presentaciones')return true
+  return pbAccesos.includes(CU.id)
+}
 
 </script>
 </body>

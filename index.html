@@ -2687,11 +2687,34 @@ function toggleCarpeta(k){
   })
 }
 async function guardarSOP(key,val){
-  await db.from('carpetas_llevadas').upsert({periodo_key:key,nro_sop:val})
-  // actualizar local
-  const ll=allLl.find(x=>x===key)||key
-  const rec=allLlData?allLlData.find(x=>x.periodo_key===key):null
-  if(rec)rec.nro_sop=val
+  if(!val||!val.trim())return
+  // Upsert con onConflict para que no falle si no existe
+  const{error}=await db.from('carpetas_llevadas').upsert(
+    {periodo_key:key, nro_sop:val.trim()},
+    {onConflict:'periodo_key', ignoreDuplicates:false}
+  )
+  if(error){
+    // Si falla el upsert intentar insert directo
+    await db.from('carpetas_llevadas').insert({periodo_key:key,nro_sop:val.trim()}).select()
+  }
+  // Actualizar local sin rerender
+  if(!allLlData)allLlData=[]
+  const rec=allLlData.find(x=>x.periodo_key===key)
+  if(rec){rec.nro_sop=val.trim()}
+  else{allLlData.push({periodo_key:key,nro_sop:val.trim(),fecha_llevada:null})}
+  if(!allLl.includes(key))allLl.push(key)
+  // Mostrar confirmacion visual
+  const el=document.getElementById('sop-'+key)
+  if(el){el.style.color='var(--teal)';el.style.borderBottomColor='var(--teal)'}
+  mostrarToastCarp('SOP guardado')
+}
+function mostrarToastCarp(msg){
+  const el=document.createElement('div')
+  el.className='aok'
+  el.textContent=msg
+  el.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 16px'
+  document.body.appendChild(el)
+  setTimeout(()=>el.remove(),2000)
 }
 let carpSort={field:'asesor_nombre',dir:'asc'}
 function sortCarp(f){

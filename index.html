@@ -921,8 +921,63 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
       <button class="active" onclick="horTab('grilla',this)">Grilla semanal</button>
       <button onclick="horTab('cambios',this)">Solicitudes de cambio</button>
       <button onclick="horTab('extras',this)">Horas extras / Feriados</button>
+      <button onclick="horTab('empleados',this)">Gestionar empleados</button>
     </div>
     <div id="hor-tgrilla"><div id="hor-grilla-body"></div></div>
+    <div id="hor-templeados" class="hidden">
+      <div style="display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start">
+        <div class="card">
+          <div style="font-size:15px;font-weight:600;margin-bottom:14px">Agregar a la grilla</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div><label>Nombre</label><input id="hemp-nom" placeholder="Nombre completo"></div>
+            <div><label>Puesto</label>
+              <select id="hemp-puesto">
+                <option value="jefe_promotores">Jefe promotores</option>
+                <option value="coordinadora_promotores">Coordinadora promotores</option>
+                <option value="promotor">Promotor</option>
+                <option value="jefe_captacion">Jefe captacion</option>
+                <option value="recepcion">Recepcion</option>
+                <option value="pretester">Pretester</option>
+                <option value="host">Host</option>
+                <option value="detector_pozo">Detector de pozo</option>
+                <option value="jefe_presentaciones">Jefe presentaciones</option>
+                <option value="presentador">Presentador</option>
+                <option value="enrutador">Enrutador</option>
+                <option value="jefe_ahorro">Jefe ventas</option>
+                <option value="asesor">Asesor</option>
+                <option value="jefe_pozo">Jefe pozo</option>
+                <option value="asesor_pozo">Asesor pozo</option>
+                <option value="on_boarding">On Boarding</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div><label>Agregar a semana</label>
+              <select id="hemp-semana" style="width:100%"></select>
+            </div>
+            <div id="hemp-ok" class="hidden aok">Empleado agregado</div>
+            <div id="hemp-err" class="hidden em"></div>
+            <button class="bp" onclick="agregarEmpleadoGrilla()">Agregar a la grilla</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size:15px;font-weight:600;margin-bottom:14px">Empleados en la grilla</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <select id="hemp-f-semana" onchange="loadEmpleadosGrilla()" style="width:auto;font-size:13px"></select>
+            <select id="hemp-f-puesto" onchange="loadEmpleadosGrilla()" style="width:auto;font-size:13px">
+              <option value="">Todos los puestos</option>
+              <option value="promotor">Promotores</option>
+              <option value="recepcion">Recepcion</option>
+              <option value="pretester">Pretester</option>
+              <option value="host">Host</option>
+              <option value="asesor">Asesores</option>
+              <option value="presentador">Presentadores</option>
+              <option value="on_boarding">On Boarding</option>
+            </select>
+          </div>
+          <div id="hemp-lista"></div>
+        </div>
+      </div>
+    </div>
     <div id="hor-tcambios" class="hidden">
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -1512,9 +1567,9 @@ async function enterPanel(r){
   else if(r==='presentador')await showPr()
   else if(r==='jefe_presentaciones')await showJP()
   else if(r==='on_boarding')await showOB()
-  else if(r==='jefe_promotores'||r==='jefe_captacion')await showPremios()
-  else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador'||r==='asesor_pozo'||r==='coordinadora_promotores')await showHorario()
-  else if(r==='jefe_pozo')await showJefeHorario()
+  else if(r==='jefe_promotores'||r==='jefe_captacion')await showPremiosYHorario()
+  else if(r==='jefe_pozo'||r==='coordinadora_promotores')await showJefeHorario()
+  else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador'||r==='asesor_pozo')await showHorario()
 }
 async function doLogin(){
   const u=gv('lu').trim(),p=gv('lp')
@@ -5600,8 +5655,16 @@ async function loadHorarioEmpleado(){
   var miHor=res.data
   var r=CU.role||CU.rol
 
-  // Horario del equipo (mismo puesto)
-  var resEquipo=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',r).order('empleado_nombre')
+  // Horario del equipo (mismo puesto - filtrado por rol del usuario)
+  var puestoVer=r
+  // Mapeo de roles a puestos de horario
+  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',
+    on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',
+    pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador',
+    coordinadora_promotores:'promotor',jefe_ahorro:'asesor',jefe_pozo:'asesor_pozo',
+    jefe_presentaciones:'presentador',jefe_promotores:'promotor',jefe_captacion:'recepcion'}
+  puestoVer=rolAPuesto[r]||r
+  var resEquipo=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puestoVer).order('empleado_nombre')
   var equipo=resEquipo.data||[]
 
   // Render mi horario
@@ -5919,12 +5982,13 @@ function poblarMesesExtras(){
 
 // ── TABS ──
 function horTab(t,btn){
-  hi('hor-tgrilla');hi('hor-tcambios');hi('hor-textras')
+  hi('hor-tgrilla');hi('hor-tcambios');hi('hor-textras');hi('hor-templeados')
   sh('hor-t'+t)
   document.querySelectorAll('#adm-Thor .nav button').forEach(function(b){b.classList.remove('active')})
   if(btn)btn.classList.add('active')
   if(t==='cambios')loadCambios()
   if(t==='extras'){poblarMesesExtras();loadExtras()}
+  if(t==='empleados'){poblarSelectsSemanaHorariosEmpleados();loadEmpleadosGrilla()}
 }
 
 function hrTab(t,btn){
@@ -5936,11 +6000,20 @@ function hrTab(t,btn){
 
 // ── LOGIN ROUTING para nuevos roles ──
 async function showHorario(){
-  // Panel para empleados que solo ven su horario
   showOnly('SHR')
   document.getElementById('hr-nom').textContent=CU.nombre
-  document.getElementById('hr-sub').textContent=(CU.role||CU.rol)
+  var r=CU.role||CU.rol
+  var subLabels={promotor:'Promotor',recepcion:'Recepcion',pretester:'Pretester',host:'Host',
+    detector_pozo:'Detector de Pozo',enrutador:'Enrutador',asesor_pozo:'Asesor Pozo',
+    asesor:'Asesor',presentador:'Presentador',on_boarding:'On Boarding'}
+  document.getElementById('hr-sub').textContent=subLabels[r]||r
   await initHorariosEmpleado()
+}
+
+async function showPremiosYHorario(){
+  // Jefes captacion/promotores: ven premios + tienen acceso a horarios
+  await showPremios()
+  // Agregar pestaña horarios al sidebar del panel de premios si existe
 }
 
 async function showJefeHorario(){
@@ -5951,6 +6024,72 @@ async function showJefeHorario(){
   var subs={jefe_promotores:'Jefe de promotores',coordinadora_promotores:'Coordinadora promotores',jefe_captacion:'Jefe de captacion',jefe_pozo:'Jefe de pozo',enrutador:'Enrutador'}
   document.getElementById('jhr-sub').textContent=subs[r]||r
   await initHorariosJefe()
+}
+
+// ── GESTIÓN DE EMPLEADOS EN GRILLA ──
+async function agregarEmpleadoGrilla(){
+  hi('hemp-err');hi('hemp-ok')
+  var nom=document.getElementById('hemp-nom')?.value.trim()
+  var puesto=document.getElementById('hemp-puesto')?.value
+  var semana=document.getElementById('hemp-semana')?.value
+  if(!nom||!puesto||!semana){sh('hemp-err');document.getElementById('hemp-err').textContent='Completa todos los campos';return}
+  // Buscar datos de la semana
+  var semRec=horSemanas.find(function(s){return s.semana_desde===semana})
+  var hasta=semRec?semRec.semana_hasta:semana
+  var label=semRec?semRec.semana_label:''
+  var{error}=await db.from('horarios').upsert({
+    semana_desde:semana,semana_hasta:hasta,semana_label:label,
+    empleado_nombre:nom,puesto:puesto,
+    lunes:'',martes:'',miercoles:'',jueves:'',viernes:'',sabado:'',domingo:''
+  },{onConflict:'semana_desde,empleado_nombre'})
+  if(error){sh('hemp-err');document.getElementById('hemp-err').textContent='Error: '+error.message;return}
+  sh('hemp-ok');setTimeout(function(){hi('hemp-ok')},2000)
+  document.getElementById('hemp-nom').value=''
+  await loadHorSemanas()
+  loadEmpleadosGrilla()
+  loadHorarios()
+}
+
+async function loadEmpleadosGrilla(){
+  var semana=document.getElementById('hemp-f-semana')?.value
+  var puesto=document.getElementById('hemp-f-puesto')?.value||''
+  if(!semana)return
+  var q=db.from('horarios').select('id,empleado_nombre,puesto').eq('semana_desde',semana).order('puesto').order('empleado_nombre')
+  if(puesto)q=q.eq('puesto',puesto)
+  var res=await q
+  var items=res.data||[]
+  const PUESTO_L={promotor:'Promotor',recepcion:'Recepcion',pretester:'Pretester',host:'Host',
+    asesor:'Asesor',presentador:'Presentador',on_boarding:'OB',asesor_pozo:'As. Pozo',
+    jefe_ahorro:'Jefe Ventas',jefe_promotores:'Jefe Prom.',jefe_captacion:'Jefe Cap.',
+    jefe_pozo:'Jefe Pozo',jefe_presentaciones:'Jefe Pres.',coordinadora_promotores:'Coord.',
+    enrutador:'Enrutador',detector_pozo:'Det. Pozo',admin:'Admin'}
+  if(!items.length){html('hemp-lista','<div class="es">Sin empleados en esta semana</div>');return}
+  var out='<table><thead><tr><th>Nombre</th><th>Puesto</th><th></th></tr></thead><tbody>'
+  items.forEach(function(e){
+    out+='<tr><td style="color:var(--text)">'+e.empleado_nombre+'</td>'
+      +'<td><span class="badge b-asesor" style="font-size:10px">'+(PUESTO_L[e.puesto]||e.puesto)+'</span></td>'
+      +'<td><button class="br" data-eid="'+e.id+'" onclick="quitarEmpleadoGrilla(this.dataset.eid)" style="font-size:11px;padding:2px 7px">✕</button></td>'
+    +'</tr>'
+  })
+  out+='</tbody></table>'
+  html('hemp-lista', out)
+}
+
+async function quitarEmpleadoGrilla(id){
+  if(!confirm('Quitar este empleado de la grilla? Se borran sus horarios de esta semana.'))return
+  await db.from('horarios').delete().eq('id',id)
+  loadEmpleadosGrilla()
+  loadHorarios()
+}
+
+function poblarSelectsSemanaHorariosEmpleados(){
+  ['hemp-semana','hemp-f-semana'].forEach(function(id){
+    var sel=document.getElementById(id)
+    if(!sel)return
+    sel.innerHTML=horSemanas.map(function(s){
+      return '<option value="'+s.semana_desde+'">'+(s.semana_label||fmtD(s.semana_desde))+'</option>'
+    }).join('')
+  })
 }
 
 </script>

@@ -166,6 +166,77 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
 </button>
 <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
+<!-- HORARIO EMPLEADO -->
+<div id="SHR" class="hidden wrap">
+  <div class="ph">
+    <div><div class="pt" id="hr-nom"></div><div class="ps" id="hr-sub"></div></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="sh('modal-mypass')">Mi contraseña</button>
+      <button onclick="logout()">Cerrar sesion</button>
+    </div>
+  </div>
+  <div class="nav" style="margin-bottom:16px">
+    <button class="active" onclick="hrTab('semana',this)">Mi horario</button>
+    <button onclick="hrTab('cambios',this)">Mis solicitudes</button>
+    <button onclick="hrTab('extras',this)">Horas extras</button>
+  </div>
+  <!-- Selector semana -->
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+    <select id="hr-semana" onchange="loadHorarioEmpleado()" style="width:auto;font-size:13px"></select>
+  </div>
+  <div id="hr-tsemana">
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:15px;font-weight:600;margin-bottom:16px">Mi horario de la semana</div>
+      <div id="hr-mi-horario"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
+      <div id="hr-equipo"></div>
+    </div>
+  </div>
+  <div id="hr-tcambios" class="hidden">
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:600">Mis solicitudes</div>
+        <button class="bp" onclick="openSolicitarCambio()" style="font-size:12px;padding:6px 14px">+ Solicitar cambio</button>
+      </div>
+      <div id="hr-mis-cambios"></div>
+    </div>
+  </div>
+  <div id="hr-textras" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:600">Horas extras y feriados</div>
+        <button class="bp" onclick="openSolicitarExtra()" style="font-size:12px;padding:6px 14px">+ Registrar</button>
+      </div>
+      <div id="hr-mis-extras"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL JEFE HORARIOS (para jefes de equipo que cargan horarios) -->
+<div id="SJHR" class="hidden wrap">
+  <div class="ph">
+    <div><div class="pt" id="jhr-nom"></div><div class="ps" id="jhr-sub"></div></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="sh('modal-mypass')">Mi contraseña</button>
+      <button onclick="logout()">Cerrar sesion</button>
+    </div>
+  </div>
+  <div class="nav" style="margin-bottom:16px">
+    <button class="active" onclick="jhrTab('grilla',this)">Horarios del equipo</button>
+    <button onclick="jhrTab('cambios',this)">Solicitudes</button>
+    <button onclick="jhrTab('extras',this)">Extras / Feriados</button>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+    <select id="jhr-semana" onchange="loadHorariosJefe()" style="width:auto;font-size:13px"></select>
+    <button class="bp" onclick="openHorNuevaSemanaJefe()" style="font-size:12px;padding:6px 14px">+ Nueva semana</button>
+  </div>
+  <div id="jhr-tgrilla"><div id="jhr-grilla-body"></div></div>
+  <div id="jhr-tcambios" class="hidden"><div id="jhr-cambios-body"></div></div>
+  <div id="jhr-textras" class="hidden"><div id="jhr-extras-body"></div></div>
+</div>
+
 <!-- LOGIN -->
 <div id="SL" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem">
 <div style="width:100%;max-width:380px">
@@ -618,6 +689,10 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         Premios
       </button>
+      <button class="sb-item" onclick="admTab('hor',this)" id="sb-hor">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Horarios
+      </button>
     </div>
     <div class="sb-bottom">
       <button class="sb-item" onclick="sh('modal-mypass')" style="color:var(--text2)">
@@ -829,6 +904,59 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
       </div>
     </div>
   </div>
+  <div id="adm-Thor" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:18px;font-weight:600">📅 Horarios</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Gestión de horarios semanales</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="hor-semana" onchange="loadHorarios()" style="width:auto;font-size:13px"></select>
+        <button onclick="openHorNuevaSemana()" style="font-size:12px;padding:6px 14px">+ Nueva semana</button>
+        <button onclick="openHorImportar()" class="bb" style="font-size:12px;padding:6px 14px">📥 Importar Excel</button>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div class="nav" style="margin-bottom:16px">
+      <button class="active" onclick="horTab('grilla',this)">Grilla semanal</button>
+      <button onclick="horTab('cambios',this)">Solicitudes de cambio</button>
+      <button onclick="horTab('extras',this)">Horas extras / Feriados</button>
+    </div>
+    <div id="hor-tgrilla"><div id="hor-grilla-body"></div></div>
+    <div id="hor-tcambios" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-size:15px;font-weight:600">Solicitudes de cambio de horario</div>
+          <select id="hor-cambios-filtro" onchange="loadCambios()" style="width:auto;font-size:13px">
+            <option value="">Todas</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="aprobado">Aprobadas</option>
+            <option value="rechazado">Rechazadas</option>
+          </select>
+        </div>
+        <div id="hor-cambios-body"></div>
+      </div>
+    </div>
+    <div id="hor-textras" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div style="font-size:15px;font-weight:600">Horas extras y feriados trabajados</div>
+          <div style="display:flex;gap:8px">
+            <select id="hor-ext-mes" onchange="loadExtras()" style="width:auto;font-size:13px"></select>
+            <select id="hor-ext-puesto" onchange="loadExtras()" style="width:auto;font-size:13px">
+              <option value="">Todos los puestos</option>
+              <option value="promotor">Promotores</option>
+              <option value="recepcion">Recepcion</option>
+              <option value="pretester">Pretester</option>
+              <option value="host">Host</option>
+            </select>
+          </div>
+        </div>
+        <div id="hor-extras-body"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="adm-Tprm" class="hidden">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
       <div>
@@ -942,6 +1070,128 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
     <div id="cl-list"></div>
   </div>
 
+  </div>
+</div>
+
+<!-- MODAL NUEVA SEMANA HORARIO -->
+<div id="modal-hor-semana" class="modal-bg hidden">
+  <div class="modal" style="max-width:420px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px">Nueva semana de horarios</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="g2">
+        <div><label>Desde</label><input id="hors-desde" type="date"></div>
+        <div><label>Hasta</label><input id="hors-hasta" type="date"></div>
+      </div>
+      <div><label>Etiqueta</label><input id="hors-label" placeholder="Ej: Semana 27/04 al 03/05"></div>
+      <div id="hors-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-hor-semana')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarNuevaSemana()" style="flex:2">Crear semana</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR CELDA HORARIO -->
+<div id="modal-hor-celda" class="modal-bg hidden">
+  <div class="modal" style="max-width:380px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px" id="hce-titulo">Editar horario</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px" id="hce-info"></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <label>Horario</label>
+        <input id="hce-valor" placeholder="Ej: 10 a 19 hs" list="hor-sugerencias">
+        <datalist id="hor-sugerencias">
+          <option value="10 a 19 hs">
+          <option value="11 a 20 hs">
+          <option value="12 a 21 hs">
+          <option value="10 a 15 hs">
+          <option value="15 a 20 hs">
+          <option value="10 a 16 hs">
+          <option value="12 a 17 hs">
+          <option value="13 a 18 hs">
+          <option value="LIBRE">
+          <option value="ACADEMIA">
+          <option value="FERIADO">
+          <option value="LICENCIA">
+        </datalist>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-hor-celda')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarCeldaHorario()" style="flex:2">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SOLICITAR CAMBIO -->
+<div id="modal-hor-cambio" class="modal-bg hidden">
+  <div class="modal" style="max-width:460px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px">Solicitar cambio de horario</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="g2">
+        <div><label>Tipo</label>
+          <select id="hcam-tipo" onchange="onCambioTipo()">
+            <option value="intercambio">Intercambio de turno</option>
+            <option value="hora_extra">Horas extras</option>
+            <option value="feriado">Trabajar feriado</option>
+          </select>
+        </div>
+        <div><label>Dia</label>
+          <select id="hcam-dia">
+            <option value="lunes">Lunes</option>
+            <option value="martes">Martes</option>
+            <option value="miercoles">Miercoles</option>
+            <option value="jueves">Jueves</option>
+            <option value="viernes">Viernes</option>
+            <option value="sabado">Sabado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+        </div>
+      </div>
+      <div id="hcam-intercambio-fields">
+        <div><label>Companero con quien cambiar</label>
+          <select id="hcam-receptor" style="width:100%"></select>
+        </div>
+      </div>
+      <div id="hcam-extra-fields" class="hidden">
+        <div><label>Horas extras a trabajar</label>
+          <input id="hcam-horas" type="number" min="0.5" step="0.5" placeholder="Ej: 2">
+        </div>
+      </div>
+      <div><label>Motivo (opcional)</label>
+        <input id="hcam-motivo" placeholder="Explica el motivo del cambio">
+      </div>
+      <div id="hcam-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-hor-cambio')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="enviarSolicitudCambio()" style="flex:2">Enviar solicitud</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EXTRA/FERIADO -->
+<div id="modal-hor-extra" class="modal-bg hidden">
+  <div class="modal" style="max-width:400px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px">Registrar hora extra / feriado</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="g2">
+        <div><label>Tipo</label>
+          <select id="hex-tipo">
+            <option value="hora_extra">Hora extra</option>
+            <option value="feriado">Feriado trabajado</option>
+          </select>
+        </div>
+        <div><label>Fecha</label><input id="hex-fecha" type="date"></div>
+      </div>
+      <div><label>Horas</label><input id="hex-horas" type="number" min="0.5" step="0.5" placeholder="Ej: 2"></div>
+      <div><label>Descripcion</label><input id="hex-desc" placeholder="Opcional"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-hor-extra')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarExtra()" style="flex:2">Registrar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1263,6 +1513,8 @@ async function enterPanel(r){
   else if(r==='jefe_presentaciones')await showJP()
   else if(r==='on_boarding')await showOB()
   else if(r==='jefe_promotores'||r==='jefe_captacion')await showPremios()
+  else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador'||r==='asesor_pozo'||r==='coordinadora_promotores')await showHorario()
+  else if(r==='jefe_pozo')await showJefeHorario()
 }
 async function doLogin(){
   const u=gv('lu').trim(),p=gv('lp')
@@ -3276,7 +3528,7 @@ function pobPer(){
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb','prm'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
+  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb','prm','hor'].forEach(x=>hi('adm-T'+x));sh('adm-T'+t)
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   if(t==='co'){pobPer();rAdmCom()}
@@ -3288,6 +3540,7 @@ function admTab(t,btn){
   if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
   if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
   if(t==='prm'){initPremios()}
+  if(t==='hor'){initHorarios('admin')}
 }
 
 // ═══ CAMBIAR FECHA ═══
@@ -5051,6 +5304,653 @@ async function toggleAccesoPRM(userId,checked){
     await db.from('premios_acceso').delete().eq('usuario_id',userId)
     prmAccesos=prmAccesos.filter(x=>x!==userId)
   }
+}
+
+// ═══════════════════════════════════════════════
+// MÓDULO HORARIOS
+// ═══════════════════════════════════════════════
+let horSemanas=[], horDatos=[], horCambios=[], horExtras=[]
+let horCeldaEdit=null // {semana_desde, empleado_nombre, dia}
+let horContexto='admin' // 'admin','jefe','empleado'
+
+const DIAS=['lunes','martes','miercoles','jueves','viernes','sabado','domingo']
+const DIAS_LABEL=['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo']
+
+const HOR_COLOR={
+  'LIBRE':'color:var(--text3)',
+  'ACADEMIA':'color:var(--blue)',
+  'FERIADO':'color:var(--amber)',
+  'LICENCIA':'color:var(--purple)',
+  '-':'color:var(--text3)',
+}
+
+// Puestos que puede editar cada jefe
+const JEFE_PUESTOS={
+  'jefe_promotores':    ['promotor','coordinadora_promotores'],
+  'coordinadora_promotores': ['promotor'],
+  'jefe_captacion':     ['recepcion','pretester','host','detector_pozo'],
+  'jefe_ahorro':        ['asesor'],
+  'jefe_pozo':          ['asesor_pozo','jefe_pozo'],
+  'jefe_presentaciones':['presentador','enrutador'],
+  'on_boarding':        ['on_boarding'],
+  'admin':              null, // todos
+}
+
+function horColor(val){
+  if(!val)return 'color:var(--text3)'
+  const v=val.trim().toUpperCase()
+  return HOR_COLOR[v]||'color:var(--text)'
+}
+
+async function initHorarios(ctx){
+  horContexto=ctx||'admin'
+  await loadHorSemanas()
+  poblarSelectSemanaHor('hor-semana')
+  loadHorarios()
+}
+
+async function initHorariosJefe(){
+  horContexto='jefe'
+  await loadHorSemanas()
+  poblarSelectSemanaHor('jhr-semana')
+  loadHorariosJefe()
+  loadCambiosJefe()
+}
+
+async function initHorariosEmpleado(){
+  horContexto='empleado'
+  await loadHorSemanas()
+  poblarSelectSemanaHor('hr-semana')
+  loadHorarioEmpleado()
+  loadMisCambios()
+  loadMisExtras()
+}
+
+async function loadHorSemanas(){
+  const res=await db.from('horarios').select('semana_desde,semana_hasta,semana_label').order('semana_desde',{ascending:false})
+  const data=res.data||[]
+  // Deduplicar por semana_desde
+  const seen=new Set()
+  horSemanas=[]
+  data.forEach(function(r){
+    if(!seen.has(r.semana_desde)){
+      seen.add(r.semana_desde)
+      horSemanas.push(r)
+    }
+  })
+}
+
+function poblarSelectSemanaHor(selId){
+  const sel=document.getElementById(selId)
+  if(!sel)return
+  if(!horSemanas.length){sel.innerHTML='<option value="">Sin semanas cargadas</option>';return}
+  sel.innerHTML=horSemanas.map(function(s){
+    return '<option value="'+s.semana_desde+'">'+( s.semana_label||fmtD(s.semana_desde)+' al '+fmtD(s.semana_hasta))+'</option>'
+  }).join('')
+}
+
+// ── ADMIN: grilla completa ──
+async function loadHorarios(){
+  const desde=document.getElementById('hor-semana')?.value
+  if(!desde)return
+  const res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  horDatos=res.data||[]
+  rHorGrilla('hor-grilla-body', desde, true)
+}
+
+function rHorGrilla(containerId, desde, editable){
+  if(!horDatos.length){
+    html(containerId,'<div class="card"><div class="es">Sin horarios cargados para esta semana.<br>Usá "Importar Excel" o editá celda por celda.</div></div>')
+    return
+  }
+  // Agrupar por puesto
+  const grupos={}
+  horDatos.forEach(function(h){
+    if(!grupos[h.puesto])grupos[h.puesto]=[]
+    grupos[h.puesto].push(h)
+  })
+
+  const PUESTO_LABELS={
+    promotor:'Promotores',coordinadora_promotores:'Coordinadora',
+    recepcion:'Recepcion',pretester:'Pretester',host:'Host',detector_pozo:'Det. Pozo',
+    presentador:'Presentadores',enrutador:'Enrutador',
+    jefe_ahorro:'Jefe ventas',asesor:'Asesores',
+    jefe_pozo:'Jefe pozo',asesor_pozo:'Asesores pozo',
+    on_boarding:'On Boarding',jefe_presentaciones:'Jefe presentaciones',
+    jefe_promotores:'Jefe promotores',jefe_captacion:'Jefe captacion',
+  }
+
+  let out=''
+  Object.entries(grupos).forEach(function([puesto,empleados]){
+    out+='<div class="card" style="margin-bottom:14px;overflow-x:auto">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em">'+(PUESTO_LABELS[puesto]||puesto)+'</div>'
+      +'<table><thead><tr>'
+      +'<th style="min-width:160px">Persona</th>'
+      +DIAS_LABEL.map(function(d){return '<th style="min-width:100px;text-align:center">'+d+'</th>'}).join('')
+      +'</tr></thead><tbody>'
+
+    empleados.forEach(function(emp){
+      out+='<tr><td style="color:var(--text);font-weight:500;white-space:nowrap">'+emp.empleado_nombre+'</td>'
+      DIAS.forEach(function(dia){
+        var val=emp[dia]||''
+        var estilo=horColor(val)
+        if(editable&&puedeEditarEmpleado(emp.puesto)){
+          out+='<td style="text-align:center;cursor:pointer" onclick="abrirCeldaHorario(\''+desde+'\',\''+emp.empleado_nombre.replace(/'/g,"\\'")+'\',\''+dia+'\',\''+val.replace(/'/g,"\\'")+'\')"><span style="'+estilo+';font-size:12px">'+(val||'—')+'</span></td>'
+        } else {
+          out+='<td style="text-align:center"><span style="'+estilo+';font-size:12px">'+(val||'—')+'</span></td>'
+        }
+      })
+      out+='</tr>'
+    })
+    out+='</tbody></table></div>'
+  })
+  html(containerId, out)
+}
+
+function puedeEditarEmpleado(puesto){
+  if(!CU)return false
+  var r=CU.role||CU.rol
+  if(r==='admin')return true
+  var puestosJefe=JEFE_PUESTOS[r]
+  if(!puestosJefe)return false
+  return puestosJefe.includes(puesto)
+}
+
+function abrirCeldaHorario(desde, nombre, dia, valorActual){
+  horCeldaEdit={desde, nombre, dia}
+  document.getElementById('hce-titulo').textContent='Editar horario — '+nombre
+  document.getElementById('hce-info').textContent=DIAS_LABEL[DIAS.indexOf(dia)]+' '+fmtD(desde)
+  document.getElementById('hce-valor').value=valorActual||''
+  sh('modal-hor-celda')
+}
+
+async function guardarCeldaHorario(){
+  if(!horCeldaEdit)return
+  var val=document.getElementById('hce-valor').value.trim()
+  var upd={}
+  upd[horCeldaEdit.dia]=val
+  await db.from('horarios').update(upd)
+    .eq('semana_desde',horCeldaEdit.desde)
+    .eq('empleado_nombre',horCeldaEdit.nombre)
+  hi('modal-hor-celda')
+  horCeldaEdit=null
+  await loadHorarios()
+  if(horContexto==='jefe')await loadHorariosJefe()
+}
+
+// ── NUEVA SEMANA ──
+function openHorNuevaSemana(){
+  // Sugerir siguiente semana
+  var hoy=new Date()
+  var dia=hoy.getDay() // 0=dom
+  var diasHastaSab=dia===0?6:6-dia+1
+  if(diasHastaSab===0)diasHastaSab=7
+  var prox=new Date(hoy)
+  prox.setDate(hoy.getDate()+diasHastaSab)
+  var hasta=new Date(prox)
+  hasta.setDate(prox.getDate()+6)
+  document.getElementById('hors-desde').value=prox.toISOString().slice(0,10)
+  document.getElementById('hors-hasta').value=hasta.toISOString().slice(0,10)
+  var label='Semana '+fmtD(prox.toISOString().slice(0,10))+' al '+fmtD(hasta.toISOString().slice(0,10))
+  document.getElementById('hors-label').value=label
+  hi('hors-err')
+  sh('modal-hor-semana')
+}
+
+function openHorNuevaSemanaJefe(){
+  openHorNuevaSemana()
+}
+
+async function guardarNuevaSemana(){
+  var desde=document.getElementById('hors-desde').value
+  var hasta=document.getElementById('hors-hasta').value
+  var label=document.getElementById('hors-label').value.trim()
+  if(!desde||!hasta){sh('hors-err');document.getElementById('hors-err').textContent='Completá las fechas';return}
+
+  // Obtener todos los empleados del sistema que corresponden
+  var empleados=[]
+  // Jefes con login
+  var jefesRoles=['jefe_promotores','jefe_captacion','jefe_ahorro','jefe_pozo','jefe_presentaciones','on_boarding']
+  allUsers.forEach(function(u){
+    if(u.rol&&u.rol!=='admin')empleados.push({nombre:u.nombre,puesto:u.rol})
+  })
+  // Empleados de premios (promotores, recepcion, etc)
+  prmEmpleados.forEach(function(e){
+    if(!empleados.find(function(x){return x.nombre===e.nombre}))
+      empleados.push({nombre:e.nombre,puesto:e.puesto})
+  })
+
+  if(!empleados.length){sh('hors-err');document.getElementById('hors-err').textContent='No hay empleados cargados';return}
+
+  // Insertar filas en blanco para cada empleado
+  var inserts=empleados.map(function(e){
+    return{semana_desde:desde,semana_hasta:hasta,semana_label:label,empleado_nombre:e.nombre,puesto:e.puesto,lunes:'',martes:'',miercoles:'',jueves:'',viernes:'',sabado:'',domingo:''}
+  })
+
+  var{error}=await db.from('horarios').upsert(inserts,{onConflict:'semana_desde,empleado_nombre'})
+  if(error){sh('hors-err');document.getElementById('hors-err').textContent='Error: '+error.message;return}
+  hi('modal-hor-semana')
+  await loadHorSemanas()
+  poblarSelectSemanaHor('hor-semana')
+  poblarSelectSemanaHor('jhr-semana')
+  poblarSelectSemanaHor('hr-semana')
+  // Seleccionar la nueva semana
+  document.getElementById('hor-semana').value=desde
+  await loadHorarios()
+  mostrarToastCarp('Semana creada con '+inserts.length+' empleados')
+}
+
+// ── IMPORTAR EXCEL ──
+function openHorImportar(){
+  var input=document.createElement('input')
+  input.type='file'
+  input.accept='.xlsx,.xls'
+  input.onchange=function(e){
+    var file=e.target.files[0]
+    if(!file)return
+    importarExcelHorario(file)
+  }
+  input.click()
+}
+
+async function importarExcelHorario(file){
+  // Parsear con SheetJS si está disponible
+  mostrarToastCarp('Procesando Excel...')
+  // Por ahora mostrar instrucción
+  alert('Para importar: creá la semana primero y luego editá celda por celda, o usá el SQL de importación.')
+}
+
+// ── JEFE: panel propio ──
+async function loadHorariosJefe(){
+  var desde=document.getElementById('jhr-semana')?.value
+  if(!desde)return
+  var res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  horDatos=res.data||[]
+  // Filtrar solo los puestos que puede editar este jefe
+  var r=CU.role||CU.rol
+  var puestos=JEFE_PUESTOS[r]
+  if(puestos)horDatos=horDatos.filter(function(h){return puestos.includes(h.puesto)})
+  rHorGrilla('jhr-grilla-body', desde, true)
+}
+
+async function loadCambiosJefe(){
+  var r=CU.role||CU.rol
+  var puestos=JEFE_PUESTOS[r]
+  var q=db.from('horarios_cambios').select('*').eq('estado','pendiente').order('created_at',{ascending:false})
+  if(puestos)q=q.in('solicitante_puesto',puestos)
+  var res=await q
+  rCambiosAdmin('jhr-cambios-body', res.data||[])
+}
+
+function jhrTab(t,btn){
+  hi('jhr-tgrilla');hi('jhr-tcambios');hi('jhr-textras')
+  sh('jhr-t'+t)
+  document.querySelectorAll('#SJHR .nav button').forEach(function(b){b.classList.remove('active')})
+  if(btn)btn.classList.add('active')
+  if(t==='cambios')loadCambiosJefe()
+  if(t==='extras')loadExtrasJefe()
+}
+
+// ── EMPLEADO: panel propio ──
+async function loadHorarioEmpleado(){
+  var desde=document.getElementById('hr-semana')?.value
+  if(!desde)return
+  // Mi horario
+  var res=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).single()
+  var miHor=res.data
+  var r=CU.role||CU.rol
+
+  // Horario del equipo (mismo puesto)
+  var resEquipo=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',r).order('empleado_nombre')
+  var equipo=resEquipo.data||[]
+
+  // Render mi horario
+  if(!miHor){
+    html('hr-mi-horario','<div class="es">Sin horario asignado para esta semana</div>')
+  } else {
+    var out='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">'
+    DIAS.forEach(function(dia,i){
+      var val=miHor[dia]||'—'
+      var estilo=horColor(val)
+      out+='<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">'
+        +'<div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+DIAS_LABEL[i]+'</div>'
+        +'<div style="font-size:13px;font-weight:600;'+estilo+'">'+val+'</div>'
+      +'</div>'
+    })
+    out+='</div>'
+    html('hr-mi-horario', out)
+  }
+
+  // Render equipo
+  if(!equipo.length){
+    html('hr-equipo','<div class="es">Sin datos del equipo</div>')
+  } else {
+    var outE='<div style="overflow-x:auto"><table><thead><tr>'
+      +'<th>Persona</th>'
+      +DIAS_LABEL.map(function(d){return '<th style="text-align:center;min-width:90px">'+d+'</th>'}).join('')
+      +'</tr></thead><tbody>'
+    equipo.forEach(function(emp){
+      var esMio=emp.empleado_nombre===CU.nombre
+      outE+='<tr style="'+(esMio?'background:rgba(212,168,67,0.08)':'')+'">'
+        +'<td style="color:var(--text);font-weight:'+(esMio?'600':'400')+'">'+emp.empleado_nombre+(esMio?' ★':'')+'</td>'
+      DIAS.forEach(function(dia){
+        var val=emp[dia]||'—'
+        outE+='<td style="text-align:center;font-size:12px;'+horColor(val)+'">'+val+'</td>'
+      })
+      outE+='</tr>'
+    })
+    outE+='</tbody></table></div>'
+    html('hr-equipo', outE)
+  }
+}
+
+async function loadMisCambios(){
+  var res=await db.from('horarios_cambios').select('*')
+    .eq('solicitante_nombre',CU.nombre)
+    .order('created_at',{ascending:false})
+    .limit(20)
+  var items=res.data||[]
+  if(!items.length){html('hr-mis-cambios','<div class="es">Sin solicitudes enviadas</div>');return}
+  var out='<table><thead><tr><th>Semana</th><th>Tipo</th><th>Dia</th><th>Con quien</th><th>Estado</th></tr></thead><tbody>'
+  items.forEach(function(c){
+    var estadoColor=c.estado==='aprobado'?'b-acp':c.estado==='rechazado'?'b-den':'b-pend'
+    out+='<tr>'
+      +'<td style="font-size:12px">'+fmtD(c.semana_desde)+'</td>'
+      +'<td>'+c.tipo+'</td>'
+      +'<td>'+c.dia+'</td>'
+      +'<td>'+(c.receptor_nombre||'—')+'</td>'
+      +'<td><span class="badge '+estadoColor+'">'+c.estado+'</span></td>'
+    +'</tr>'
+  })
+  out+='</tbody></table>'
+  html('hr-mis-cambios', out)
+}
+
+async function loadMisExtras(){
+  var res=await db.from('horarios_extras').select('*')
+    .eq('empleado_nombre',CU.nombre)
+    .order('fecha',{ascending:false})
+    .limit(30)
+  var items=res.data||[]
+  if(!items.length){html('hr-mis-extras','<div class="es">Sin horas extras registradas</div>');return}
+  var tot=items.reduce(function(a,x){return a+x.horas},0)
+  var out='<div style="margin-bottom:10px;font-size:13px;color:var(--text2)">Total: <strong>'+tot+'hs</strong></div>'
+  out+='<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Horas</th><th>Descripcion</th><th>Estado</th></tr></thead><tbody>'
+  items.forEach(function(e){
+    out+='<tr>'
+      +'<td>'+fmtD(e.fecha)+'</td>'
+      +'<td><span class="badge '+(e.tipo==='feriado'?'b-pend':'b-on_boarding')+'">'+e.tipo+'</span></td>'
+      +'<td class="am">'+e.horas+'hs</td>'
+      +'<td style="font-size:12px;color:var(--text3)">'+(e.descripcion||'—')+'</td>'
+      +'<td>'+(e.aprobado?'<span class="badge b-acp">Aprobado</span>':'<span class="badge b-pend">Pendiente</span>')+'</td>'
+    +'</tr>'
+  })
+  out+='</tbody></table>'
+  html('hr-mis-extras', out)
+}
+
+// ── SOLICITAR CAMBIO ──
+async function openSolicitarCambio(){
+  // Cargar companeros del mismo puesto
+  var r=CU.role||CU.rol
+  var desde=document.getElementById('hr-semana')?.value
+  if(!desde){alert('Selecciona una semana primero');return}
+  var res=await db.from('horarios').select('empleado_nombre').eq('semana_desde',desde).eq('puesto',r)
+  var companeros=(res.data||[]).filter(function(x){return x.empleado_nombre!==CU.nombre})
+  var sel=document.getElementById('hcam-receptor')
+  sel.innerHTML=companeros.map(function(c){return '<option value="'+c.empleado_nombre+'">'+c.empleado_nombre+'</option>'}).join('')
+  document.getElementById('hcam-motivo').value=''
+  hi('hcam-err')
+  sh('modal-hor-cambio')
+}
+
+function onCambioTipo(){
+  var tipo=document.getElementById('hcam-tipo').value
+  if(tipo==='intercambio'){
+    sh('hcam-intercambio-fields');hi('hcam-extra-fields')
+  } else {
+    hi('hcam-intercambio-fields');sh('hcam-extra-fields')
+  }
+}
+
+async function enviarSolicitudCambio(){
+  hi('hcam-err')
+  var tipo=document.getElementById('hcam-tipo').value
+  var dia=document.getElementById('hcam-dia').value
+  var motivo=document.getElementById('hcam-motivo').value.trim()
+  var desde=document.getElementById('hr-semana')?.value
+  if(!desde)return
+
+  // Buscar horarios actuales
+  var resMio=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).single()
+  var miHor=resMio.data
+  var miTurno=miHor?miHor[dia]:''
+
+  var data={
+    semana_desde:desde,
+    solicitante_nombre:CU.nombre,
+    solicitante_puesto:CU.role||CU.rol,
+    dia:dia,
+    horario_solicitante:miTurno||'',
+    tipo:tipo,
+    motivo:motivo,
+    estado:'pendiente',
+    receptor_nombre:'',
+    horario_receptor:''
+  }
+
+  if(tipo==='intercambio'){
+    var receptor=document.getElementById('hcam-receptor').value
+    if(!receptor){sh('hcam-err');document.getElementById('hcam-err').textContent='Selecciona un companero';return}
+    var resRec=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',receptor).single()
+    var recHor=resRec.data
+    data.receptor_nombre=receptor
+    data.horario_receptor=recHor?recHor[dia]:''
+  } else {
+    var horas=parseFloat(document.getElementById('hcam-horas').value)||0
+    if(!horas){sh('hcam-err');document.getElementById('hcam-err').textContent='Ingresa las horas';return}
+    data.horario_receptor=horas+'hs extra'
+  }
+
+  await db.from('horarios_cambios').insert(data)
+  hi('modal-hor-cambio')
+  mostrarToastCarp('Solicitud enviada — esperando aprobacion')
+  await loadMisCambios()
+}
+
+// ── EXTRAS ──
+function openSolicitarExtra(){
+  document.getElementById('hex-fecha').value=new Date().toISOString().slice(0,10)
+  document.getElementById('hex-horas').value=''
+  document.getElementById('hex-desc').value=''
+  sh('modal-hor-extra')
+}
+
+async function guardarExtra(){
+  var tipo=document.getElementById('hex-tipo').value
+  var fecha=document.getElementById('hex-fecha').value
+  var horas=parseFloat(document.getElementById('hex-horas').value)||0
+  var desc=document.getElementById('hex-desc').value.trim()
+  if(!fecha||!horas){alert('Completá fecha y horas');return}
+  var mes=fecha.slice(0,7)
+  await db.from('horarios_extras').insert({
+    empleado_nombre:CU.nombre,
+    puesto:CU.role||CU.rol,
+    fecha:fecha,tipo:tipo,horas:horas,descripcion:desc,aprobado:false,mes:mes
+  })
+  hi('modal-hor-extra')
+  mostrarToastCarp('Registrado correctamente')
+  await loadMisExtras()
+}
+
+// ── ADMIN/JEFE: ver cambios y aprobar ──
+async function loadCambios(){
+  var filtro=document.getElementById('hor-cambios-filtro')?.value||''
+  var q=db.from('horarios_cambios').select('*').order('created_at',{ascending:false}).limit(50)
+  if(filtro)q=q.eq('estado',filtro)
+  var res=await q
+  rCambiosAdmin('hor-cambios-body', res.data||[])
+}
+
+function rCambiosAdmin(containerId, items){
+  if(!items.length){html(containerId,'<div class="es">Sin solicitudes</div>');return}
+  var out='<table><thead><tr><th>Fecha</th><th>Solicitante</th><th>Tipo</th><th>Dia</th><th>Detalle</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'
+  items.forEach(function(c){
+    var estadoColor=c.estado==='aprobado'?'b-acp':c.estado==='rechazado'?'b-den':'b-pend'
+    var detalle=c.tipo==='intercambio'
+      ?c.solicitante_nombre+' ('+c.horario_solicitante+') ↔ '+c.receptor_nombre+' ('+c.horario_receptor+')'
+      :c.horario_receptor
+    out+='<tr>'
+      +'<td style="font-size:12px">'+fmtD(c.semana_desde)+'</td>'
+      +'<td style="color:var(--text)">'+c.solicitante_nombre+'</td>'
+      +'<td>'+c.tipo+'</td>'
+      +'<td>'+c.dia+'</td>'
+      +'<td style="font-size:12px;color:var(--text3)">'+detalle+'</td>'
+      +'<td><span class="badge '+estadoColor+'">'+c.estado+'</span></td>'
+      +'<td><div style="display:flex;gap:4px">'
+      +(c.estado==='pendiente'
+        ?'<button class="bg" onclick="resolverCambio(\''+c.id+'\',\'aprobado\')" style="font-size:11px;padding:3px 8px">✓ Aprobar</button>'
+         +'<button class="br" onclick="resolverCambio(\''+c.id+'\',\'rechazado\')" style="font-size:11px;padding:3px 8px">✗ Rechazar</button>'
+        :'')
+      +'</div></td>'
+    +'</tr>'
+  })
+  out+='</tbody></table>'
+  html(containerId, out)
+}
+
+async function resolverCambio(id, estado){
+  await db.from('horarios_cambios').update({
+    estado:estado,
+    aprobado_por:CU.nombre,
+    fecha_resolucion:new Date().toISOString().slice(0,10)
+  }).eq('id',id)
+
+  // Si se aprueba un intercambio, aplicar el cambio en la grilla
+  if(estado==='aprobado'){
+    var res=await db.from('horarios_cambios').select('*').eq('id',id).single()
+    var c=res.data
+    if(c&&c.tipo==='intercambio'){
+      var upd1={};upd1[c.dia]=c.horario_receptor
+      var upd2={};upd2[c.dia]=c.horario_solicitante
+      await db.from('horarios').update(upd1).eq('semana_desde',c.semana_desde).eq('empleado_nombre',c.solicitante_nombre)
+      await db.from('horarios').update(upd2).eq('semana_desde',c.semana_desde).eq('empleado_nombre',c.receptor_nombre)
+    }
+  }
+
+  mostrarToastCarp('Solicitud '+estado)
+  await loadCambios()
+  if(horContexto==='jefe')loadCambiosJefe()
+}
+
+// ── ADMIN: extras ──
+async function loadExtras(){
+  var mes=document.getElementById('hor-ext-mes')?.value||''
+  var puesto=document.getElementById('hor-ext-puesto')?.value||''
+  var q=db.from('horarios_extras').select('*').order('fecha',{ascending:false}).limit(100)
+  if(mes)q=q.eq('mes',mes)
+  if(puesto)q=q.eq('puesto',puesto)
+  var res=await q
+  rExtrasAdmin('hor-extras-body', res.data||[])
+}
+
+async function loadExtrasJefe(){
+  var r=CU.role||CU.rol
+  var puestos=JEFE_PUESTOS[r]
+  var q=db.from('horarios_extras').select('*').order('fecha',{ascending:false}).limit(100)
+  if(puestos)q=q.in('puesto',puestos)
+  var res=await q
+  rExtrasAdmin('jhr-extras-body', res.data||[])
+}
+
+function rExtrasAdmin(containerId, items){
+  if(!items.length){html(containerId,'<div class="es">Sin registros</div>');return}
+  // Agrupar por empleado para el total del mes
+  var por={}
+  items.forEach(function(e){
+    if(!por[e.empleado_nombre])por[e.empleado_nombre]={nombre:e.empleado_nombre,puesto:e.puesto,extras:0,feriados:0}
+    if(e.tipo==='hora_extra')por[e.empleado_nombre].extras+=e.horas
+    else por[e.empleado_nombre].feriados+=e.horas
+  })
+  var resumen='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px">'
+  Object.values(por).forEach(function(p){
+    resumen+='<div class="sc" style="padding:10px">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+p.nombre+'</div>'
+      +(p.extras>0?'<div style="font-size:12px;color:var(--blue);margin-top:4px">Extras: '+p.extras+'hs</div>':'')
+      +(p.feriados>0?'<div style="font-size:12px;color:var(--amber);margin-top:2px">Feriados: '+p.feriados+'hs</div>':'')
+    +'</div>'
+  })
+  resumen+='</div>'
+
+  var out='<table><thead><tr><th>Empleado</th><th>Fecha</th><th>Tipo</th><th>Horas</th><th>Descripcion</th><th>Estado</th><th></th></tr></thead><tbody>'
+  items.forEach(function(e){
+    out+='<tr>'
+      +'<td style="color:var(--text)">'+e.empleado_nombre+'</td>'
+      +'<td style="font-size:12px">'+fmtD(e.fecha)+'</td>'
+      +'<td><span class="badge '+(e.tipo==='feriado'?'b-pend':'b-on_boarding')+'">'+e.tipo+'</span></td>'
+      +'<td class="am">'+e.horas+'hs</td>'
+      +'<td style="font-size:12px;color:var(--text3)">'+(e.descripcion||'—')+'</td>'
+      +'<td>'+(e.aprobado?'<span class="badge b-acp">Aprobado</span>':'<span class="badge b-pend">Pendiente</span>')+'</td>'
+      +'<td>'+(!e.aprobado?'<button class="bg" onclick="aprobarExtra(\''+e.id+'\')" style="font-size:11px;padding:3px 8px">✓</button>':'')+'</td>'
+    +'</tr>'
+  })
+  out+='</tbody></table>'
+  html(containerId, resumen+out)
+}
+
+async function aprobarExtra(id){
+  await db.from('horarios_extras').update({aprobado:true,aprobado_por:CU.nombre}).eq('id',id)
+  await loadExtras()
+}
+
+function poblarMesesExtras(){
+  var sel=document.getElementById('hor-ext-mes')
+  if(!sel)return
+  var meses=[]
+  var hoy=new Date()
+  for(var i=0;i<6;i++){
+    var d=new Date(hoy.getFullYear(),hoy.getMonth()-i,1)
+    var key=d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0'))
+    var label=d.toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+    meses.push({key,label:label.charAt(0).toUpperCase()+label.slice(1)})
+  }
+  sel.innerHTML='<option value="">Todos los meses</option>'+meses.map(function(m){return '<option value="'+m.key+'">'+m.label+'</option>'}).join('')
+}
+
+// ── TABS ──
+function horTab(t,btn){
+  hi('hor-tgrilla');hi('hor-tcambios');hi('hor-textras')
+  sh('hor-t'+t)
+  document.querySelectorAll('#adm-Thor .nav button').forEach(function(b){b.classList.remove('active')})
+  if(btn)btn.classList.add('active')
+  if(t==='cambios')loadCambios()
+  if(t==='extras'){poblarMesesExtras();loadExtras()}
+}
+
+function hrTab(t,btn){
+  hi('hr-tsemana');hi('hr-tcambios');hi('hr-textras')
+  sh('hr-t'+t)
+  document.querySelectorAll('#SHR .nav button').forEach(function(b){b.classList.remove('active')})
+  if(btn)btn.classList.add('active')
+}
+
+// ── LOGIN ROUTING para nuevos roles ──
+async function showHorario(){
+  // Panel para empleados que solo ven su horario
+  showOnly('SHR')
+  document.getElementById('hr-nom').textContent=CU.nombre
+  document.getElementById('hr-sub').textContent=(CU.role||CU.rol)
+  await initHorariosEmpleado()
+}
+
+async function showJefeHorario(){
+  // Panel para jefes que cargan horarios
+  showOnly('SJHR')
+  document.getElementById('jhr-nom').textContent=CU.nombre
+  var r=CU.role||CU.rol
+  var subs={jefe_promotores:'Jefe de promotores',coordinadora_promotores:'Coordinadora promotores',jefe_captacion:'Jefe de captacion',jefe_pozo:'Jefe de pozo',enrutador:'Enrutador'}
+  document.getElementById('jhr-sub').textContent=subs[r]||r
+  await initHorariosJefe()
 }
 
 </script>

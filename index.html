@@ -3925,11 +3925,18 @@ function poblarRolCustomSelect(){
 function getRolSelectOptions(currentRol,currentCustomId){
   const base=[
     {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
-    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},
+    {v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'},
+    {v:'jefe_promotores',l:'Jefe Promotores'},{v:'jefe_captacion',l:'Jefe Captacion'},
+    {v:'coordinadora_promotores',l:'Coordinadora Promotores'},
+    {v:'promotor',l:'Promotor'},{v:'recepcion',l:'Recepcion'},
+    {v:'pretester',l:'Pretester'},{v:'host',l:'Host'},
+    {v:'detector_pozo',l:'Detector de Pozo'},{v:'enrutador',l:'Enrutador'},
+    {v:'asesor_pozo',l:'Asesor Pozo'}
   ]
-  const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
-  const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
-  const customGroup=allRolesCustom.length?`<optgroup label="Personalizados">${customOpts}</optgroup>`:''
+  const baseOpts=base.map(o=>'<option value="'+o.v+'"'+(currentRol===o.v?' selected':'')+'>'+o.l+'</option>').join('')
+  const customOpts=allRolesCustom.map(r=>'<option value="custom_'+r.id+'"'+(currentRol==='custom'&&currentCustomId===r.id?' selected':'')+'>'+r.nombre+'</option>').join('')
+  const customGroup=allRolesCustom.length?'<optgroup label="Personalizados">'+customOpts+'</optgroup>':''
   return baseOpts+customGroup
 }
 

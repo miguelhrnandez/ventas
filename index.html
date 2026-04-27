@@ -171,6 +171,7 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
   <div class="ph">
     <div><div class="pt" id="hr-nom"></div><div class="ps" id="hr-sub"></div></div>
     <div style="display:flex;gap:8px">
+      <button onclick="toggleTema()" id="hr-tema-btn" style="font-size:12px">☀️ Tema claro</button>
       <button onclick="sh('modal-mypass')">Mi contraseña</button>
       <button onclick="logout()">Cerrar sesion</button>
     </div>
@@ -219,6 +220,7 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
   <div class="ph">
     <div><div class="pt" id="jhr-nom"></div><div class="ps" id="jhr-sub"></div></div>
     <div style="display:flex;gap:8px">
+      <button onclick="toggleTema()" style="font-size:12px">☀️ Tema claro</button>
       <button onclick="sh('modal-mypass')">Mi contraseña</button>
       <button onclick="logout()">Cerrar sesion</button>
     </div>
@@ -1588,7 +1590,7 @@ async function doLogin(){
     await enterPanel(data.rol)
   }
 }
-function logout(){CU=null;showOnly('SL');sv('lu','');sv('lp','');document.getElementById('lb').textContent='Ingresar'}
+function logout(){CU=null;document.body.classList.remove('light');showOnly('SL');sv('lu','');sv('lp','');document.getElementById('lb').textContent='Ingresar'}
 
 let allObMovs=[],allObPagos=[]
 async function loadAll(){
@@ -4921,7 +4923,9 @@ async function actualizarLeadAsesorPremio(asesorId, asesorNombre, fechaVenta){
 
 // ═══ PANEL JEFE CAPTACION / PROMOTORES ═══
 async function showPremios(){
-  // Cargar datos necesarios
+  var temaGuardado=localStorage.getItem('tema')
+  if(temaGuardado==='light')document.body.classList.add('light')
+  else document.body.classList.remove('light')
   await loadAll()
   var prmAcc=await db.from('premios_acceso').select('*')
   prmAccesos=(prmAcc.data||[]).map(function(x){return x.usuario_id})
@@ -6000,7 +6004,14 @@ function hrTab(t,btn){
 
 // ── LOGIN ROUTING para nuevos roles ──
 async function showHorario(){
+  // Aplicar tema guardado
+  var temaGuardado=localStorage.getItem('tema')
+  if(temaGuardado==='light')document.body.classList.add('light')
+  else document.body.classList.remove('light')
   showOnly('SHR')
+  var isLight=document.body.classList.contains('light')
+  var tBtn=document.getElementById('hr-tema-btn')
+  if(tBtn)tBtn.textContent=isLight?'🌙 Tema oscuro':'☀️ Tema claro'
   document.getElementById('hr-nom').textContent=CU.nombre
   var r=CU.role||CU.rol
   var subLabels={promotor:'Promotor',recepcion:'Recepcion',pretester:'Pretester',host:'Host',
@@ -6017,7 +6028,9 @@ async function showPremiosYHorario(){
 }
 
 async function showJefeHorario(){
-  // Panel para jefes que cargan horarios
+  var temaGuardado=localStorage.getItem('tema')
+  if(temaGuardado==='light')document.body.classList.add('light')
+  else document.body.classList.remove('light')
   showOnly('SJHR')
   document.getElementById('jhr-nom').textContent=CU.nombre
   var r=CU.role||CU.rol

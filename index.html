@@ -3538,24 +3538,6 @@ function rAdmUsers(){
       </div>
     </div>`).join(''))
 }
-async function addUsuario(){
-  hi('adm-uerr');hi('adm-uok')
-  const nom=gv('u-nom').trim(),usr=gv('u-usr').trim(),pas=gv('u-pas'),rolVal=gv('u-rol')
-  if(!nom||!usr||!pas||!rolVal){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Completa todos los campos.';return}
-  if(allUsers.find(x=>x.username===usr)){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Ese usuario ya existe.';return}
-  let insertData={nombre:nom,username:usr,password:pas,password_visible:pas}
-  if(rolVal.startsWith('custom_')){
-    insertData.rol='custom'
-    insertData.rol_custom_id=rolVal.replace('custom_','')
-  } else {
-    insertData.rol=rolVal
-  }
-  const{error}=await db.from('usuarios').insert(insertData)
-  if(error){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Error al guardar.';return}
-  sv('u-nom','');sv('u-usr','');sv('u-pas','');sv('u-rol','')
-  sh('adm-uok');setTimeout(()=>hi('adm-uok'),3000)
-  await loadAll();rAdmUsers();rAdmStats()
-}
 async function cambiarRol(id,nuevoRol){
   let upd={}
   if(nuevoRol.startsWith('custom_')){
@@ -3571,11 +3553,6 @@ async function cambiarRol(id,nuevoRol){
   ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'
   document.body.appendChild(ok)
   setTimeout(()=>ok.remove(),2500)
-}
-async function delUser(id){
-  if(!confirm('Eliminar este usuario?'))return
-  await db.from('usuarios').delete().eq('id',id)
-  await loadAll();rAdmUsers();rAdmStats()
 }
 function pobPer(){
   const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
@@ -3777,24 +3754,6 @@ function rRoles(){
       <div style="font-size:12px;color:var(--text3)">${perms.join(' · ')||'Sin permisos'}</div>
     </div>`
   }).join(''))
-}
-function poblarRolCustomSelect(){
-  // Populate optgroup in agregar usuario form
-  const grp=document.getElementById('u-rol-custom-group')
-  if(grp){
-    grp.innerHTML=allRolesCustom.map(r=>`<option value="custom_${r.id}">${r.nombre}</option>`).join('')
-  }
-}
-function getRolSelectOptions(currentRol, currentCustomId){
-  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
-  const base=[
-    {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
-    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},{v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'}
-  ]
-  const baseOpts=base.map(o=>`<option value="${o.v}"${currentRol===o.v?' selected':''}>${o.l}</option>`).join('')
-  const customOpts=allRolesCustom.map(r=>`<option value="custom_${r.id}"${currentRol==='custom'&&currentCustomId===r.id?' selected':''}>${r.nombre}</option>`).join('')
-  const customGroup=allRolesCustom.length?`<optgroup label="— Personalizados —">${customOpts}</optgroup>`:''
-  return baseOpts+customGroup
 }
 function onRolChange(){
   // nothing extra needed now - custom roles are in the main select

@@ -2341,6 +2341,7 @@ function jpTab(t,btn){
 let obOps=[],obDisp=[],obMovs=[]
 
 async function showOB(){
+  try{
   showOnly('SOB')
   const tieneExtra=(CU.roles_extra||[]).length>0
   document.getElementById('SOB-sb').innerHTML=mkSidebar([
@@ -2349,6 +2350,7 @@ async function showOB(){
     {id:'co',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"obTab('co',document.getElementById('sbitem-co'))"}
   ],'mis',CU.nombre,'On Boarding',tieneExtra)
   await loadOBData();rOBStats();rOBMis()
+  }catch(err){console.error('showOB error:',err);alert('Error al cargar panel OB: '+err.message)}
 }
 let obPagos=[]
 async function loadOBData(){

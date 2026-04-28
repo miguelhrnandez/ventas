@@ -282,8 +282,8 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
           <div style="font-size:32px;font-weight:800;color:var(--text);line-height:1.1">MásDueños <span style="color:var(--accent)">Liniers</span></div>
           <div style="font-size:14px;color:var(--text2);margin-top:8px">Juntos construimos el camino al éxito</div>
         </div>
-        <div style="border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:380px;text-align:center">
-          <img src="https://i.imgur.com/fSELGzT.jpg" style="width:100%;object-fit:cover;max-height:380px;border-radius:20px" onerror="this.parentElement.innerHTML='<div style=padding:60px;color:var(--text3);font-size:14px>📸 Foto del equipo</div>'">
+        <div style="border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:380px;position:relative">
+          <img id="sl-foto-eq" src="https://i.imgur.com/xmhrB3e.jpg" style="width:100%;object-fit:cover;max-height:380px;border-radius:20px;transition:opacity 0.5s" onerror="this.src='https://i.imgur.com/UcDGv7o.jpg'">
         </div>
       </div>
       <!-- Slide 2: Ranking -->
@@ -6143,6 +6143,7 @@ var slCurrentSlide=0, slTotal=5, slTimer=null
 var slFrases=['El éxito no es la clave de la felicidad. La felicidad es la clave del éxito.', 'Cada cliente satisfecho es la mejor inversión que podemos hacer.', 'Los sueños no funcionan a menos que tú lo hagas.', 'La diferencia entre lo ordinario y lo extraordinario es ese pequeño extra.', 'Un cliente bien atendido es publicidad gratis para siempre.', 'No cuentes los días, haz que los días cuenten.', 'El éxito es la suma de pequeños esfuerzos repetidos día tras día.', 'Vender no es convencer, es ayudar a alguien a tomar la mejor decisión.', 'Tu actitud determina tu dirección.', 'Cada no que escuchás te acerca más al sí que estás buscando.', 'La constancia es el superpoder de los mejores vendedores.', 'No vendas productos, construí relaciones duraderas.']
 
 function initCarrusel(){
+  setInterval(rotarFotoEquipo, 15000)
   cargarRankingSlide()
   cargarMetaSlide()
   cargarCumplesSlide()
@@ -6171,6 +6172,18 @@ function goToSlide(n){
   startSlideTimer()
 }
 
+var slFotos=['https://i.imgur.com/xmhrB3e.jpg','https://i.imgur.com/UcDGv7o.jpg','https://i.imgur.com/gDJwb9h.jpg']
+var slFotoIdx=0
+function rotarFotoEquipo(){
+  var img=document.getElementById('sl-foto-eq')
+  if(!img)return
+  img.style.opacity='0'
+  setTimeout(function(){
+    slFotoIdx=(slFotoIdx+1)%slFotos.length
+    img.src=slFotos[slFotoIdx]
+    img.style.opacity='1'
+  },500)
+}
 function startSlideTimer(){
   slTimer=setInterval(function(){
     var next=(slCurrentSlide+1)%slTotal

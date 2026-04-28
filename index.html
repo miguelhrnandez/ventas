@@ -954,12 +954,29 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
           <div>
             <label style="margin-bottom:8px">Permisos</label>
             <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:6px 0 4px;letter-spacing:0.05em">Ventas</div>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ops" style="width:auto"> Ver sus operaciones y comisiones</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-cargar" style="width:auto"> Cargar ventas/reservas</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pres" style="width:auto"> Ver/cargar presentaciones</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ob" style="width:auto"> Ver/cargar on boarding</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-carp" style="width:auto"> Ver carpetas</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-carp" style="width:auto"> Ver carpetas (tesoreria)</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-comtodo" style="width:auto"> Ver comisiones de todo el equipo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-todasops" style="width:auto"> Ver todas las operaciones</label>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Presentaciones y OB</div>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pres" style="width:auto"> Ver/gestionar presentaciones</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ob" style="width:auto"> Ver/gestionar On Boarding</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-retenciones" style="width:auto"> Ver retenciones OB</label>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Plan de batalla</div>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pb_ver" style="width:auto"> Ver Plan de batalla</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pb_editar" style="width:auto"> Editar datos del Plan de batalla</label>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Premios</div>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-prm_ver" style="width:auto"> Ver premios semanales</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-prm_cargar" style="width:auto"> Cargar leads/datos de premios</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-prm_aprobar" style="width:auto"> Aprobar premios y cargar incentivos</label>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Horarios</div>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-hor_ver" style="width:auto"> Ver horarios</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-hor_editar" style="width:auto"> Editar horarios del equipo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-hor_aprobar" style="width:auto"> Aprobar solicitudes de cambio</label>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Administracion</div>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-incentivos" style="width:auto"> Gestionar incentivos y liquidaciones</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-usrs" style="width:auto"> Gestionar usuarios</label>
             </div>
           </div>
@@ -3792,18 +3809,46 @@ let allRolesCustom=[]
 async function loadRolesCustom(){
   try{const{data}=await db.from('roles_custom').select('*').order('nombre');allRolesCustom=data||[]}catch(e){allRolesCustom=[]}
 }
-const PERMISOS_LABELS={ops:'Ver operaciones y comisiones',cargar:'Cargar ventas/reservas',pres:'Ver/cargar presentaciones',ob:'Ver/cargar on boarding',carp:'Ver carpetas',comtodo:'Ver comisiones del equipo',usrs:'Gestionar usuarios'}
+const PERMISOS_LABELS={
+  // Ventas
+  ops:'Ver sus operaciones y comisiones',
+  cargar:'Cargar ventas/reservas',
+  carp:'Ver carpetas (tesoreria)',
+  comtodo:'Ver comisiones de todo el equipo',
+  todasops:'Ver todas las operaciones',
+  // Presentaciones y OB
+  pres:'Ver/gestionar presentaciones',
+  ob:'Ver/gestionar On Boarding',
+  retenciones:'Ver retenciones OB',
+  // Plan de batalla
+  pb_ver:'Ver Plan de batalla',
+  pb_editar:'Editar datos del Plan de batalla',
+  // Premios
+  prm_ver:'Ver premios semanales',
+  prm_cargar:'Cargar leads/datos de premios',
+  prm_aprobar:'Aprobar premios y cargar incentivos',
+  // Horarios
+  hor_ver:'Ver horarios',
+  hor_editar:'Editar horarios del equipo',
+  hor_aprobar:'Aprobar solicitudes de cambio de horario',
+  // Admin
+  incentivos:'Gestionar incentivos y liquidaciones',
+  usrs:'Gestionar usuarios'
+}
 async function crearRol(){
   hi('rol-err');hi('rol-ok')
   const nom=gv('rol-nom').trim()
   if(!nom){sh('rol-err');document.getElementById('rol-err').textContent='Ingresa un nombre para el rol.';return}
   const permisos={}
-  Object.keys(PERMISOS_LABELS).forEach(k=>{permisos[k]=document.getElementById('p-'+k).checked})
+  Object.keys(PERMISOS_LABELS).forEach(k=>{
+    const el=document.getElementById('p-'+k)
+    permisos[k]=el?el.checked:false
+  })
   if(!Object.values(permisos).some(Boolean)){sh('rol-err');document.getElementById('rol-err').textContent='Selecciona al menos un permiso.';return}
   const{error}=await db.from('roles_custom').insert({nombre:nom,permisos})
   if(error){sh('rol-err');document.getElementById('rol-err').textContent='Error al guardar.';return}
   sv('rol-nom','')
-  Object.keys(PERMISOS_LABELS).forEach(k=>{document.getElementById('p-'+k).checked=false})
+  Object.keys(PERMISOS_LABELS).forEach(k=>{const el=document.getElementById('p-'+k);if(el)el.checked=false})
   sh('rol-ok');setTimeout(()=>hi('rol-ok'),3000)
   await loadRolesCustom();rRoles()
   poblarRolCustomSelect()

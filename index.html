@@ -245,32 +245,92 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
   <div id="jhr-textras" class="hidden"><div id="jhr-extras-body"></div></div>
 </div>
 
-<!-- LOGIN -->
-<div id="SL" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem">
-<div style="width:100%;max-width:380px">
-  <div style="text-align:center;margin-bottom:36px">
-    <div style="margin-bottom:20px">
-      <svg viewBox="0 0 200 60" width="180" height="54" xmlns="http://www.w3.org/2000/svg">
-        <rect width="200" height="60" rx="8" fill="#e8192c"/>
-        <!-- Casa ícono MásDueños estilo -->
-        <path d="M18 38 L18 27 L28 19 L38 27 L38 38 Z" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M23 38 L23 32 L33 32 L33 38" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M14 29 L28 18 L42 29" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- Texto MásDueños -->
-        <text x="52" y="37" font-family="DM Sans, Arial, sans-serif" font-size="18" font-weight="700" fill="white">MásDueños</text>
-      </svg>
-    </div>
-    <div style="font-size:13px;color:var(--text2);margin-top:4px">Sistema de ventas</div>
+<!-- LOGIN CARRUSEL -->
+<div id="SL" style="min-height:100vh;position:relative;overflow:hidden;display:flex;flex-direction:column">
+  <div style="position:fixed;inset:0;background:linear-gradient(135deg,#0f0f0f 0%,#1a1209 50%,#0f0f0f 100%);z-index:0"></div>
+  <div style="position:fixed;inset:0;z-index:0;overflow:hidden">
+    <div class="sl-particle" style="width:300px;height:300px;top:-100px;left:-100px;animation-delay:0s"></div>
+    <div class="sl-particle" style="width:200px;height:200px;bottom:100px;right:-50px;animation-delay:2s"></div>
+    <div class="sl-particle" style="width:150px;height:150px;top:50%;left:60%;animation-delay:4s"></div>
   </div>
-  <div class="card">
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div><label>Usuario</label><input id="lu" type="text" placeholder="Tu usuario"></div>
-      <div><label>Contrasena</label><input id="lp" type="password" placeholder="..."></div>
-      <div id="le" class="hidden em"></div>
-      <button class="bp" id="lb" onclick="doLogin()" style="padding:11px;margin-top:4px">Ingresar</button>
+  <!-- Header con login -->
+  <div style="position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:20px 32px;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#0f0f0f" stroke-width="2.5" stroke-linejoin="round"/><path d="M9 22V12h6v10" stroke="#0f0f0f" stroke-width="2.5" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">MásDueños</div>
+        <div style="font-size:11px;color:var(--text3)">Sistema de ventas · Liniers</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:12px;padding:10px 16px;flex-wrap:wrap">
+      <input id="lu" type="text" placeholder="Usuario" style="width:130px;background:transparent;border:none;font-size:13px;color:var(--text);outline:none;padding:0">
+      <div style="width:1px;height:20px;background:var(--border2)"></div>
+      <input id="lp" type="password" placeholder="Contrasena" style="width:120px;background:transparent;border:none;font-size:13px;color:var(--text);outline:none;padding:0">
+      <button class="bp" id="lb" onclick="doLogin()" style="padding:7px 18px;font-size:13px;border-radius:8px;white-space:nowrap">Ingresar →</button>
     </div>
   </div>
-</div>
+  <div id="le" class="hidden em" style="position:relative;z-index:10;text-align:right;padding:0 32px;margin-top:-8px"></div>
+  <!-- Carrusel -->
+  <div style="position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+    <div id="sl-slides" style="width:100%;max-width:900px">
+      <!-- Slide 1: Foto equipo -->
+      <div class="sl-slide" id="slide-0">
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Bienvenidos al equipo</div>
+          <div style="font-size:32px;font-weight:800;color:var(--text);line-height:1.1">MásDueños <span style="color:var(--accent)">Liniers</span></div>
+          <div style="font-size:14px;color:var(--text2);margin-top:8px">Juntos construimos el camino al éxito</div>
+        </div>
+        <div style="border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:380px;text-align:center">
+          <img src="https://i.imgur.com/fSELGzT.jpg" style="width:100%;object-fit:cover;max-height:380px;border-radius:20px" onerror="this.parentElement.innerHTML='<div style=padding:60px;color:var(--text3);font-size:14px>📸 Foto del equipo</div>'">
+        </div>
+      </div>
+      <!-- Slide 2: Ranking -->
+      <div class="sl-slide" id="slide-1" style="display:none">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">🏆 Últimas 2 semanas</div>
+          <div style="font-size:32px;font-weight:800;color:var(--text)">Top vendedores</div>
+        </div>
+        <div id="sl-ranking" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;max-width:800px;margin:0 auto"></div>
+      </div>
+      <!-- Slide 3: Frase -->
+      <div class="sl-slide" id="slide-2" style="display:none">
+        <div style="text-align:center;max-width:700px;margin:0 auto;padding:30px 20px">
+          <div style="font-size:50px;margin-bottom:20px">💡</div>
+          <div id="sl-frase" style="font-size:26px;font-weight:700;color:var(--text);line-height:1.4;font-style:italic"></div>
+          <div style="width:60px;height:3px;background:var(--accent);margin:24px auto 0;border-radius:2px"></div>
+        </div>
+      </div>
+      <!-- Slide 4: Cumpleanos -->
+      <div class="sl-slide" id="slide-3" style="display:none">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">🎂 Este mes</div>
+          <div style="font-size:32px;font-weight:800;color:var(--text)">Cumpleaños del equipo</div>
+        </div>
+        <div id="sl-cumples" style="max-width:700px;margin:0 auto"></div>
+      </div>
+      <!-- Slide 5: Meta -->
+      <div class="sl-slide" id="slide-4" style="display:none">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">📊 Plan de batalla</div>
+          <div style="font-size:32px;font-weight:800;color:var(--text)">Meta del mes</div>
+        </div>
+        <div id="sl-meta" style="max-width:700px;margin:0 auto"></div>
+      </div>
+    </div>
+    <!-- Dots -->
+    <div style="display:flex;gap:8px;margin-top:24px" id="sl-dots">
+      <div class="sl-dot active" onclick="goToSlide(0)"></div>
+      <div class="sl-dot" onclick="goToSlide(1)"></div>
+      <div class="sl-dot" onclick="goToSlide(2)"></div>
+      <div class="sl-dot" onclick="goToSlide(3)"></div>
+      <div class="sl-dot" onclick="goToSlide(4)"></div>
+    </div>
+  </div>
+  <div style="position:relative;z-index:10;text-align:center;padding:12px;color:var(--text3);font-size:11px">
+    © 2026 MásDueños · Sistema de gestión
+  </div>
 </div>
 
 

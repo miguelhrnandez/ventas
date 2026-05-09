@@ -128,12 +128,12 @@ body.light .ddmenu-list button{color:#27272a}
 body.light .modal{background:#ffffff}
 body.light th{color:#52525b}
 body.light td{color:#000000}
-body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2318181b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") !important;background-color:#ffffff !important;color:#000000 !important;border-color:rgba(0,0,0,0.2) !important;-webkit-appearance:none;appearance:none}
-body.light select option{background:#ffffff !important;color:#000000 !important}
-body.light table select{background-color:#ffffff !important;color:#000000 !important;border:1px solid rgba(0,0,0,0.2) !important;border-radius:6px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2318181b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") !important}
-body.light input,body.light textarea{background-color:#ffffff !important;color:#000000 !important;border-color:rgba(0,0,0,0.2) !important}
-body.light .ddmenu-list{background:#ffffff !important;border-color:rgba(0,0,0,0.15) !important}
-body.light .ddmenu-list button{color:#18181b !important}
+body.light select,body.light select:focus{background-color:#ffffff !important;color:#18181b !important;border-color:rgba(0,0,0,0.2) !important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2318181b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") !important;-webkit-appearance:none !important;appearance:none !important;background-repeat:no-repeat !important;background-position:right 12px center !important}
+body.light select option{background:#ffffff !important;color:#18181b !important}
+body.light input,body.light textarea{background-color:#ffffff !important;color:#18181b !important;border-color:rgba(0,0,0,0.2) !important}
+body.light input::placeholder,body.light textarea::placeholder{color:#a1a1aa !important}
+body.light .ddmenu-list{background:#ffffff !important;border-color:rgba(0,0,0,0.15) !important;box-shadow:0 4px 16px rgba(0,0,0,0.12) !important}
+body.light .ddmenu-list button{color:#18181b !important;background:#ffffff !important}
 body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
 
 /* ── HAMBURGUESA ───────────────────────────────────────── */
@@ -6412,47 +6412,126 @@ function abrirEditorEmpleadoIdx(el){
   abrirEditorEmpleado(desde, emp.empleado_nombre)
 }
 function abrirEditorEmpleado(desde, nombre){
-  // Buscar datos del empleado
   var emp=horDatos.find(function(h){return h.empleado_nombre===nombre&&h.semana_desde===desde})
   if(!emp)return
   var semRec=horSemanas.find(function(s){return s.semana_desde===desde})
   var semLabel=semRec?semRec.semana_label:fmtD(desde)
+  var puesto=emp.puesto
 
   var modal=document.createElement('div')
   modal.id='modal-emp-hor'
   modal.className='modal-bg'
+
+  // Calcular horas extras para preview
+  var totalHoras=DIAS.reduce(function(a,d){return a+getHorasFromVal(emp[d]||'',puesto)},0)
+  var stdSemanal=(HOR_HORAS_STD[puesto]||9)*6 // 6 dias laborales
+  var extrasPreview=Math.max(0,totalHoras-stdSemanal)
+
   var dias_vals=DIAS.map(function(d,i){
     var val=emp[d]||''
+    var extras=calcExtras(val,puesto)
     return '<div style="margin-bottom:10px">'
-      +'<label style="font-size:11px;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">'+DIAS_LABEL[i]+'</label>'
-      +'<input id="ehe-'+d+'" value="'+val.replace(/"/g,'&quot;')+'" list="hor-sugerencias" placeholder="LIBRE" style="width:100%;font-size:13px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+        +'<label style="font-size:11px;color:var(--text3);text-transform:uppercase">'+DIAS_LABEL[i]+'</label>'
+        +(extras>0?'<span style="font-size:10px;color:var(--amber)">+'+extras+'hs extra</span>':'')
+      +'</div>'
+      +'<select id="ehe-'+d+'" style="width:100%;font-size:13px;padding:6px 28px 6px 8px;border-radius:6px;background:var(--bg3);border:1px solid var(--border2);color:var(--text)" onchange="actualizarExtrasPreview()">'
+        +'<option value="">— Sin asignar —</option>'
+        +getHorOpciones(puesto).map(function(o){
+          return '<option value="'+o.val+'"'+(val===o.val?' selected':'')+'>'
+            +o.label+(o.horas>0?' ('+o.horas+'hs)':'')
+          +'</option>'
+        }).join('')
+      +'</select>'
     +'</div>'
   }).join('')
 
-  modal.innerHTML='<div class="modal" style="max-width:460px;max-height:90vh;overflow-y:auto">'
-    +'<div style="font-size:16px;font-weight:600;margin-bottom:4px;color:var(--text)">'+nombre+'</div>'
-    +'<div style="font-size:12px;color:var(--text3);margin-bottom:18px">'+semLabel+'</div>'
+  modal.innerHTML='<div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+      +'<div style="font-size:16px;font-weight:600;color:var(--text)">'+nombre+'</div>'
+      +'<span style="font-size:12px;color:var(--text3)">'+puesto+'</span>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--text3);margin-bottom:14px">'+semLabel+'</div>'
+    +'<div id="ehe-extras-preview" style="background:var(--amber-bg);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:12px;color:var(--amber);'+(extrasPreview>0?'':'display:none')+'">⏱ Horas extras esta semana: '+extrasPreview+'hs</div>'
     +dias_vals
     +'<div style="display:flex;gap:8px;margin-top:16px">'
       +'<button onclick="cerrarModalEmpHor()" style="flex:1">Cancelar</button>'
-      +'<button class="bp" data-desde="'+desde+'" data-nombre="'+nombre+'" onclick="guardarEditorEmpleadoBtn(this)" style="flex:2">Guardar semana</button>'
+      +'<button class="bp" data-desde="'+desde+'" data-nombre="'+nombre+'" data-puesto="'+puesto+'" onclick="guardarEditorEmpleadoBtn(this)" style="flex:2">Guardar y registrar extras</button>'
     +'</div>'
   +'</div>'
   document.body.appendChild(modal)
 }
 
+function actualizarExtrasPreview(){
+  var modal=document.getElementById('modal-emp-hor')
+  if(!modal)return
+  var btn=modal.querySelector('[data-puesto]')
+  var puesto=btn?btn.dataset.puesto:''
+  var total=DIAS.reduce(function(a,d){
+    var sel=document.getElementById('ehe-'+d)
+    return a+(sel?getHorasFromVal(sel.value,puesto):0)
+  },0)
+  var std=(HOR_HORAS_STD[puesto]||9)*6
+  var extras=Math.max(0,total-std)
+  var prev=document.getElementById('ehe-extras-preview')
+  if(prev){
+    if(extras>0){
+      prev.style.display='block'
+      prev.textContent='⏱ Horas extras esta semana: '+extras+'hs'
+    } else {
+      prev.style.display='none'
+    }
+  }
+}
+
 async function guardarEditorEmpleado(desde, nombre, btn){
+  var puesto=btn.dataset.puesto||''
   var upd={}
+  var diasConExtra=[]
   DIAS.forEach(function(d){
     var el=document.getElementById('ehe-'+d)
-    if(el) upd[d]=el.value.trim()
+    if(el){
+      upd[d]=el.value.trim()
+      var extra=calcExtras(el.value.trim(),puesto)
+      if(extra>0){
+        // Calcular fecha real del día
+        var semDate=new Date(desde+'T12:00:00')
+        var diaIdx=DIAS.indexOf(d)
+        var fechaDia=new Date(semDate)
+        fechaDia.setDate(semDate.getDate()+diaIdx)
+        diasConExtra.push({dia:d,horas:extra,fecha:fechaDia.toISOString().slice(0,10)})
+      }
+    }
   })
   btn.textContent='Guardando...'
   await db.from('horarios').update(upd).eq('semana_desde',desde).eq('empleado_nombre',nombre)
+
+  // Registrar horas extras automáticamente
+  if(diasConExtra.length>0){
+    var emp=horDatos.find(function(h){return h.empleado_nombre===nombre&&h.semana_desde===desde})
+    var empId=null
+    if(allUsers){var u=allUsers.find(function(x){return x.nombre===nombre});empId=u?u.id:null}
+    for(var i=0;i<diasConExtra.length;i++){
+      var dx=diasConExtra[i]
+      await db.from('horarios_extras').upsert({
+        empleado_nombre:nombre,
+        puesto:puesto,
+        fecha:dx.fecha,
+        tipo:'hora_extra',
+        horas:dx.horas,
+        descripcion:'Auto: '+upd[dx.dia],
+        aprobado:false,
+        mes:dx.fecha.slice(0,7)
+      },{onConflict:'empleado_nombre,fecha,tipo'})
+    }
+    mostrarToastCarp('Horario guardado — '+diasConExtra.length+' día(s) con horas extras registradas')
+  } else {
+    mostrarToastCarp('Horario guardado para '+nombre)
+  }
+
   document.getElementById('modal-emp-hor').remove()
   await loadHorarios()
   if(horContexto==='jefe') await loadHorariosJefe()
-  mostrarToastCarp('Horario guardado para '+nombre)
 }
 
 // ═══ TRASLADOS OB ═══
@@ -6500,6 +6579,84 @@ async function guardarTraslado(){
   mostrarToastCarp('Traslado registrado — comisión $300.000 pendiente de aprobación')
   await loadOBData()
   rOBMis()
+}
+
+function fmtCliente(nombre){
+  if(!nombre)return '—'
+  var partes=nombre.split(' / ')
+  if(partes.length===1)return nombre
+  return partes[0]+'<br><span style="font-size:11px;color:var(--text3)">+ '+partes[1]+'</span>'
+}
+
+// ═══ HORARIOS FIJOS POR PUESTO ═══
+const HOR_OPCIONES = {
+  // Captacion, promotores: 5hs
+  captacion: [
+    {val:'10 a 15 hs', horas:5, label:'10 a 15 hs (mañana)'},
+    {val:'15 a 20 hs', horas:5, label:'15 a 20 hs (tarde)'},
+    {val:'12 a 17 hs', horas:5, label:'12 a 17 hs'},
+    {val:'10 a 19 hs', horas:9, label:'10 a 19 hs (full time)'},
+    {val:'ACADEMIA', horas:0, label:'Academia'},
+    {val:'LIBRE', horas:0, label:'Libre'},
+    {val:'FERIADO', horas:0, label:'Feriado'},
+    {val:'LICENCIA', horas:0, label:'Licencia'},
+  ],
+  // Asesores, presentadores, pozo, jefes: 9hs
+  ventas: [
+    {val:'10 a 19 hs', horas:9, label:'10 a 19 hs'},
+    {val:'11 a 20 hs', horas:9, label:'11 a 20 hs'},
+    {val:'12 a 21 hs', horas:9, label:'12 a 21 hs'},
+    {val:'10 a 14:30 hs', horas:4.5, label:'10 a 14:30 hs (medio)'},
+    {val:'14:30 a 19 hs', horas:4.5, label:'14:30 a 19 hs (medio)'},
+    {val:'16 a 21 hs', horas:4.5, label:'16 a 21 hs (tarde)'},
+    {val:'ACADEMIA', horas:0, label:'Academia'},
+    {val:'LIBRE', horas:0, label:'Libre'},
+    {val:'FERIADO', horas:0, label:'Feriado'},
+    {val:'LICENCIA', horas:0, label:'Licencia'},
+  ],
+}
+
+// Horas estándar por puesto (para calcular extras)
+const HOR_HORAS_STD = {
+  promotor:5, coordinadora_promotores:9,
+  recepcion:5, pretester:5, host:5, detector_pozo:5,
+  presentador:9, enrutador:9,
+  asesor:9, asesor_pozo:9,
+  jefe_ahorro:9, jefe_pozo:9, jefe_captacion:9,
+  jefe_promotores:9, jefe_presentaciones:9,
+  on_boarding:9, admin:9,
+}
+
+function getHorOpciones(puesto){
+  var captPuestos=['promotor','coordinadora_promotores','recepcion','pretester','host','detector_pozo']
+  return captPuestos.includes(puesto)?HOR_OPCIONES.captacion:HOR_OPCIONES.ventas
+}
+
+function getHorasFromVal(val, puesto){
+  var opts=getHorOpciones(puesto)
+  var opt=opts.find(function(o){return o.val===val})
+  return opt?opt.horas:0
+}
+
+function calcExtras(val, puesto){
+  var horas=getHorasFromVal(val,puesto)
+  var std=HOR_HORAS_STD[puesto]||9
+  return Math.max(0, horas-std)
+}
+
+function mkHorSelect(puesto, valorActual, onchangeFn){
+  var opts=getHorOpciones(puesto)
+  var html='<select style="width:100%;font-size:13px;padding:6px 28px 6px 8px;border-radius:6px;background:var(--bg3);border:1px solid var(--border2);color:var(--text)"'
+  if(onchangeFn)html+=' onchange="'+onchangeFn+'"'
+  html+='>'
+  html+='<option value="">— Sin asignar —</option>'
+  opts.forEach(function(o){
+    html+='<option value="'+o.val+'"'+(valorActual===o.val?' selected':'')+'>'
+    html+=o.label+(o.horas>0?' ('+o.horas+'hs)':'')
+    html+='</option>'
+  })
+  html+='</select>'
+  return html
 }
 
 function abrirMyPass(){sh("modal-mypass")}

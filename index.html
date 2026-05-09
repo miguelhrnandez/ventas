@@ -6148,13 +6148,26 @@ function poblarMesesExtras(){
 
 // ── TABS ──
 function horTab(t,btn){
-  ['grilla','cambios','textras','empleados','rrhh','feriados'].forEach(function(x){hi('hor-t'+x)})
-  sh('hor-t'+t)
+  // Ocultar todos los paneles de horarios
+  var paneles=['grilla','cambios','textras','empleados','rrhh','feriados']
+  paneles.forEach(function(x){
+    var el=document.getElementById('hor-t'+x)
+    if(el)el.classList.add('hidden')
+  })
+  // Mostrar el panel pedido
+  var target=document.getElementById('hor-t'+t)
+  if(target)target.classList.remove('hidden')
+  // Active button
   document.querySelectorAll('#adm-Thor .nav button').forEach(function(b){b.classList.remove('active')})
   if(btn)btn.classList.add('active')
+  // Cargar datos según pestaña
   if(t==='cambios')loadCambios()
   if(t==='empleados'){poblarSelectsSemanaHorariosEmpleados();loadEmpleadosGrilla()}
-  if(t==='rrhh'){poblarPeriodosRRHH();loadRRHH()}
+  if(t==='rrhh'){
+    poblarPeriodosRRHH()
+    html('rrhh-tabla','<div class="es">Seleccioná un período para ver el reporte</div>')
+    html('rrhh-cards','')
+  }
   if(t==='feriados'){loadFeriados()}
 }
 

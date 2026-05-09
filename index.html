@@ -6442,19 +6442,39 @@ function abrirEditorEmpleado(desde, nombre){
   var dias_vals=DIAS.map(function(d,i){
     var val=emp[d]||''
     var extras=calcExtras(val,puesto)
+    // Si el valor actual no está en las opciones predefinidas, es especial
+    var opts=getHorOpciones(puesto)
+    var esEspecial=val&&!opts.find(function(o){return o.val===val})
     return '<div style="margin-bottom:10px">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
         +'<label style="font-size:11px;color:var(--text3);text-transform:uppercase">'+DIAS_LABEL[i]+'</label>'
-        +(extras>0?'<span style="font-size:10px;color:var(--amber)">+'+extras+'hs extra</span>':'')
+        +'<div style="display:flex;gap:6px;align-items:center">'
+          +(extras>0?'<span style="font-size:10px;color:var(--amber)">+'+extras+'hs extra</span>':'')
+          +(esEspecial?'<span style="font-size:10px;color:var(--purple)">✦ especial</span>':'')
+          +'<button data-dia="'+d+'" onclick="toggleHorEspecialBtn(this)" style="font-size:10px;padding:2px 7px;border-radius:4px;background:var(--bg4);border:1px solid var(--border2);color:var(--text3);cursor:pointer">⚙ especial</button>'
+        +'</div>'
       +'</div>'
-      +'<select id="ehe-'+d+'" style="width:100%;font-size:13px;padding:6px 28px 6px 8px;border-radius:6px;background:var(--bg3);border:1px solid var(--border2);color:var(--text)" onchange="actualizarExtrasPreview()">'
-        +'<option value="">— Sin asignar —</option>'
-        +getHorOpciones(puesto).map(function(o){
-          return '<option value="'+o.val+'"'+(val===o.val?' selected':'')+'>'
-            +o.label+(o.horas>0?' ('+o.horas+'hs)':'')
-          +'</option>'
-        }).join('')
-      +'</select>'
+      // Select normal
+      +'<div id="ehe-wrap-sel-'+d+'" style="'+(esEspecial?'display:none':'')+'">'
+        +'<select id="ehe-'+d+'" style="width:100%;font-size:13px;padding:6px 28px 6px 8px;border-radius:6px;background:var(--bg3);border:1px solid var(--border2);color:var(--text)" onchange="actualizarExtrasPreview()">'
+          +'<option value="">— Sin asignar —</option>'
+          +opts.map(function(o){
+            return '<option value="'+o.val+'"'+(val===o.val?' selected':'')+'>'
+              +o.label+(o.horas>0?' ('+o.horas+'hs)':'')
+            +'</option>'
+          }).join('')
+        +'</select>'
+      +'</div>'
+      // Input especial (oculto por defecto)
+      +'<div id="ehe-wrap-inp-'+d+'" style="'+(esEspecial?'':'display:none')+'">'
+        +'<div style="display:flex;gap:6px;align-items:center">'
+          +'<input id="ehe-inp-'+d+'" value="'+(esEspecial?val:'')+'" placeholder="Ej: 13 a 18 hs" '
+            +'style="flex:1;font-size:13px;padding:6px 10px;border-radius:6px;background:var(--bg3);border:1px solid var(--purple);color:var(--text)">'
+          +'<input id="ehe-inp-hs-'+d+'" type="number" min="0" max="12" step="0.5" placeholder="hs" '
+            +'style="width:60px;font-size:13px;padding:6px 8px;border-radius:6px;background:var(--bg3);border:1px solid var(--purple);color:var(--text)" title="Horas trabajadas">'
+        +'</div>'
+        +'<div style="font-size:10px;color:var(--text3);margin-top:3px">Ingresá el horario y las horas trabajadas</div>'
+      +'</div>'
     +'</div>'
   }).join('')
 
@@ -6472,6 +6492,27 @@ function abrirEditorEmpleado(desde, nombre){
     +'</div>'
   +'</div>'
   document.body.appendChild(modal)
+}
+
+function toggleHorEspecialBtn(btn){toggleHorEspecial(btn.dataset.dia)}
+function toggleHorEspecial(dia){
+  var wrapSel=document.getElementById('ehe-wrap-sel-'+dia)
+  var wrapInp=document.getElementById('ehe-wrap-inp-'+dia)
+  if(!wrapSel||!wrapInp)return
+  var mostrando=wrapInp.style.display!=='none'
+  if(mostrando){
+    // Volver al select
+    wrapSel.style.display='block'
+    wrapInp.style.display='none'
+  } else {
+    // Mostrar input especial
+    wrapSel.style.display='none'
+    wrapInp.style.display='block'
+    // Copiar valor actual del select al input
+    var sel=document.getElementById('ehe-'+dia)
+    var inp=document.getElementById('ehe-inp-'+dia)
+    if(sel&&inp&&sel.value&&sel.value!=='LIBRE'&&sel.value!=='ACADEMIA')inp.value=sel.value
+  }
 }
 
 function actualizarExtrasPreview(){
@@ -6501,62 +6542,51 @@ async function guardarEditorEmpleado(desde, nombre, btn){
   var upd={}
   var diasConExtra=[]
   DIAS.forEach(function(d){
-    var el=document.getElementById('ehe-'+d)
-    if(el){
-      upd[d]=el.value.trim()
-      var extra=calcExtras(el.value.trim(),puesto)
-      if(extra>0){
-        // Calcular fecha real del día
-        var semDate=new Date(desde+'T12:00:00')
-        var diaIdx=DIAS.indexOf(d)
-        var fechaDia=new Date(semDate)
-        fechaDia.setDate(semDate.getDate()+diaIdx)
-        diasConExtra.push({dia:d,horas:extra,fecha:fechaDia.toISOString().slice(0,10)})
-      }
+    var wrapInp=document.getElementById('ehe-wrap-inp-'+d)
+    var esEspecial=wrapInp&&wrapInp.style.display!=='none'
+    var valor=''
+    var horasEspecial=0
+    if(esEspecial){
+      var inpVal=document.getElementById('ehe-inp-'+d)
+      var inpHs=document.getElementById('ehe-inp-hs-'+d)
+      valor=inpVal?inpVal.value.trim():''
+      horasEspecial=inpHs?parseFloat(inpHs.value)||0:0
+    } else {
+      var el=document.getElementById('ehe-'+d)
+      valor=el?el.value.trim():''
+    }
+    upd[d]=valor
+    var std=HOR_HORAS_STD[puesto]||9
+    var horas=esEspecial?horasEspecial:getHorasFromVal(valor,puesto)
+    var extra=Math.max(0,horas-std)
+    if(extra>0){
+      var semDate=new Date(desde+'T12:00:00')
+      var diaIdx=DIAS.indexOf(d)
+      var fechaDia=new Date(semDate)
+      fechaDia.setDate(semDate.getDate()+diaIdx)
+      diasConExtra.push({dia:d,horas:extra,fecha:fechaDia.toISOString().slice(0,10)})
     }
   })
   btn.textContent='Guardando...'
   await db.from('horarios').update(upd).eq('semana_desde',desde).eq('empleado_nombre',nombre)
-
-  // Registrar horas extras automáticamente
   if(diasConExtra.length>0){
-    var emp=horDatos.find(function(h){return h.empleado_nombre===nombre&&h.semana_desde===desde})
-    var empId=null
-    if(allUsers){var u=allUsers.find(function(x){return x.nombre===nombre});empId=u?u.id:null}
     for(var i=0;i<diasConExtra.length;i++){
       var dx=diasConExtra[i]
       await db.from('horarios_extras').upsert({
-        empleado_nombre:nombre,
-        puesto:puesto,
-        fecha:dx.fecha,
-        tipo:'hora_extra',
-        horas:dx.horas,
-        descripcion:'Auto: '+upd[dx.dia],
-        aprobado:false,
-        mes:dx.fecha.slice(0,7)
+        empleado_nombre:nombre,puesto:puesto,fecha:dx.fecha,
+        tipo:'hora_extra',horas:dx.horas,
+        descripcion:'Auto: '+upd[dx.dia],aprobado:false,mes:dx.fecha.slice(0,7)
       },{onConflict:'empleado_nombre,fecha,tipo'})
     }
-    mostrarToastCarp('Horario guardado — '+diasConExtra.length+' día(s) con horas extras registradas')
+    mostrarToastCarp('Horario guardado — '+diasConExtra.length+' día(s) con horas extras')
   } else {
     mostrarToastCarp('Horario guardado para '+nombre)
   }
-
   document.getElementById('modal-emp-hor').remove()
   await loadHorarios()
   if(horContexto==='jefe') await loadHorariosJefe()
 }
 
-// ═══ TRASLADOS OB ═══
-var trasladoOpId=null
-
-function openTraslado(opId, cliente){
-  trasladoOpId=opId
-  document.getElementById('mot-info').textContent='Cliente: '+cliente
-  document.getElementById('mot-fecha').value=new Date().toISOString().slice(0,10)
-  document.getElementById('mot-obs').value=''
-  hi('mot-err')
-  sh('modal-ob-traslado')
-}
 
 async function guardarTraslado(){
   hi('mot-err')

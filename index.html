@@ -2108,7 +2108,9 @@ async function showJV(){
   const rolLabel='Jefe de ventas - Plan '+pl
   document.getElementById('SJV-sb').innerHTML=mkSidebar([
     {id:'cp',label:'Ventas de mi plan',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',fn:"jvTab('cp',document.getElementById('sbitem-cp'))"},
-    {id:'co',label:'Mis cobros',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"jvTab('co',document.getElementById('sbitem-co'))"}
+    {id:'co',label:'Mis cobros',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"jvTab('co',document.getElementById('sbitem-co'))"},
+    {sep:true},
+    {id:'hor',label:'Horarios',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',fn:"jvTab('hor',document.getElementById('sbitem-hor'))"}
   ],'cp',CU.nombre,rolLabel,false)
   const{data}=await db.from('operaciones').select('*').eq('plan',pl).order('fecha',{ascending:false})
   jvOps=(data||[]).filter(x=>categ(x.monto).isVenta);rJVStats();rJVCarp()
@@ -7078,6 +7080,72 @@ async function poblarPeriodosRRHH(){
   // Pre-seleccionar mes actual
   var mesActual=new Date().toISOString().slice(0,7)
   sel.value='mes:'+mesActual
+}
+
+// Panel de horarios embebido para jefes (JV, JP, etc.)
+async function initJefeHorariosPanel(containerId){
+  horContexto='jefe'
+  await loadSemanasRef()
+  var r=CU.role||CU.rol
+
+  // Crear UI de horarios dentro del contenedor
+  var el=document.getElementById(containerId)
+  if(!el)return
+
+  // Poblar meses
+  var meses=new Map()
+  todasSemanasRef.forEach(function(s){
+    if(!meses.has(s.mes)){
+      var d=new Date(s.mes+'-15T12:00:00')
+      var label=d.toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+      meses.set(s.mes,label.charAt(0).toUpperCase()+label.slice(1))
+    }
+  })
+  var arr=Array.from(meses.entries()).sort(function(a,b){return b[0].localeCompare(a[0])})
+  var mesOpts=arr.map(function(m){return '<option value="'+m[0]+'">'+m[1]+'</option>'}).join('')
+
+  // Semana actual
+  var hoy=new Date().toISOString().slice(0,10)
+  var semActual=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
+  var mesActual=semActual?semActual.mes:arr[0]?arr[0][0]:''
+  var semsDeMes=todasSemanasRef.filter(function(s){return s.mes===mesActual})
+  var semOpts=semsDeMes.map(function(s){return '<option value="'+s.semana_desde+'"'+(semActual&&s.semana_desde===semActual.semana_desde?' selected':'')+'>'+s.semana_label+'</option>'}).join('')
+
+    +'<select id="jefe-hor-mes-'+containerId+'" data-cid="'+containerId+'" onchange="onJefeHorMesChangeCid(this)" style="width:auto;font-size:13px;min-width:150px">'+mesOpts+'</select>'
+    +'<select id="jefe-hor-mes-'+containerId+'" data-cid="'+containerId+'" onchange="onJefeHorMesChangeCid(this)" style="width:auto;font-size:13px;min-width:150px">'+mesOpts+'</select>'
+    +'<select id="jefe-hor-sem-'+containerId+'" data-cid="'+containerId+'" onchange="loadJefeHorEnPanelCid(this)" style="width:auto;font-size:13px;min-width:210px">'+semOpts+'</select>'
+    +'</div>'
+    +'<div id="jefe-hor-grilla-'+containerId+'"></div>'
+
+  // Seleccionar mes actual
+  var selMes=document.getElementById('jefe-hor-mes-'+containerId)
+  if(selMes)selMes.value=mesActual
+
+  await loadJefeHorariosEnPanel(containerId)
+}
+
+function onJefeHorMesChangeCid(el){onJefeHorMesChange(el.dataset.cid)}
+function loadJefeHorEnPanelCid(el){loadJefeHorariosEnPanel(el.dataset.cid)}
+function onJefeHorMesChange(containerId){
+  var mes=document.getElementById('jefe-hor-mes-'+containerId)?.value
+  if(!mes)return
+  var semsDeMes=todasSemanasRef.filter(function(s){return s.mes===mes})
+  var sel=document.getElementById('jefe-hor-sem-'+containerId)
+  if(!sel)return
+  sel.innerHTML=semsDeMes.map(function(s){return '<option value="'+s.semana_desde+'">'+s.semana_label+'</option>'}).join('')
+  loadJefeHorariosEnPanel(containerId)
+}
+
+async function loadJefeHorariosEnPanel(containerId){
+  var desde=document.getElementById('jefe-hor-sem-'+containerId)?.value
+  if(!desde)return
+  var r=CU.role||CU.rol
+  var puestos=JEFE_PUESTOS[r]
+  var q=db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  if(puestos)q=q.in('puesto',puestos)
+  var res=await q
+  horDatos=res.data||[]
+  rHorGrilla('jefe-hor-grilla-'+containerId, desde, true)
 }
 
 function abrirMyPass(){sh("modal-mypass")}

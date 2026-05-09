@@ -1340,6 +1340,26 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
   </div>
 </div>
 
+<!-- MODAL TRASLADO OB -->
+<div id="modal-ob-traslado" class="modal-bg hidden">
+  <div class="modal" style="max-width:460px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Registrar traslado a Plan Pozo</div>
+    <div id="mot-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
+    <div style="background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--green)">
+      💰 Comisión por traslado: <strong>$300.000</strong>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label>Fecha del traslado</label><input id="mot-fecha" type="date"></div>
+      <div><label>Observaciones (opcional)</label><input id="mot-obs" placeholder="Ej: Cliente completó plan ahorro 60 cuotas"></div>
+      <div id="mot-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-ob-traslado')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarTraslado()" style="flex:2">Confirmar traslado</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL SEMANAS PREMIOS -->
 <div id="modal-prm-semana" class="modal-bg hidden">
   <div class="modal" style="max-width:520px">
@@ -1501,12 +1521,16 @@ function categ(m){
   if(m<200000)return{label:'Venta bonificada',cls:'b-bonificada',isVenta:true}
   return{label:'Venta completa',cls:'b-completa',isVenta:true}
 }
-function calcC(m){
+function calcC(m,isOB){if(isOB)return Math.min(m*0.55,250000)
+  
   if(m<100000)return 0
   if(m<200000)return Math.min(m*0.5,250000)
   return Math.min(m*0.5,250000)
 }
-function calcJV(m){return m<100000?0:m*0.165}
+function calcJV(m,esOB){
+  if(m<100000||esOB)return 0
+  return m*0.165
+}
 
 function getPer(ds){
   // Semana: viernes a jueves
@@ -1867,7 +1891,7 @@ function rAStats(){
   html('a-stats',`<div class="sc"><div class="sv">${vcompl.length}</div><div class="sl">Ventas completas</div></div>
     <div class="sc"><div class="sv">${vbon.length}</div><div class="sl">Ventas bonificadas</div></div>
     <div class="sc"><div class="sv">${res.length}</div><div class="sl">Reservas</div></div>
-    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto),0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
 }
 function rAOps(){
   if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciones</div>');return}
@@ -1965,8 +1989,8 @@ function rACom(){
   const byP={}
   ops.forEach(op=>{const p=getPer(op.fecha_tesoreria||op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
-  const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
-  const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+  const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
+  const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
 
   let filtros='<div class="card" style="margin-bottom:16px">'
     +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
@@ -1990,8 +2014,8 @@ function rACom(){
   ks.forEach(k=>{
     const p=byP[k]
     const acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
-    const tot=acp.reduce((a,x)=>a+calcC(x.monto),0)
-    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto),0)
+    const tot=acp.reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
+    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
     let filas=''
     p.ops.forEach(op=>{
       const c=categ(op.monto)
@@ -2001,7 +2025,7 @@ function rACom(){
         +'<td>'+op.plan+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
+        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto,op.es_ob_venta)):'pendiente')+'</td>'
         +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
         +'</tr>'
     })
@@ -2055,7 +2079,7 @@ async function showJV(){
   jvOps=(data||[]).filter(x=>categ(x.monto).isVenta);rJVStats();rJVCarp()
 }
 function rJVStats(){
-  const acp=jvOps.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto),0)
+  const acp=jvOps.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
   html('jv-stats',`<div class="sc"><div class="sv">${jvOps.length}</div><div class="sl">Ventas de mi plan</div></div>
     <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Carpetas aceptadas</div></div>
     <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(tot)}</div><div class="sl">Mis cobros</div></div>`)
@@ -2069,8 +2093,8 @@ function rJVCarp(){
   ks.forEach(k=>{
     const p=byP[k]
     const acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
-    const tot=acp.reduce((a,x)=>a+calcJV(x.monto),0)
-    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcJV(x.monto),0)
+    const tot=acp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
+    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
     let filas=''
     p.ops.forEach(op=>{
       const c=categ(op.monto)
@@ -2080,7 +2104,7 @@ function rJVCarp(){
         +'<td>'+(op.unidad||'-')+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcJV(op.monto)):'pendiente')+'</td>'
+        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt((op.es_ob_venta?0:calcJV(op.monto,!!op.ob_id))):'pendiente')+'</td>'
         +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
         +'</tr>'
     })
@@ -2110,7 +2134,7 @@ function rJVCob(){
   const byP={}
   ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
-  const totalGral=ops.reduce((a,x)=>a+calcJV(x.monto),0)
+  const totalGral=ops.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
   let filtros='<div class="card" style="margin-bottom:16px">'
     +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
       +'<span style="font-size:13px;color:var(--text2)">Filtrar:</span>'
@@ -2125,7 +2149,7 @@ function rJVCob(){
   let out=filtros
   ks.forEach(k=>{
     const p=byP[k]
-    const tot=p.ops.reduce((a,x)=>a+calcJV(x.monto),0)
+    const tot=p.ops.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
     let filas=''
     p.ops.forEach(op=>{
       filas+='<tr>'
@@ -2134,7 +2158,7 @@ function rJVCob(){
         +'<td style="color:var(--text)">'+op.cliente+'</td>'
         +'<td>'+op.plan+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
-        +'<td class="ag">'+fmt(calcJV(op.monto))+'</td>'
+        +'<td class="ag">'+fmt((op.es_ob_venta?0:calcJV(op.monto,!!op.ob_id)))+'</td>'
         +'</tr>'
     })
     out+='<div class="card" style="margin-bottom:14px">'
@@ -2174,7 +2198,7 @@ function rPrStats(){
   const acp=prOps.filter(x=>x.pago_presentador==='aceptado')
   html('pr-stats',`<div class="sc"><div class="sv">${prOps.length}</div><div class="sl">Ventas de mis charlas</div></div>
     <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Pagos aceptados</div></div>
-    <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(acp.length*74000)}</div><div class="sl">Total a cobrar</div></div>`)
+    <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(acp.length*66000)}</div><div class="sl">Total a cobrar</div></div>`)
 }
 function rPrOps(){
   const desde=document.getElementById('pr-desde')?.value||''
@@ -2185,7 +2209,7 @@ function rPrOps(){
   const byP={}
   ops.forEach(op=>{const p=getPer(op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
-  const totalAcp=ops.filter(x=>x.pago_presentador==='aceptado').length*74000
+  const totalAcp=ops.filter(x=>x.pago_presentador==='aceptado').length*66000
   const totalPend=ops.filter(x=>x.pago_presentador!=='aceptado').length
   let filtros='<div class="card" style="margin-bottom:16px">'
     +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
@@ -2205,7 +2229,7 @@ function rPrOps(){
   ks.forEach(k=>{
     const p=byP[k]
     const acp=p.ops.filter(x=>x.pago_presentador==='aceptado')
-    const tot=acp.length*74000
+    const tot=acp.length*66000
     let filas=''
     p.ops.forEach(op=>{
       filas+='<tr>'
@@ -2213,7 +2237,7 @@ function rPrOps(){
         +'<td>'+op.asesor_nombre+'</td>'
         +'<td style="color:var(--text)">'+op.cliente+'</td>'
         +'<td>'+op.plan+'</td>'
-        +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(74000):'pendiente')+'</td>'
+        +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(66000):'pendiente')+'</td>'
         +'<td>'+badgeE(op.pago_presentador||'pendiente')+'</td>'
         +'</tr>'
     })
@@ -2258,7 +2282,7 @@ function rJPOps(){
       +'<td>'+op.asesor_nombre+'</td>'
       +'<td>'+op.cliente+'</td>'
       +'<td>'+op.plan+'</td>'
-      +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(74000):'pendiente')+'</td>'
+      +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(66000):'pendiente')+'</td>'
       +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(35000):'pendiente')+'</td>'
       +'<td>'+badgeE(op.pago_presentador||'pendiente')+'</td>'
       +'</tr>'
@@ -3049,7 +3073,7 @@ async function showAdm(){
 }
 function rAdmStats(){
   const vn=allOps.filter(x=>categ(x.monto).isVenta),rs=allOps.filter(x=>!categ(x.monto).isVenta),acp=vn.filter(x=>x.carpeta_tesoreria==='aceptada')
-  const totComAsesores=vn.reduce((a,x)=>a+calcC(x.monto),0)
+  const totComAsesores=vn.reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
   html('adm-stats',`<div class="sc"><div class="sv">${vn.length}</div><div class="sl">Ventas totales</div></div>
     <div class="sc"><div class="sv">${rs.length}</div><div class="sl">Reservas</div></div>
     <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Aceptadas tesoreria</div></div>
@@ -3131,9 +3155,9 @@ function rAdmCarp(){
     const p=byP[k]
     const abierta=carpetaAbierta===k
     const opAcp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
-    const totAcp=opAcp.reduce((a,x)=>a+calcC(x.monto),0)
-    const totJV=opAcp.reduce((a,x)=>a+calcJV(x.monto),0)
-    const totPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*74000
+    const totAcp=opAcp.reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
+    const totJV=opAcp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
+    const totPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*66000
     const totJPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*35000
     const grandTotal=totAcp+totJV+totPres+totJPres
     const counts={
@@ -3179,7 +3203,7 @@ function rAdmCarp(){
         +'<td>'+(op.unidad||'-')+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto)):'pendiente')+'</td>'
+        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto,op.es_ob_venta)):'pendiente')+'</td>'
         +'<td>'+tesCell+'</td>'
         +'<td>'+llevadaCell+'</td>'
         +'<td><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+btnAceptar+btnDenegar+menu
@@ -3395,11 +3419,11 @@ function rAdmCom(){
   html('adm-cob',ks.map(k=>{
     const p=byP[k]
     const porAs={}
-    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesoreria==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto)}else{porAs[op.asesor_id].comPend+=calcC(op.monto)};porAs[op.asesor_id].ops+=1})
-    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),opAhAcp=opAh.filter(x=>x.carpeta_tesoreria==='aceptada'),comJA=opAhAcp.reduce((a,x)=>a+calcJV(x.monto),0)
-    const opPo=p.ops.filter(x=>x.plan==='Pozo'),opPoAcp=opPo.filter(x=>x.carpeta_tesoreria==='aceptada'),comJP=opPoAcp.reduce((a,x)=>a+calcJV(x.monto),0)
+    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesoreria==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto,op.es_ob_venta)}else{porAs[op.asesor_id].comPend+=calcC(op.monto,op.es_ob_venta)};porAs[op.asesor_id].ops+=1})
+    const opAh=p.ops.filter(x=>x.plan==='Ahorro'),opAhAcp=opAh.filter(x=>x.carpeta_tesoreria==='aceptada'),comJA=opAhAcp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
+    const opPo=p.ops.filter(x=>x.plan==='Pozo'),opPoAcp=opPo.filter(x=>x.carpeta_tesoreria==='aceptada'),comJP=opPoAcp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
     const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id&&getPer(x.fecha_pago_presentador||x.fecha_carpeta||x.fecha).key===k)
-    const comPres=presAcp.length*74000,comJPres=presAcp.length*35000
+    const comPres=presAcp.length*66000,comJPres=presAcp.length*35000
     // OB
     const obMap={}
     allObMovs.filter(m=>{
@@ -3446,7 +3470,7 @@ function rAdmCom(){
                 if(!porPres[op.presentador_id])porPres[op.presentador_id]={nombre:op.presentador_nombre,id:op.presentador_id,cnt:0}
                 porPres[op.presentador_id].cnt++
               })
-              const rowsPres=Object.values(porPres).map(pr=>({nombre:pr.nombre,rolKey:'presentador',presId:pr.id,total:pr.cnt*74000,det:pr.cnt+' venta'+(pr.cnt!==1?'s':'')+' - $74.000 c/u',colorCls:'ag'}))
+              const rowsPres=Object.values(porPres).map(pr=>({nombre:pr.nombre,rolKey:'presentador',presId:pr.id,total:pr.cnt*66000,det:pr.cnt+' venta'+(pr.cnt!==1?'s':'')+' - $66.000 c/u',colorCls:'ag'}))
               const rowJPres=presAcp.length>0?[{nombre:jefeJP?jefeJP.nombre:'Jefe Pres.',rolKey:'jefe_presentaciones',opsJefe:presAcp,total:comJPres,det:presAcp.length+' venta'+(presAcp.length!==1?'s':'')+' - $35.000 c/u',colorCls:'ag'}]:[]
               return[...rowsPres,...rowJPres]
             })(),
@@ -3462,7 +3486,7 @@ function rAdmCom(){
               detalleHtml='<tr id="comdet-'+k+'-'+r.aid+'" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
               opsAsesor.forEach(function(op){
                 var c=categ(op.monto)
-                var com=op.carpeta_tesoreria==='aceptada'?'<span class="ag">'+fmt(calcC(op.monto))+'</span>':'<span style="color:var(--amber)">pend.</span>'
+                var com=op.carpeta_tesoreria==='aceptada'?'<span class="ag">'+fmt(calcC(op.monto,op.es_ob_venta))+'</span>':'<span style="color:var(--amber)">pend.</span>'
                 detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">'
                   +'<span style="color:var(--text)">'+op.cliente+'</span>'
                   +'<span style="display:flex;gap:12px;align-items:center">'
@@ -3481,7 +3505,7 @@ function rAdmCom(){
                 var tesBadge=op.carpeta_tesoreria==='aceptada'?'<span class="badge b-acp" style="font-size:10px">Aceptada</span>':'<span class="badge b-pend" style="font-size:10px">Pendiente</span>'
                 detalleHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">'
                   +'<span style="color:var(--text)">'+op.cliente+' <span style="color:var(--text3);font-size:11px">('+op.asesor_nombre+')</span></span>'
-                  +'<span style="display:flex;gap:10px;align-items:center">'+tesBadge+'<span class="am">'+fmt(op.monto)+'</span><span class="ag">'+fmt(calcJV(op.monto))+'</span></span>'
+                  +'<span style="display:flex;gap:10px;align-items:center">'+tesBadge+'<span class="am">'+fmt(op.monto)+'</span><span class="ag">'+fmt((op.es_ob_venta?0:calcJV(op.monto,!!op.ob_id)))+'</span></span>'
                 +'</div>'
               })
               detalleHtml+='</div></td></tr>'
@@ -3498,7 +3522,7 @@ function rAdmCom(){
               var opsPres=presAcp.filter(x=>x.presentador_id===r.presId)
               detalleHtml='<tr id="comdet-'+k+'-pr-'+r.presId+'" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
               opsPres.forEach(function(op){
-                detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text)">'+op.cliente+' ('+op.asesor_nombre+')</span><span class="ag">'+fmt(74000)+'</span></div>'
+                detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text)">'+op.cliente+' ('+op.asesor_nombre+')</span><span class="ag">'+fmt(66000)+'</span></div>'
               })
               detalleHtml+='</div></td></tr>'
             } else if(r.rolKey==='on_boarding'&&r.obMovs){
@@ -6429,6 +6453,53 @@ async function guardarEditorEmpleado(desde, nombre, btn){
   await loadHorarios()
   if(horContexto==='jefe') await loadHorariosJefe()
   mostrarToastCarp('Horario guardado para '+nombre)
+}
+
+// ═══ TRASLADOS OB ═══
+var trasladoOpId=null
+
+function openTraslado(opId, cliente){
+  trasladoOpId=opId
+  document.getElementById('mot-info').textContent='Cliente: '+cliente
+  document.getElementById('mot-fecha').value=new Date().toISOString().slice(0,10)
+  document.getElementById('mot-obs').value=''
+  hi('mot-err')
+  sh('modal-ob-traslado')
+}
+
+async function guardarTraslado(){
+  hi('mot-err')
+  var fecha=document.getElementById('mot-fecha').value
+  var obs=document.getElementById('mot-obs').value.trim()
+  if(!fecha){sh('mot-err');document.getElementById('mot-err').textContent='Selecciona una fecha';return}
+  
+  var op=obOps.find(function(x){return x.id===trasladoOpId})
+  if(!op)return
+
+  var{error}=await db.from('ob_traslados').insert({
+    operacion_id:trasladoOpId,
+    ob_id:CU.id,
+    ob_nombre:CU.nombre,
+    cliente:op.cliente,
+    asesor_nombre:op.asesor_nombre,
+    fecha_traslado:fecha,
+    comision:300000,
+    obs:obs,
+    estado:'pendiente'
+  })
+  
+  if(error){
+    // Si la tabla no existe, mostrar instrucción
+    sh('mot-err')
+    document.getElementById('mot-err').textContent='Error: '+error.message
+    return
+  }
+  
+  hi('modal-ob-traslado')
+  trasladoOpId=null
+  mostrarToastCarp('Traslado registrado — comisión $300.000 pendiente de aprobación')
+  await loadOBData()
+  rOBMis()
 }
 
 function abrirMyPass(){sh("modal-mypass")}

@@ -234,9 +234,9 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
     <button onclick="jhrTab('cambios',this)">Solicitudes</button>
     <button onclick="jhrTab('extras',this)">Extras / Feriados</button>
   </div>
-  <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-    <select id="jhr-semana" onchange="loadHorariosJefe()" style="width:auto;font-size:13px"></select>
-    <button class="bp" onclick="openHorNuevaSemanaJefe()" style="font-size:12px;padding:6px 14px">+ Nueva semana</button>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+    <select id="jhr-mes" onchange="onJhrMesChange()" style="width:auto;font-size:13px;min-width:140px"></select>
+    <select id="jhr-semana" onchange="loadHorariosJefe()" style="width:auto;font-size:13px;min-width:200px"></select>
   </div>
   <div id="jhr-tgrilla"><div id="jhr-grilla-body"></div></div>
   <div id="jhr-tcambios" class="hidden"><div id="jhr-cambios-body"></div></div>
@@ -5542,17 +5542,95 @@ function horColor(val){
   return HOR_COLOR[v]||'color:var(--text)'
 }
 
+// Semanas de referencia del año completo
+let todasSemanasRef=[]
+
 async function initHorarios(ctx){
   horContexto=ctx||'admin'
+  await loadSemanasRef()
+  poblarMesesHor()
+  // Seleccionar semana actual por defecto
+  var hoy=new Date().toISOString().slice(0,10)
+  var semActual=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
+  if(semActual){
+    document.getElementById('hor-mes').value=semActual.mes
+    onHorMesChange(semActual.semana_desde)
+  } else {
+    onHorMesChange()
+  }
+}
+
+async function loadSemanasRef(){
+  // Intentar cargar desde tabla semanas_referencia
+  const{data,error}=await db.from('semanas_referencia').select('*').order('semana_desde',{ascending:false})
+  if(!error&&data&&data.length){
+    todasSemanasRef=data
+  } else {
+    // Fallback: generar en el frontend si la tabla no existe aún
+    todasSemanasRef=generarSemanasAnio(2025,2027)
+  }
+  // También cargar las que están en horarios (pueden tener labels personalizados)
   await loadHorSemanas()
-  poblarSelectSemanaHor('hor-semana')
+}
+
+function generarSemanasAnio(anioDesde, anioHasta){
+  var semanas=[], d=new Date(anioDesde+'-12-13T12:00:00')
+  while(d.getFullYear()<=anioHasta){
+    var sat=new Date(d)
+    var thu=new Date(d); thu.setDate(sat.getDate()+6)
+    var sd=sat.toISOString().slice(0,10), sh=thu.toISOString().slice(0,10)
+    var label='Semana '+String(sat.getDate()).padStart(2,'0')+'/'+String(sat.getMonth()+1).padStart(2,'0')+' al '+String(thu.getDate()).padStart(2,'0')+'/'+String(thu.getMonth()+1).padStart(2,'0')
+    semanas.push({semana_desde:sd,semana_hasta:sh,semana_label:label,mes:sd.slice(0,7)})
+    d.setDate(d.getDate()+7)
+  }
+  return semanas
+}
+
+function poblarMesesHor(){
+  var sel=document.getElementById('hor-mes')
+  if(!sel)return
+  var meses=new Map()
+  todasSemanasRef.forEach(function(s){
+    if(!meses.has(s.mes)){
+      var d=new Date(s.mes+'-15T12:00:00')
+      var label=d.toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+      label=label.charAt(0).toUpperCase()+label.slice(1)
+      meses.set(s.mes,label)
+    }
+  })
+  // Ordenar desc
+  var arr=Array.from(meses.entries()).sort(function(a,b){return b[0].localeCompare(a[0])})
+  sel.innerHTML=arr.map(function(m){return '<option value="'+m[0]+'">'+m[1]+'</option>'}).join('')
+}
+
+function onHorMesChange(preselect){
+  var mes=document.getElementById('hor-mes')?.value
+  if(!mes)return
+  var semDeMes=todasSemanasRef.filter(function(s){return s.mes===mes})
+  var sel=document.getElementById('hor-semana')
+  if(!sel)return
+  sel.innerHTML=semDeMes.map(function(s){
+    return '<option value="'+s.semana_desde+'">'+s.semana_label+'</option>'
+  }).join('')
+  if(preselect)sel.value=preselect
   loadHorarios()
 }
 
 async function initHorariosJefe(){
   horContexto='jefe'
-  await loadHorSemanas()
-  poblarSelectSemanaHor('jhr-semana')
+  await loadSemanasRef()
+  poblarMesesHor()
+  // Copiar el selector de mes/semana al panel jefe
+  var mesJ=document.getElementById('jhr-mes')
+  var semJ=document.getElementById('jhr-semana')
+  if(mesJ){
+    var mesA=document.getElementById('hor-mes')
+    if(mesA)mesJ.innerHTML=mesA.innerHTML
+  }
+  // Seleccionar semana actual
+  var hoy=new Date().toISOString().slice(0,10)
+  var semActual=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
+  if(semActual&&semJ)semJ.value=semActual.semana_desde
   loadHorariosJefe()
   loadCambiosJefe()
 }
@@ -6959,6 +7037,47 @@ async function loadRRHH(){
 async function recalcularRRHH(){
   mostrarToastCarp('Recalculando...')
   await loadRRHH()
+}
+
+function onJhrMesChange(){
+  var mes=document.getElementById('jhr-mes')?.value
+  if(!mes)return
+  var semDeMes=todasSemanasRef.filter(function(s){return s.mes===mes})
+  var sel=document.getElementById('jhr-semana')
+  if(!sel)return
+  sel.innerHTML=semDeMes.map(function(s){
+    return '<option value="'+s.semana_desde+'">'+s.semana_label+'</option>'
+  }).join('')
+  loadHorariosJefe()
+}
+
+// También actualizar poblarPeriodosRRHH para usar semanas_referencia
+async function poblarPeriodosRRHH(){
+  if(!todasSemanasRef.length)await loadSemanasRef()
+  var sel=document.getElementById('rrhh-periodo')
+  if(!sel)return
+  var meses=new Map()
+  todasSemanasRef.forEach(function(s){
+    if(!meses.has(s.mes)){
+      var d=new Date(s.mes+'-15T12:00:00')
+      var label=d.toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+      meses.set(s.mes,label.charAt(0).toUpperCase()+label.slice(1))
+    }
+  })
+  var arr=Array.from(meses.entries()).sort(function(a,b){return b[0].localeCompare(a[0])})
+  var opts='<option value="">Seleccionar período...</option>'
+  opts+='<optgroup label="Por mes">'
+  arr.forEach(function(m){opts+='<option value="mes:'+m[0]+'">'+m[1]+'</option>'})
+  opts+='</optgroup>'
+  opts+='<optgroup label="Por semana">'
+  todasSemanasRef.slice().sort(function(a,b){return b.semana_desde.localeCompare(a.semana_desde)}).forEach(function(s){
+    opts+='<option value="sem:'+s.semana_desde+'">'+s.semana_label+'</option>'
+  })
+  opts+='</optgroup>'
+  sel.innerHTML=opts
+  // Pre-seleccionar mes actual
+  var mesActual=new Date().toISOString().slice(0,7)
+  sel.value='mes:'+mesActual
 }
 
 function abrirMyPass(){sh("modal-mypass")}

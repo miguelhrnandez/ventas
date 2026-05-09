@@ -994,8 +994,8 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
         <div style="font-size:13px;color:var(--text2);margin-top:2px">Gestión de horarios semanales</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select id="hor-semana" onchange="loadHorarios()" style="width:auto;font-size:13px"></select>
-        <button onclick="openHorNuevaSemana()" style="font-size:12px;padding:6px 14px">+ Nueva semana</button>
+        <select id="hor-mes" onchange="onHorMesChange()" style="width:auto;font-size:13px;min-width:150px"></select>
+        <select id="hor-semana" onchange="loadHorarios()" style="width:auto;font-size:13px;min-width:210px"></select>
         <button onclick="openHorImportar()" class="bb" style="font-size:12px;padding:6px 14px">📥 Importar Excel</button>
       </div>
     </div>

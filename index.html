@@ -5001,7 +5001,7 @@ async function showPremios(){
   var prmAcc=await db.from('premios_acceso').select('*')
   prmAccesos=(prmAcc.data||[]).map(function(x){return x.usuario_id})
 
-  // Mostrar panel admin simplificado con solo Premios
+  // Mostrar panel admin simplificado con solo Premios y Horarios
   showOnly('SADM')
   // Ocultar items del sidebar que no corresponden
   var ocultarItems=['sb-cp','sb-pr','sb-co','sb-to','sb-inc','sb-liq','sb-us','sb-cl','sb-pb','sb-ob','sb-ret']
@@ -5009,8 +5009,14 @@ async function showPremios(){
     var el=document.getElementById(id)
     if(el)el.style.display='none'
   })
-  // Mostrar solo premios
-  document.querySelector('.pt')&&(document.querySelector('.pt').textContent=CU.nombre)
+  // Mostrar nombre correcto del usuario
+  var ptEl=document.querySelector('#SADM .pt')
+  if(ptEl)ptEl.textContent=CU.nombre
+  var psEl=document.querySelector('#SADM .ps')
+  if(psEl){
+    var rolLabels={jefe_captacion:'Jefe de captacion',jefe_promotores:'Jefe de promotores',coordinadora_promotores:'Coordinadora promotores'}
+    psEl.textContent=rolLabels[CU.role||CU.rol]||(CU.role||CU.rol)
+  }
   admTab('prm', document.getElementById('sb-prm'))
   await initPremios()
 }

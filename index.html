@@ -5534,9 +5534,18 @@ function poblarSelectSemanaHor(selId){
 async function loadHorarios(){
   const desde=document.getElementById('hor-semana')?.value
   if(!desde)return
-  const res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  var q=db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  // Si es jefe (no admin), filtrar solo sus puestos
+  if(horContexto==='jefe'&&CU){
+    var r=CU.role||CU.rol
+    var puestos=JEFE_PUESTOS[r]
+    if(puestos&&puestos.length){
+      q=q.in('puesto',puestos)
+    }
+  }
+  const res=await q
   horDatos=res.data||[]
-  rHorGrilla('hor-grilla-body', desde, true)
+  rHorGrilla('hor-grilla-body', desde, horContexto!=='empleado')
 }
 
 function rHorGrilla(containerId, desde, editable){

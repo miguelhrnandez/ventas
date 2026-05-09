@@ -190,7 +190,7 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
   <div class="nav" style="margin-bottom:16px">
     <button class="active" onclick="hrTab('semana',this)">Mi horario</button>
     <button onclick="hrTab('cambios',this)">Mis solicitudes</button>
-    <button onclick="hrTab('extras',this)">Horas extras</button>
+    <!-- extras solo visible para admin/jefe -->
   </div>
   <!-- Selector semana -->
   <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
@@ -215,15 +215,8 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
       <div id="hr-mis-cambios"></div>
     </div>
   </div>
-  <div id="hr-textras" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="font-size:15px;font-weight:600">Horas extras y feriados</div>
-        <button class="bp" onclick="openSolicitarExtra()" style="font-size:12px;padding:6px 14px">+ Registrar</button>
-      </div>
-      <div id="hr-mis-extras"></div>
-    </div>
-  </div>
+  <!-- extras removido del panel empleado -->
+  <div id="hr-textras" class="hidden"></div>
 </div>
 
 <!-- PANEL JEFE HORARIOS (para jefes de equipo que cargan horarios) -->
@@ -1010,7 +1003,8 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
     <div class="nav" style="margin-bottom:16px">
       <button class="active" onclick="horTab('grilla',this)">Grilla semanal</button>
       <button onclick="horTab('cambios',this)">Solicitudes de cambio</button>
-      <button onclick="horTab('extras',this)">Horas extras / Feriados</button>
+      <button onclick="horTab('rrhh',this)">RRHH / Horas extras</button>
+      <button onclick="horTab('feriados',this)">Feriados</button>
       <button onclick="horTab('empleados',this)">Gestionar empleados</button>
     </div>
     <div id="hor-tgrilla"><div id="hor-grilla-body"></div></div>
@@ -1082,24 +1076,65 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
         <div id="hor-cambios-body"></div>
       </div>
     </div>
-    <div id="hor-textras" class="hidden">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-          <div style="font-size:15px;font-weight:600">Horas extras y feriados trabajados</div>
-          <div style="display:flex;gap:8px">
-            <select id="hor-ext-mes" onchange="loadExtras()" style="width:auto;font-size:13px"></select>
-            <select id="hor-ext-puesto" onchange="loadExtras()" style="width:auto;font-size:13px">
-              <option value="">Todos los puestos</option>
-              <option value="promotor">Promotores</option>
-              <option value="recepcion">Recepcion</option>
-              <option value="pretester">Pretester</option>
-              <option value="host">Host</option>
-            </select>
-          </div>
+    <div id="hor-trrhh" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div><div style="font-size:18px;font-weight:600">⏱ RRHH — Horas extras</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Calculado automáticamente desde los horarios cargados</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select id="rrhh-periodo" onchange="loadRRHH()" style="width:auto;font-size:13px">
+            <option value="">Seleccionar período...</option>
+          </select>
+          <select id="rrhh-puesto" onchange="loadRRHH()" style="width:auto;font-size:13px">
+            <option value="">Todos los puestos</option>
+            <option value="promotor">Promotores</option>
+            <option value="coordinadora_promotores">Coordinadora</option>
+            <option value="recepcion">Recepcion</option>
+            <option value="pretester">Pretester</option>
+            <option value="host">Host</option>
+            <option value="detector_pozo">Det. Pozo</option>
+            <option value="presentador">Presentadores</option>
+            <option value="enrutador">Enrutador</option>
+            <option value="asesor">Asesores</option>
+            <option value="asesor_pozo">Asesores Pozo</option>
+            <option value="on_boarding">On Boarding</option>
+          </select>
+          <button onclick="recalcularRRHH()" class="bb" style="font-size:12px;padding:6px 14px">🔄 Recalcular</button>
         </div>
-        <div id="hor-extras-body"></div>
+      </div>
+      <!-- Resumen cards -->
+      <div id="rrhh-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px"></div>
+      <!-- Tabla detalle -->
+      <div class="card ox">
+        <div id="rrhh-tabla"></div>
       </div>
     </div>
+
+    <div id="hor-tferiados" class="hidden">
+      <div style="display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start">
+        <div class="card">
+          <div style="font-size:15px;font-weight:600;margin-bottom:14px">Cargar feriado</div>
+          <div id="fer-ok" class="hidden aok">Feriado cargado</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div><label>Fecha</label><input id="fer-fecha" type="date"></div>
+            <div><label>Nombre</label><input id="fer-nom" placeholder="Ej: Día del trabajador"></div>
+            <div><label>Tipo</label>
+              <select id="fer-tipo">
+                <option value="nacional">Nacional</option>
+                <option value="puente">Puente turístico</option>
+                <option value="no_laborable">No laborable</option>
+              </select>
+            </div>
+            <button class="bp" onclick="cargarFeriado()">Cargar feriado</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size:15px;font-weight:600;margin-bottom:14px">Feriados cargados</div>
+          <div id="fer-lista"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="hor-textras" class="hidden"></div>
   </div>
 
   <div id="adm-Tprm" class="hidden">
@@ -6113,13 +6148,14 @@ function poblarMesesExtras(){
 
 // ── TABS ──
 function horTab(t,btn){
-  hi('hor-tgrilla');hi('hor-tcambios');hi('hor-textras');hi('hor-templeados')
+  ['grilla','cambios','textras','empleados','rrhh','feriados'].forEach(function(x){hi('hor-t'+x)})
   sh('hor-t'+t)
   document.querySelectorAll('#adm-Thor .nav button').forEach(function(b){b.classList.remove('active')})
   if(btn)btn.classList.add('active')
   if(t==='cambios')loadCambios()
-  if(t==='extras'){poblarMesesExtras();loadExtras()}
   if(t==='empleados'){poblarSelectsSemanaHorariosEmpleados();loadEmpleadosGrilla()}
+  if(t==='rrhh'){poblarPeriodosRRHH();loadRRHH()}
+  if(t==='feriados'){loadFeriados()}
 }
 
 function hrTab(t,btn){
@@ -6699,6 +6735,217 @@ function mkHorSelect(puesto, valorActual, onchangeFn){
   })
   html+='</select>'
   return html
+}
+
+// ═══════════════════════════════════════════════
+// MÓDULO RRHH — HORAS EXTRAS Y FERIADOS
+// ═══════════════════════════════════════════════
+let allFeriados=[]
+let rrhhData=[] // cache del último cálculo
+
+// ── FERIADOS ──
+async function loadFeriados(){
+  const{data}=await db.from('feriados').select('*').order('fecha')
+  allFeriados=data||[]
+  rFeriados()
+}
+
+function rFeriados(){
+  const lista=document.getElementById('fer-lista')
+  if(!lista)return
+  if(!allFeriados.length){lista.innerHTML='<div class="es">Sin feriados cargados</div>';return}
+  const TIPO_LABEL={nacional:'Nacional',puente:'Puente',no_laborable:'No laborable'}
+  lista.innerHTML='<table><thead><tr><th>Fecha</th><th>Nombre</th><th>Tipo</th><th></th></tr></thead><tbody>'
+    +allFeriados.map(function(f){
+      return '<tr>'
+        +'<td style="font-family:DM Mono,monospace;font-size:12px">'+fmtD(f.fecha)+'</td>'
+        +'<td style="color:var(--text)">'+f.nombre+'</td>'
+        +'<td><span class="badge b-pend">'+( TIPO_LABEL[f.tipo]||f.tipo)+'</span></td>'
+        +'<td><button class="br" data-id="'+f.id+'" onclick="delFeriado(this.dataset.id)" style="font-size:11px;padding:2px 8px">✕</button></td>'
+      +'</tr>'
+    }).join('')
+  +'</tbody></table>'
+}
+
+async function cargarFeriado(){
+  const fecha=document.getElementById('fer-fecha')?.value
+  const nom=document.getElementById('fer-nom')?.value.trim()
+  const tipo=document.getElementById('fer-tipo')?.value
+  if(!fecha||!nom)return
+  const{error}=await db.from('feriados').insert({fecha,nombre:nom,tipo})
+  if(error){alert('Error: '+error.message);return}
+  document.getElementById('fer-ok').classList.remove('hidden')
+  setTimeout(function(){document.getElementById('fer-ok')?.classList.add('hidden')},2500)
+  document.getElementById('fer-fecha').value=''
+  document.getElementById('fer-nom').value=''
+  await loadFeriados()
+}
+
+async function delFeriado(id){
+  if(!confirm('Eliminar este feriado?'))return
+  await db.from('feriados').delete().eq('id',id)
+  await loadFeriados()
+}
+
+// ── RRHH PERÍODOS ──
+async function poblarPeriodosRRHH(){
+  // Obtener semanas únicas de horarios
+  const{data}=await db.from('horarios').select('semana_desde,semana_hasta,semana_label').order('semana_desde',{ascending:false})
+  const seen=new Set(), meses=new Set(), items=[]
+  ;(data||[]).forEach(function(r){
+    if(!seen.has(r.semana_desde)){
+      seen.add(r.semana_desde)
+      items.push(r)
+      meses.add(r.semana_desde.slice(0,7))
+    }
+  })
+  const sel=document.getElementById('rrhh-periodo')
+  if(!sel)return
+  // Opciones: por semana y por mes
+  var opts='<option value="">Seleccionar período...</option>'
+  opts+='<optgroup label="Por mes">'
+  Array.from(meses).sort().reverse().forEach(function(m){
+    const[y,mo]=m.split('-')
+    const label=new Date(y,mo-1,1).toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+    opts+='<option value="mes:'+m+'">'+label.charAt(0).toUpperCase()+label.slice(1)+'</option>'
+  })
+  opts+='</optgroup><optgroup label="Por semana">'
+  items.forEach(function(r){
+    const label=r.semana_label||fmtD(r.semana_desde)+' al '+fmtD(r.semana_hasta)
+    opts+='<option value="sem:'+r.semana_desde+'">'+label+'</option>'
+  })
+  opts+='</optgroup>'
+  sel.innerHTML=opts
+}
+
+// ── CÁLCULO PRINCIPAL RRHH ──
+async function loadRRHH(){
+  const periodo=document.getElementById('rrhh-periodo')?.value
+  const puesto=document.getElementById('rrhh-puesto')?.value||''
+  if(!periodo){
+    html('rrhh-tabla','<div class="es">Seleccioná un período</div>')
+    return
+  }
+  html('rrhh-tabla','<div class="es">Calculando...</div>')
+  html('rrhh-cards','')
+
+  // Determinar semanas a incluir
+  let semanas=[]
+  if(periodo.startsWith('mes:')){
+    const mes=periodo.slice(4)
+    const{data}=await db.from('horarios').select('semana_desde,semana_hasta,semana_label').gte('semana_desde',mes+'-01').lte('semana_desde',mes+'-31').order('semana_desde')
+    const seen=new Set()
+    ;(data||[]).forEach(function(r){if(!seen.has(r.semana_desde)){seen.add(r.semana_desde);semanas.push(r)}})
+  } else {
+    const sd=periodo.slice(4)
+    const{data}=await db.from('horarios').select('semana_desde,semana_hasta,semana_label').eq('semana_desde',sd).limit(1)
+    if(data&&data[0])semanas=[data[0]]
+  }
+
+  if(!semanas.length){html('rrhh-tabla','<div class="es">Sin horarios en ese período</div>');return}
+
+  // Cargar todos los horarios de esas semanas
+  const sdesdes=semanas.map(function(s){return s.semana_desde})
+  let q=db.from('horarios').select('*').in('semana_desde',sdesdes).order('empleado_nombre')
+  if(puesto)q=q.eq('puesto',puesto)
+  const{data:rows}=await q
+  const horRows=rows||[]
+
+  // Cargar feriados en el rango
+  const fechaMin=semanas[0].semana_desde
+  const fechaMax=semanas[semanas.length-1].semana_hasta||semanas[semanas.length-1].semana_desde
+  await loadFeriados()
+  const feriadosSet=new Set(allFeriados.map(function(f){return f.fecha}))
+
+  // Calcular por empleado
+  const porEmp={}
+  horRows.forEach(function(h){
+    if(!porEmp[h.empleado_nombre]){
+      porEmp[h.empleado_nombre]={
+        nombre:h.empleado_nombre,puesto:h.puesto,
+        semanas:[],
+        totalHorasTrab:0,totalHorasStd:0,totalExtras:0,totalFeriados:0,
+        diasFeriado:[],diasExtra:[],
+      }
+    }
+    var emp=porEmp[h.empleado_nombre]
+    var std=HOR_HORAS_STD[h.puesto]||9
+    var semDate=new Date(h.semana_desde+'T12:00:00')
+    var semInfo={desde:h.semana_desde,label:h.semana_label,dias:[]}
+
+    DIAS.forEach(function(dia,i){
+      var val=h[dia]||''
+      if(!val||val==='LIBRE'||val==='ACADEMIA'||val==='LICENCIA')return
+      var horas=getHorasFromVal(val,h.puesto)
+      var fechaDia=new Date(semDate)
+      fechaDia.setDate(semDate.getDate()+i)
+      var fechaStr=fechaDia.toISOString().slice(0,10)
+      var esFeriado=feriadosSet.has(fechaStr)
+      var extras=Math.max(0,horas-std)
+
+      emp.totalHorasTrab+=horas
+      emp.totalHorasStd+=std
+      if(extras>0){emp.totalExtras+=extras;emp.diasExtra.push({fecha:fechaStr,dia:DIAS_LABEL[i],horas,extras,val})}
+      if(esFeriado&&horas>0){
+        emp.totalFeriados++
+        emp.diasFeriado.push({fecha:fechaStr,dia:DIAS_LABEL[i],horas,val})
+      }
+      semInfo.dias.push({dia:DIAS_LABEL[i],fecha:fechaStr,val,horas,extras,esFeriado})
+    })
+    emp.semanas.push(semInfo)
+  })
+
+  rrhhData=Object.values(porEmp).sort(function(a,b){return a.nombre.localeCompare(b.nombre)})
+
+  // ── RENDER CARDS ──
+  const conExtras=rrhhData.filter(function(e){return e.totalExtras>0})
+  const conFeriados=rrhhData.filter(function(e){return e.totalFeriados>0})
+  html('rrhh-cards',
+    '<div class="sc"><div class="sv">'+rrhhData.length+'</div><div class="sl">Empleados</div></div>'
+    +'<div class="sc"><div class="sv" style="color:var(--amber)">'+conExtras.length+'</div><div class="sl">Con horas extras</div></div>'
+    +'<div class="sc"><div class="sv" style="color:var(--blue)">'+conFeriados.length+'</div><div class="sl">Trabajaron feriados</div></div>'
+    +'<div class="sc"><div class="sv" style="color:var(--green)">'+rrhhData.reduce(function(a,e){return a+e.totalExtras},0)+'hs</div><div class="sl">Total horas extras</div></div>'
+  )
+
+  // ── RENDER TABLA ──
+  if(!rrhhData.length){html('rrhh-tabla','<div class="es">Sin datos</div>');return}
+
+  const PUESTO_L={promotor:'Promotor',recepcion:'Recepcion',pretester:'Pretester',host:'Host',
+    asesor:'Asesor',presentador:'Presentador',on_boarding:'OB',asesor_pozo:'As.Pozo',
+    jefe_ahorro:'Jefe Ventas',jefe_promotores:'Jefe Prom.',jefe_captacion:'Jefe Cap.',
+    coordinadora_promotores:'Coord.',enrutador:'Enrutador',detector_pozo:'Det.Pozo'}
+
+  var out='<table><thead><tr>'
+    +'<th>Empleado</th><th>Puesto</th>'
+    +'<th style="text-align:center">Hs trabajadas</th>'
+    +'<th style="text-align:center">Hs estándar</th>'
+    +'<th style="text-align:center;color:var(--amber)">Hs extras</th>'
+    +'<th style="text-align:center;color:var(--blue)">Feriados</th>'
+    +'<th>Detalle</th>'
+  +'</tr></thead><tbody>'
+
+  rrhhData.forEach(function(e){
+    var hayAlgo=e.totalExtras>0||e.totalFeriados>0
+    out+='<tr style="'+(hayAlgo?'':'opacity:0.6')+'">'
+      +'<td style="color:var(--text);font-weight:'+(hayAlgo?'600':'400')+'">'+e.nombre+'</td>'
+      +'<td><span class="badge b-asesor" style="font-size:10px">'+(PUESTO_L[e.puesto]||e.puesto)+'</span></td>'
+      +'<td style="text-align:center;font-family:DM Mono,monospace">'+e.totalHorasTrab+'hs</td>'
+      +'<td style="text-align:center;font-family:DM Mono,monospace;color:var(--text3)">'+e.totalHorasStd+'hs</td>'
+      +'<td style="text-align:center;font-family:DM Mono,monospace;color:var(--amber);font-weight:600">'+(e.totalExtras>0?'+'+e.totalExtras+'hs':'—')+'</td>'
+      +'<td style="text-align:center;color:var(--blue);font-weight:600">'+(e.totalFeriados>0?e.totalFeriados+' días':'—')+'</td>'
+      +'<td style="font-size:11px;color:var(--text3)">'
+        +(e.diasExtra.length?'Extras: '+e.diasExtra.map(function(d){return d.dia+' +'+d.extras+'h'}).join(', '):'')
+        +(e.diasFeriado.length?(e.diasExtra.length?' · ':'')+'Feriados: '+e.diasFeriado.map(function(d){return fmtD(d.fecha)}).join(', '):'')
+      +'</td>'
+    +'</tr>'
+  })
+  out+='</tbody></table>'
+  html('rrhh-tabla',out)
+}
+
+async function recalcularRRHH(){
+  mostrarToastCarp('Recalculando...')
+  await loadRRHH()
 }
 
 function abrirMyPass(){sh("modal-mypass")}

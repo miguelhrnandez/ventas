@@ -9,7 +9,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0f0f0f;--bg2:#171717;--bg3:#1f1f1f;--bg4:#2a2a2a;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#f0f0f0;--text2:#a0a0a0;--text3:#505050;--accent:#e8192c;--accent2:#c9121f;--green:#4ade80;--green-bg:rgba(74,222,128,0.1);--amber:#fbbf24;--amber-bg:rgba(251,191,36,0.1);--red:#f87171;--red-bg:rgba(248,113,113,0.1);--blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);--purple:#c084fc;--purple-bg:rgba(192,132,252,0.1);--teal:#2dd4bf;--teal-bg:rgba(45,212,191,0.1);--mono:'DM Mono',monospace}
+:root{--bg:#0f0f0f;--bg2:#171717;--bg3:#1f1f1f;--bg4:#2a2a2a;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#ffffff;--text2:#d4d4d4;--text3:#808080;--accent:#e8192c;--accent2:#c9121f;--green:#4ade80;--green-bg:rgba(74,222,128,0.1);--amber:#fbbf24;--amber-bg:rgba(251,191,36,0.1);--red:#f87171;--red-bg:rgba(248,113,113,0.1);--blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);--purple:#c084fc;--purple-bg:rgba(192,132,252,0.1);--teal:#2dd4bf;--teal-bg:rgba(45,212,191,0.1);--mono:'DM Mono',monospace}
 .sl-particle{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,0.15),transparent);animation:pulse-particle 6s ease-in-out infinite}
 @keyframes pulse-particle{0%,100%{transform:scale(1);opacity:0.5}50%{transform:scale(1.3);opacity:0.2}}
 .sl-slide{animation:fadeSlide 0.6s ease}
@@ -128,9 +128,13 @@ body.light .ddmenu-list button{color:#27272a}
 body.light .modal{background:#ffffff}
 body.light th{color:#52525b}
 body.light td{color:#000000}
-body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2352525b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-color:#ffffff;color:#000000;border-color:rgba(0,0,0,0.2)}
-body.light select option{background:#ffffff;color:#000000}
-body.light table select{background-color:#ffffff;color:#000000;border:1px solid rgba(0,0,0,0.2);border-radius:6px}
+body.light select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2318181b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") !important;background-color:#ffffff !important;color:#000000 !important;border-color:rgba(0,0,0,0.2) !important;-webkit-appearance:none;appearance:none}
+body.light select option{background:#ffffff !important;color:#000000 !important}
+body.light table select{background-color:#ffffff !important;color:#000000 !important;border:1px solid rgba(0,0,0,0.2) !important;border-radius:6px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2318181b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") !important}
+body.light input,body.light textarea{background-color:#ffffff !important;color:#000000 !important;border-color:rgba(0,0,0,0.2) !important}
+body.light .ddmenu-list{background:#ffffff !important;border-color:rgba(0,0,0,0.15) !important}
+body.light .ddmenu-list button{color:#18181b !important}
+body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
 
 /* ── HAMBURGUESA ───────────────────────────────────────── */
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99}
@@ -399,7 +403,7 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
       </div>
       <div class="g2">
         <div><label>Tipo de plan</label>
-          <select id="me-plan"><option value="Ahorro">Plan de ahorro</option><option value="Pozo">Plan de pozo</option></select>
+          <select id="me-plan"><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select>
         </div>
         <div>
           <label>Cuota inicial ($)</label>
@@ -567,7 +571,7 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
           <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
         </div>
         <div class="g2">
-          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Plan de ahorro</option><option value="Pozo">Plan de pozo</option></select></div>
+          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
           <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
         </div>
         <div>
@@ -576,7 +580,7 @@ body.light table select{background-color:#ffffff;color:#000000;border:1px solid 
           <div id="nfecha-warn" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">⚠ Fecha distinta a hoy — asegurate que sea correcta</div>
         </div>
         <div class="g2">
-          <div><label>Unidad / lote</label><input id="nu" placeholder="Ej: 3B"></div>
+          <div><label>ID reserva</label><input id="nu" placeholder="Ej: FC-00001"></div>
           <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
         </div>
         <div>
@@ -1754,10 +1758,12 @@ async function guardarEdit(){
   if(!cl||!pl||!mo||isNaN(mo)||mo<=0){sh('me-err');document.getElementById('me-err').textContent='Completa apellido, plan y monto.';return}
   const opActual=aOps.find(x=>x.id===editId)
   const c=categ(mo)
+  var esConversionAVenta=false
   if(opActual&&!categ(opActual.monto).isVenta&&c.isVenta){
     const fmtN=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n)
     const ok=confirm('Vas a convertir esta reserva en '+c.label+' por '+fmtN(mo)+'.\n\n¿Estas seguro? Esta accion no se puede deshacer.')
     if(!ok)return
+    esConversionAVenta=true
   }
   document.getElementById('me-btn').textContent='Guardando...'
   const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:mecel,metodo_pago:mepago||null,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
@@ -2641,7 +2647,7 @@ function openOBDatos(opId,cliente,tel,email,notas,celVenta,unidad){
       </div>
       <div class="g2">
         <div><label>Celular venta</label><input id="obd-cel" type="tel" value="${celVenta}" placeholder="Ej: 11 1234-5678"></div>
-        <div><label>Unidad / Lote</label><input id="obd-unidad" value="${unidad}" placeholder="Ej: 3B"></div>
+        <div><label>Unidad / Lote</label><input id="obd-unidad" value="${unidad}" placeholder="Ej: FC-00001"></div>
       </div>
       <div><label>Notas</label><textarea id="obd-notas" rows="2" style="resize:vertical" placeholder="Observaciones del cliente...">${notas}</textarea></div>
       <div id="obd-err" style="display:none;font-size:12px;color:var(--red)"></div>
@@ -4439,8 +4445,8 @@ function rAdmClientes(){
         +'<select id="cl-as-'+oid+'" style="font-size:12px;color:var(--text);background:var(--bg3);border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0">'+asesoresOpts+'</select></div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Plan</div>'
         +'<select id="cl-pl-'+oid+'" style="font-size:12px;color:var(--text);background:var(--bg3);border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0">'
-        +'<option value="Ahorro"'+(op.plan==='Ahorro'?' selected':'')+'>Plan de ahorro</option>'
-        +'<option value="Pozo"'+(op.plan==='Pozo'?' selected':'')+'>Plan de pozo</option>'
+        +'<option value="Ahorro"'+(op.plan==='Ahorro'?' selected':'')+'>Asesor ahorro</option>'
+        +'<option value="Pozo"'+(op.plan==='Pozo'?' selected':'')+'>Asesor de pozo</option>'
         +'</select></div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Cuota</div>'
         +'<input id="cl-mo-'+oid+'" type="number" style="font-size:13px;color:var(--teal);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0;font-family:var(--mono)"></div>'
@@ -4448,7 +4454,9 @@ function rAdmClientes(){
         +'<input id="cl-cel-'+oid+'" placeholder="Sin celular" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">ID Reserva</div>'
         +'<input id="cl-un-'+oid+'" placeholder="-" style="font-size:13px;color:var(--text);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
-        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Alta</div><div style="font-size:13px;color:var(--text)">'+fmtD(op.fecha)+'</div></div>'
+        +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Fecha alta</div><div style="font-size:13px;color:var(--text)">'+fmtD(op.fecha)+'</div></div>'
+        +(op.fecha_reserva?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">F. reserva</div><div style="font-size:13px;color:var(--amber)">'+fmtD(op.fecha_reserva)+'</div></div>':'')
+        +(op.fecha_venta?'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">F. venta</div><div style="font-size:13px;color:var(--green)">'+fmtD(op.fecha_venta)+'</div></div>':'')
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tesoreria</div>'+badgeTes+'</div>'
         +'<div style="background:var(--bg3);border-radius:8px;padding:10px;grid-column:span 2"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Observaciones</div>'
         +'<input id="cl-obs-'+oid+'" placeholder="Sin observaciones" style="font-size:12px;color:var(--text2);background:transparent;border:none;border-bottom:1px solid var(--border2);width:100%;outline:none;padding:2px 0"></div>'
@@ -4484,7 +4492,7 @@ function rAdmClientes(){
           obSection+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
           movs.forEach(function(m){
             var com=m.tipo==='incremento'?Math.round(m.monto*(m.antes_72hrs?0.55:0.275)):Math.round(m.monto*0.10)
-            var badge=m.tipo==='incremento'?(m.antes_72hrs?'<span style="font-size:10px;color:var(--blue)">≤72hs</span>':'<span style="font-size:10px;color:var(--amber)">>72hs</span>'):'<span style="font-size:10px;color:var(--teal)">Ahorro</span>'
+            var badge=m.tipo==='incremento'?(m.antes_72hrs?'<span style="font-size:10px;color:var(--blue)">≤72hs</span>':'<span style="font-size:10px;color:var(--amber)">>72hs</span>'):'<span style="font-size:10px;color:var(--teal)">Asesor ahorro</span>'
             obSection+='<div style="background:var(--bg3);border-radius:8px;padding:8px 12px;font-size:12px">'+badge+' <span class="am">'+fmt(m.monto)+'</span> → <span class="at">'+fmt(com)+'</span>'+(m.registrado_por&&m.registrado_por!==op.ob_nombre?' <span style="font-size:10px;color:var(--amber)">⚡ por '+m.registrado_por+'</span>':'')+'</div>'
           })
           obSection+='</div>'
@@ -6352,7 +6360,53 @@ window.addEventListener('load', function(){
   }
 })
 
+function abrirEditorEmpleado(desde, nombre){
+  // Buscar datos del empleado
+  var emp=horDatos.find(function(h){return h.empleado_nombre===nombre&&h.semana_desde===desde})
+  if(!emp)return
+  var semRec=horSemanas.find(function(s){return s.semana_desde===desde})
+  var semLabel=semRec?semRec.semana_label:fmtD(desde)
+
+  var modal=document.createElement('div')
+  modal.id='modal-emp-hor'
+  modal.className='modal-bg'
+  var dias_vals=DIAS.map(function(d,i){
+    var val=emp[d]||''
+    return '<div style="margin-bottom:10px">'
+      +'<label style="font-size:11px;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">'+DIAS_LABEL[i]+'</label>'
+      +'<input id="ehe-'+d+'" value="'+val.replace(/"/g,'&quot;')+'" list="hor-sugerencias" placeholder="LIBRE" style="width:100%;font-size:13px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text)">'
+    +'</div>'
+  }).join('')
+
+  modal.innerHTML='<div class="modal" style="max-width:460px;max-height:90vh;overflow-y:auto">'
+    +'<div style="font-size:16px;font-weight:600;margin-bottom:4px;color:var(--text)">'+nombre+'</div>'
+    +'<div style="font-size:12px;color:var(--text3);margin-bottom:18px">'+semLabel+'</div>'
+    +dias_vals
+    +'<div style="display:flex;gap:8px;margin-top:16px">'
+      +'<button onclick="cerrarModalEmpHor()" style="flex:1">Cancelar</button>'
+      +'<button class="bp" data-desde="'+desde+'" data-nombre="'+nombre+'" onclick="guardarEditorEmpleadoBtn(this)" style="flex:2">Guardar semana</button>'
+    +'</div>'
+  +'</div>'
+  document.body.appendChild(modal)
+}
+
+async function guardarEditorEmpleado(desde, nombre, btn){
+  var upd={}
+  DIAS.forEach(function(d){
+    var el=document.getElementById('ehe-'+d)
+    if(el) upd[d]=el.value.trim()
+  })
+  btn.textContent='Guardando...'
+  await db.from('horarios').update(upd).eq('semana_desde',desde).eq('empleado_nombre',nombre)
+  document.getElementById('modal-emp-hor').remove()
+  await loadHorarios()
+  if(horContexto==='jefe') await loadHorariosJefe()
+  mostrarToastCarp('Horario guardado para '+nombre)
+}
+
 function abrirMyPass(){sh("modal-mypass")}
+function cerrarModalEmpHor(){var m=document.getElementById("modal-emp-hor");if(m)m.remove()}
+function guardarEditorEmpleadoBtn(btn){guardarEditorEmpleado(btn.dataset.desde,btn.dataset.nombre,btn)}
 </script>
 </body>
 </html>

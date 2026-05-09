@@ -3649,7 +3649,12 @@ function admTab(t,btn){
   if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
   if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
   if(t==='prm'){initPremios()}
-  if(t==='hor'){initHorarios('admin')}
+  if(t==='hor'){
+    // Si es jefe captacion/promotores, contexto es jefe con sus puestos
+    var rCU=CU?CU.role||CU.rol:'admin'
+    var ctxHor=rCU==='admin'?'admin':'jefe'
+    initHorarios(ctxHor)
+  }
 }
 
 // ═══ CAMBIAR FECHA ═══
@@ -6366,6 +6371,13 @@ window.addEventListener('load', function(){
   }
 })
 
+function abrirEditorEmpleadoIdx(el){
+  var idx=parseInt(el.dataset.hidx)
+  var desde=el.dataset.desde
+  var emp=horDatos[idx]
+  if(!emp)return
+  abrirEditorEmpleado(desde, emp.empleado_nombre)
+}
 function abrirEditorEmpleado(desde, nombre){
   // Buscar datos del empleado
   var emp=horDatos.find(function(h){return h.empleado_nombre===nombre&&h.semana_desde===desde})

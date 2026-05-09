@@ -5577,14 +5577,12 @@ function rHorGrilla(containerId, desde, editable){
     html(containerId,'<div class="card"><div class="es">Sin horarios cargados para esta semana.<br>Usá "Importar Excel" o editá celda por celda.</div></div>')
     return
   }
-  // Agrupar por puesto
-  const grupos={}
+  var grupos={}
   horDatos.forEach(function(h){
     if(!grupos[h.puesto])grupos[h.puesto]=[]
     grupos[h.puesto].push(h)
   })
-
-  const PUESTO_LABELS={
+  var PUESTO_LABELS={
     promotor:'Promotores',coordinadora_promotores:'Coordinadora',
     recepcion:'Recepcion',pretester:'Pretester',host:'Host',detector_pozo:'Det. Pozo',
     presentador:'Presentadores',enrutador:'Enrutador',
@@ -5593,26 +5591,39 @@ function rHorGrilla(containerId, desde, editable){
     on_boarding:'On Boarding',jefe_presentaciones:'Jefe presentaciones',
     jefe_promotores:'Jefe promotores',jefe_captacion:'Jefe captacion',
   }
-
-  let out=''
-  Object.entries(grupos).forEach(function([puesto,empleados]){
+  var out=''
+  Object.entries(grupos).forEach(function(entry){
+    var puesto=entry[0], empleados=entry[1]
     out+='<div class="card" style="margin-bottom:14px;overflow-x:auto">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em">'+(PUESTO_LABELS[puesto]||puesto)+'</div>'
       +'<table><thead><tr>'
       +'<th style="min-width:160px">Persona</th>'
-      +DIAS_LABEL.map(function(d){return '<th style="min-width:100px;text-align:center">'+d+'</th>'}).join('')
+      +DIAS_LABEL.map(function(d){return '<th style="min-width:90px;text-align:center">'+d+'</th>'}).join('')
       +'</tr></thead><tbody>'
 
-    empleados.forEach(function(emp){
-      out+='<tr><td style="color:var(--text);font-weight:500;white-space:nowrap">'+emp.empleado_nombre+'</td>'
+    empleados.forEach(function(emp, empIdx){
+      var canEdit=editable&&puedeEditarEmpleado(emp.puesto)
+      // Guardar índice global en horDatos
+      var globalIdx=horDatos.indexOf(emp)
+      
+      var nombreCell=canEdit
+        ?'<td style="color:var(--text);font-weight:600;white-space:nowrap;cursor:pointer" '
+          +'data-hidx="'+globalIdx+'" data-desde="'+desde+'" '
+          +'onclick="abrirEditorEmpleadoIdx(this)" '
+          +'title="Click para editar semana completa">'
+          +emp.empleado_nombre+' <span style="color:var(--accent);font-size:11px">✎</span></td>'
+        :'<td style="color:var(--text);font-weight:500;white-space:nowrap">'+emp.empleado_nombre+'</td>'
+
+      out+=('<tr>'+nombreCell)
       DIAS.forEach(function(dia){
         var val=emp[dia]||''
         var estilo=horColor(val)
-        if(editable&&puedeEditarEmpleado(emp.puesto)){
-          out+='<td style="text-align:center;cursor:pointer" onclick="abrirCeldaHorario(\''+desde+'\',\''+emp.empleado_nombre.replace(/'/g,"\\'")+'\',\''+dia+'\',\''+val.replace(/'/g,"\\'")+'\')"><span style="'+estilo+';font-size:12px">'+(val||'—')+'</span></td>'
-        } else {
-          out+='<td style="text-align:center"><span style="'+estilo+';font-size:12px">'+(val||'—')+'</span></td>'
-        }
+        var extras=val?calcExtras(val,emp.puesto):0
+        var extraBadge=extras>0?'<br><span style="font-size:9px;color:var(--amber)">+'+extras+'h</span>':''
+        out+='<td style="text-align:center;padding:6px 4px">'
+          +'<span style="'+estilo+';font-size:11px;display:block">'+(val||'—')+'</span>'
+          +extraBadge
+        +'</td>'
       })
       out+='</tr>'
     })
@@ -5620,6 +5631,7 @@ function rHorGrilla(containerId, desde, editable){
   })
   html(containerId, out)
 }
+
 
 function puedeEditarEmpleado(puesto){
   if(!CU)return false

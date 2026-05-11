@@ -1917,6 +1917,9 @@ async function guardarPass(){
 // ═══ ASESOR ═══
 let aOps=[]
 async function showAs(){
+  var temaGuardado=localStorage.getItem('tema')
+  if(temaGuardado==='light')document.body.classList.add('light')
+  else document.body.classList.remove('light')
   showOnly('SA')
   var r=CU.role||CU.rol
   var esPozo=r==='asesor_pozo'
@@ -5920,7 +5923,7 @@ function jhrTab(t,btn){
 // ── EMPLEADO: panel propio ──
 async function loadHorarioEmpleado(){
   var desde=document.getElementById('hr-semana')?.value
-  if(!desde)return
+  if(!desde||!document.getElementById('hr-mi-horario'))return
   // Mi horario
   var res=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).single()
   var miHor=res.data
@@ -5979,6 +5982,7 @@ async function loadHorarioEmpleado(){
 }
 
 async function loadMisCambios(){
+  if(!document.getElementById('hr-mis-cambios'))return
   var res=await db.from('horarios_cambios').select('*')
     .eq('solicitante_nombre',CU.nombre)
     .order('created_at',{ascending:false})
@@ -6001,6 +6005,7 @@ async function loadMisCambios(){
 }
 
 async function loadMisExtras(){
+  if(!document.getElementById('hr-mis-extras'))return
   var res=await db.from('horarios_extras').select('*')
     .eq('empleado_nombre',CU.nombre)
     .order('fecha',{ascending:false})

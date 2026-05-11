@@ -1917,18 +1917,25 @@ async function guardarPass(){
 let aOps=[]
 async function showAs(){
   showOnly('SA')
+  var r=CU.role||CU.rol
+  var esPozo=r==='asesor_pozo'
+  var rolLabel=esPozo?'Asesor de pozo':'Asesor de ventas'
   const tieneExtra=(CU.roles_extra||[]).length>0
   document.getElementById('SA-sb').innerHTML=mkSidebar([
     {id:'o',label:'Mis operaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',fn:"aTab('o',document.getElementById('sbitem-o'))"},
     {id:'n',label:'Cargar nueva',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>',fn:"aTab('n',document.getElementById('sbitem-n'))"},
-    {id:'c',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"aTab('c',document.getElementById('sbitem-c'))"}
-  ],'o',CU.nombre,'Asesor de ventas',tieneExtra)
+    {id:'c',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"aTab('c',document.getElementById('sbitem-c'))"},
+    {sep:true},
+    {id:'hor',label:'Mi horario',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',fn:"aTab('hor',document.getElementById('sbitem-hor'))"}
+  ],'o',CU.nombre,rolLabel,tieneExtra)
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps()
   // Si es asesor_pozo, preseleccionar Pozo en el formulario
-  if((CU.role||CU.rol)==='asesor_pozo'){
-    var selPlan=document.getElementById('npl')
-    if(selPlan)selPlan.value='Pozo'
+  if(esPozo){
+    setTimeout(function(){
+      var selPlan=document.getElementById('npl')
+      if(selPlan)selPlan.value='Pozo'
+    },100)
   }
 }
 function rAStats(){
@@ -7166,12 +7173,7 @@ async function loadJefeHorariosEnPanel(containerId){
 }
 
 async function showAsesorPozo(){
-  // Los asesores de pozo usan el mismo panel que asesores pero con plan Pozo
-  CU._planDefault='Pozo'
   await showAs()
-  // Cambiar subtítulo
-  var sub=document.querySelector('#SA .ps')
-  if(sub)sub.textContent='Panel de asesor - Plan Pozo'
 }
 
 async function initEmpleadoHorariosPanel(containerId){

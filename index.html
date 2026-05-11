@@ -610,7 +610,29 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
 
   <div id="jv-tcp"><div id="jv-cpb"></div></div>
   <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
-  <div id="jv-thor" class="hidden"><div id="jv-hor-body"></div></div>
+  <div id="jv-thor" class="hidden">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <button class="active" id="jvh-btn-sem" onclick="jvhTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
+      <button id="jvh-btn-sol" onclick="jvhTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
+      <select id="jvh-semana" onchange="loadJVHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
+    </div>
+    <div id="jvh-tsemana">
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
+        <div id="jvh-mi-horario"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
+        <div id="jvh-equipo"></div>
+      </div>
+    </div>
+    <div id="jvh-tsolicitudes" class="hidden">
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
+        <div id="jvh-solicitudes"></div>
+      </div>
+    </div>
+  </div>
   </div>
 </div>
 
@@ -631,7 +653,29 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
 
   <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
   <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
-  <div id="jp-thor" class="hidden"><div id="jp-hor-body"></div></div>
+  <div id="jp-thor" class="hidden">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <button class="active" id="jph-btn-sem" onclick="jphTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
+      <button id="jph-btn-sol" onclick="jphTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
+      <select id="jph-semana" onchange="loadJPHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
+    </div>
+    <div id="jph-tsemana">
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
+        <div id="jph-mi-horario"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
+        <div id="jph-equipo"></div>
+      </div>
+    </div>
+    <div id="jph-tsolicitudes" class="hidden">
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
+        <div id="jph-solicitudes"></div>
+      </div>
+    </div>
+  </div>
   </div>
 </div>
 
@@ -2121,8 +2165,7 @@ function rACom(){
 
 function aTab(t,btn){
   hi('a-to');hi('a-tn');hi('a-tc');hi('a-thor')
-  if(t==='hor'){sh('a-thor');hi('a-stats')}
-  else{sh('a-stats');if(t==='o')sh('a-to');else if(t==='n')sh('a-tn');else sh('a-tc')}
+  if(t==='hor'){sh('a-thor');hi('a-stats')}else{sh('a-stats');if(t==='o')sh('a-to');else if(t==='n')sh('a-tn');else sh('a-tc')}
   document.querySelectorAll('#SA .sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   var sbItem=document.getElementById('sbitem-'+t);if(sbItem)sbItem.classList.add('active')
@@ -2130,120 +2173,6 @@ function aTab(t,btn){
   if(t==='hor')loadHorarioEnSA()
   closeSbMobile()
   if(t==='n'){var hoy=new Date().toISOString().slice(0,10);var fi=document.getElementById('nfecha');if(fi&&!fi.value)fi.value=hoy}
-}
-async function loadHorarioEnSA(){
-  var cont=document.getElementById('a-hor-body')
-  if(!cont)return
-  cont.innerHTML='<div class="es">Cargando horario...</div>'
-  var hoy=new Date().toISOString().slice(0,10)
-  var desde=null
-  if(typeof todasSemanasRef!=='undefined'&&todasSemanasRef.length){
-    var sem=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
-    if(sem)desde=sem.semana_desde
-  }
-  if(!desde){
-    var rSem=await db.from('semanas_referencia').select('semana_desde,semana_hasta').lte('semana_desde',hoy).gte('semana_hasta',hoy).maybeSingle()
-    if(rSem.data)desde=rSem.data.semana_desde
-  }
-  if(!desde){
-    var r2=await db.from('horarios').select('semana_desde').eq('empleado_nombre',CU.nombre).order('semana_desde',{ascending:false}).limit(1)
-    if(r2.data&&r2.data.length)desde=r2.data[0].semana_desde
-  }
-  if(!desde){cont.innerHTML='<div class="es">Sin horario asignado</div>';return}
-  window._saHorDesde=desde
-  var dDesde=new Date(desde+'T00:00:00')
-  var dHasta=new Date(dDesde)
-  dHasta.setDate(dDesde.getDate()+6)
-  var fmtF=function(d){return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
-  var DLOCAL=['lunes','martes','miercoles','jueves','viernes','sabado','domingo']
-  var DLBL=['Lun','Mar','Mie','Jue','Vie','Sab','Dom']
-  var r=CU.role||CU.rol
-  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',
-    on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',
-    pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador',
-    jefe_ahorro:'asesor',jefe_pozo:'asesor_pozo',jefe_presentaciones:'presentador',
-    jefe_promotores:'promotor',jefe_captacion:'recepcion'}
-  var puesto=rolAPuesto[r]||r
-  var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puesto).order('empleado_nombre')
-  var equipo=rEq.data||[]
-  var rCam=await db.from('horarios_cambios').select('*').eq('solicitante_nombre',CU.nombre).eq('semana_desde',desde).order('created_at',{ascending:false})
-  var misSolicitudes=rCam.data||[]
-  var out=''
-  out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">'
-  out+='<div><div style="font-size:15px;font-weight:600">Horario del equipo</div>'
-  out+='<div style="font-size:12px;color:var(--text3);margin-top:2px">Semana '+fmtF(dDesde)+' al '+fmtF(dHasta)+'</div></div>'
-  out+='<button onclick="openSolicitarCambioSA()" style="font-size:12px;padding:7px 14px">+ Pedir cambio de turno</button>'
-  out+='</div>'
-  out+='<div class="card" style="margin-bottom:16px">'
-  out+='<div style="overflow-x:auto">'
-  out+='<table><thead><tr>'
-  out+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3);font-weight:500;white-space:nowrap">Nombre</th>'
-  DLBL.forEach(function(d){
-    out+='<th style="text-align:center;padding:8px 10px;font-size:12px;color:var(--text3);font-weight:500">'+d+'</th>'
-  })
-  out+='</tr></thead><tbody>'
-  if(!equipo.length){
-    out+='<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Sin horarios cargados para esta semana</td></tr>'
-  } else {
-    equipo.forEach(function(emp){
-      var esMio=emp.empleado_nombre===CU.nombre
-      out+='<tr style="'+(esMio?'background:rgba(232,25,44,0.07);border-left:3px solid var(--accent)':'')+'">'
-      out+='<td style="padding:8px 12px;font-size:13px;font-weight:'+(esMio?'600':'400')+';color:var(--text);white-space:nowrap">'
-        +emp.empleado_nombre+(esMio?' <span style="font-size:10px;color:var(--accent);font-weight:700"> YO</span>':'')
-      +'</td>'
-      DLOCAL.forEach(function(dia){
-        var val=emp[dia]||'—'
-        var esVacio=(val==='—'||val==='--'||!val)
-        var estilo=esVacio?'color:var(--text3)':horColor(val)
-        out+='<td style="text-align:center;padding:8px 6px;font-size:12px;font-weight:500;'+estilo+'">'+val+'</td>'
-      })
-      out+='</tr>'
-    })
-  }
-  out+='</tbody></table></div></div>'
-  out+='<div class="card">'
-  out+='<div style="font-size:14px;font-weight:600;margin-bottom:12px">Mis solicitudes de cambio</div>'
-  if(!misSolicitudes.length){
-    out+='<div class="es">No enviaste solicitudes para esta semana</div>'
-  } else {
-    misSolicitudes.forEach(function(s){
-      var estadoCol=s.estado==='pendiente'?'var(--amber)':s.estado==='aprobada'?'var(--green)':'var(--red)'
-      var estadoLabel=s.estado==='pendiente'?'Pendiente':s.estado==='aprobada'?'Aprobada':'Rechazada'
-      out+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px">'
-      out+='<div>'
-      if(s.tipo==='intercambio'){
-        out+='<div style="font-size:13px;color:var(--text)">Cambio con '+s.receptor_nombre+' — '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
-        out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">Tu turno: '+s.horario_solicitante+' cambio por: '+s.horario_receptor+'</div>'
-      } else {
-        out+='<div style="font-size:13px;color:var(--text)">'+s.tipo.replace('_',' ')+' — '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
-        out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.horario_receptor+'</div>'
-      }
-      if(s.motivo)out+='<div style="font-size:11px;color:var(--text3)">Motivo: '+s.motivo+'</div>'
-      out+='</div>'
-      out+='<span style="font-size:11px;font-weight:600;color:'+estadoCol+'">'+estadoLabel+'</span>'
-      out+='</div>'
-    })
-  }
-  out+='</div>'
-  cont.innerHTML=out
-}
-async function openSolicitarCambioSA(){
-  var desde=window._saHorDesde
-  if(!desde){alert('No hay semana cargada');return}
-  var r=CU.role||CU.rol
-  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',
-    on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',
-    pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador',
-    jefe_ahorro:'asesor',jefe_pozo:'asesor_pozo',jefe_presentaciones:'presentador'}
-  var puesto=rolAPuesto[r]||r
-  var res=await db.from('horarios').select('empleado_nombre').eq('semana_desde',desde).eq('puesto',puesto)
-  var companeros=(res.data||[]).filter(function(x){return x.empleado_nombre!==CU.nombre})
-  var sel=document.getElementById('hcam-receptor')
-  sel.innerHTML=companeros.map(function(x){return '<option value="'+x.empleado_nombre+'">'+x.empleado_nombre+'</option>'}).join('')
-  document.getElementById('hcam-motivo').value=''
-  hi('hcam-err')
-  window._cambioDesdePanel='SA'
-  sh('modal-hor-cambio')
 }
 
 // ═══ JEFE VENTAS ═══
@@ -2362,8 +2291,7 @@ function rJVCob(){
 
 function jvTab(t,btn){
   hi('jv-tcp');hi('jv-tco');hi('jv-thor')
-  if(t==='hor'){sh('jv-thor');hi('jv-stats')}
-  else{sh('jv-stats');if(t==='cp')sh('jv-tcp');else sh('jv-tco')}
+  if(t==='hor'){sh('jv-thor');hi('jv-stats')}else{sh('jv-stats');if(t==='cp')sh('jv-tcp');else sh('jv-tco')}
   document.querySelectorAll('#SJV .sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   var sbItem=document.getElementById('sbitem-'+t);if(sbItem)sbItem.classList.add('active')
@@ -2371,10 +2299,13 @@ function jvTab(t,btn){
   if(t==='hor')loadHorarioEnJV()
   closeSbMobile()
 }
-async function loadHorarioEnJV(){
-  var cont=document.getElementById('jv-hor-body')
+
+
+// ── HORARIOS PANEL ASESOR ──
+async function loadHorarioEnSA(){
+  var cont=document.getElementById('a-hor-body')
   if(!cont)return
-  cont.innerHTML='<div class="es">Cargando...</div>'
+  cont.innerHTML='<div class="es">Cargando horario...</div>'
   var hoy=new Date().toISOString().slice(0,10)
   var desde=null
   if(typeof todasSemanasRef!=='undefined'&&todasSemanasRef.length){
@@ -2389,139 +2320,69 @@ async function loadHorarioEnJV(){
     var r2=await db.from('horarios').select('semana_desde').eq('empleado_nombre',CU.nombre).order('semana_desde',{ascending:false}).limit(1)
     if(r2.data&&r2.data.length)desde=r2.data[0].semana_desde
   }
-  if(!desde){cont.innerHTML='<div class="es">Sin horarios cargados</div>';return}
-  window._jvHorDesde=desde
-  var r=CU.role||CU.rol
-  var puestosJefe={jefe_ahorro:['asesor'],jefe_pozo:['asesor_pozo']}
-  var puestos=puestosJefe[r]||[r]
-  await renderHorarioJefe('jv-hor-body',desde,puestos,'JV')
-}
-async function renderHorarioJefe(contId,desde,puestos,panelKey){
-  var cont=document.getElementById(contId)
-  if(!cont)return
+  if(!desde){cont.innerHTML='<div class="es">Sin horario asignado</div>';return}
+  window._saHorDesde=desde
   var dDesde=new Date(desde+'T00:00:00')
-  var dHasta=new Date(dDesde)
-  dHasta.setDate(dDesde.getDate()+6)
+  var dHasta=new Date(dDesde);dHasta.setDate(dDesde.getDate()+6)
   var fmtF=function(d){return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
-  var DLOCAL=['lunes','martes','miercoles','jueves','viernes','sabado','domingo']
-  var DLBL=['Lun','Mar','Mie','Jue','Vie','Sab','Dom']
-  // Cargar equipo de todos los puestos del jefe
-  var equipoTodo=[]
-  for(var pi=0;pi<puestos.length;pi++){
-    var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puestos[pi]).order('empleado_nombre')
-    if(rEq.data)equipoTodo=equipoTodo.concat(rEq.data)
-  }
-  // Solicitudes pendientes del equipo
-  var rCam=await db.from('horarios_cambios').select('*').in('solicitante_puesto',puestos).eq('semana_desde',desde).order('created_at',{ascending:false})
-  var solicitudes=rCam.data||[]
-  var pendientes=solicitudes.filter(function(s){return s.estado==='pendiente'})
+  var r=CU.role||CU.rol
+  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador'}
+  var puesto=rolAPuesto[r]||r
+  var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puesto).order('empleado_nombre')
+  var equipo=rEq.data||[]
+  var rCam=await db.from('horarios_cambios').select('*').eq('solicitante_nombre',CU.nombre).eq('semana_desde',desde).order('created_at',{ascending:false})
+  var misSolicitudes=rCam.data||[]
   var out=''
   out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">'
   out+='<div><div style="font-size:15px;font-weight:600">Horario del equipo</div>'
   out+='<div style="font-size:12px;color:var(--text3);margin-top:2px">Semana '+fmtF(dDesde)+' al '+fmtF(dHasta)+'</div></div>'
-  if(pendientes.length){
-    out+='<span style="font-size:12px;font-weight:600;color:var(--amber);background:rgba(245,158,11,0.12);padding:5px 12px;border-radius:20px">'+pendientes.length+' solicitud'+(pendientes.length>1?'es':'')+' pendiente'+(pendientes.length>1?'s':'')+'</span>'
-  }
+  out+='<button onclick="openSolicitarCambioSA()" style="font-size:12px;padding:7px 14px">+ Pedir cambio de turno</button>'
   out+='</div>'
-  // Grilla equipo
   out+='<div class="card" style="margin-bottom:16px"><div style="overflow-x:auto">'
   out+='<table><thead><tr>'
-  out+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3);font-weight:500;white-space:nowrap">Nombre</th>'
-  DLBL.forEach(function(d){out+='<th style="text-align:center;padding:8px 10px;font-size:12px;color:var(--text3);font-weight:500">'+d+'</th>'})
+  out+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3);font-weight:500">Nombre</th>'
+  DIAS_LABEL.forEach(function(d){out+='<th style="text-align:center;min-width:80px;font-size:12px;color:var(--text3)">'+d+'</th>'})
   out+='</tr></thead><tbody>'
-  if(!equipoTodo.length){
+  if(!equipo.length){
     out+='<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Sin horarios cargados para esta semana</td></tr>'
   } else {
-    equipoTodo.forEach(function(emp){
+    equipo.forEach(function(emp){
       var esMio=emp.empleado_nombre===CU.nombre
-      out+='<tr style="'+(esMio?'background:rgba(232,25,44,0.07);border-left:3px solid var(--accent)':'')+'">'
-      out+='<td style="padding:8px 12px;font-size:13px;font-weight:'+(esMio?'600':'400')+';color:var(--text);white-space:nowrap">'
-        +emp.empleado_nombre+(esMio?' <span style="font-size:10px;color:var(--accent);font-weight:700"> YO</span>':'')
-      +'</td>'
-      DLOCAL.forEach(function(dia){
+      out+='<tr style="'+(esMio?'background:rgba(212,168,67,0.08)':'')+'">'
+      out+='<td style="padding:8px 12px;font-size:13px;font-weight:'+(esMio?'600':'400')+';color:var(--text)">'+emp.empleado_nombre+(esMio?' ★':'')+'</td>'
+      DIAS.forEach(function(dia){
         var val=emp[dia]||'—'
-        var esVacio=(val==='—'||val==='--'||!val)
-        var estilo=esVacio?'color:var(--text3)':horColor(val)
-        out+='<td style="text-align:center;padding:8px 6px;font-size:12px;font-weight:500;'+estilo+'">'+val+'</td>'
+        out+='<td style="text-align:center;padding:8px 6px;font-size:12px;font-weight:500;'+horColor(val)+'">'+val+'</td>'
       })
       out+='</tr>'
     })
   }
   out+='</tbody></table></div></div>'
-  // Solicitudes del equipo
-  out+='<div class="card">'
-  out+='<div style="font-size:14px;font-weight:600;margin-bottom:12px">Solicitudes de cambio del equipo</div>'
-  if(!solicitudes.length){
-    out+='<div class="es">Sin solicitudes esta semana</div>'
+  out+='<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:12px">Mis solicitudes</div>'
+  if(!misSolicitudes.length){
+    out+='<div class="es">Sin solicitudes para esta semana</div>'
   } else {
-    solicitudes.forEach(function(s){
+    misSolicitudes.forEach(function(s){
       var estadoCol=s.estado==='pendiente'?'var(--amber)':s.estado==='aprobada'?'var(--green)':'var(--red)'
       var estadoLabel=s.estado==='pendiente'?'Pendiente':s.estado==='aprobada'?'Aprobada':'Rechazada'
-      out+='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);gap:10px">'
-      out+='<div style="flex:1">'
-      if(s.tipo==='intercambio'){
-        out+='<div style="font-size:13px;font-weight:500;color:var(--text)"><b>'+s.solicitante_nombre+'</b> quiere cambiar con <b>'+s.receptor_nombre+'</b></div>'
-        out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+' — '+s.horario_solicitante+' por '+s.horario_receptor+'</div>'
-      } else {
-        out+='<div style="font-size:13px;font-weight:500;color:var(--text)"><b>'+s.solicitante_nombre+'</b> — '+s.tipo.replace('_',' ')+' '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
-        out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.horario_receptor+'</div>'
-      }
-      if(s.motivo)out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">Motivo: '+s.motivo+'</div>'
+      out+='<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">'
+      out+='<div>'
+      if(s.tipo==='intercambio')out+='<div style="font-size:13px">Cambio con '+s.receptor_nombre+' — '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
+      else out+='<div style="font-size:13px">'+s.tipo.replace('_',' ')+' — '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
+      if(s.motivo)out+='<div style="font-size:11px;color:var(--text3)">'+s.motivo+'</div>'
       out+='</div>'
-      out+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'
       out+='<span style="font-size:11px;font-weight:600;color:'+estadoCol+'">'+estadoLabel+'</span>'
-      if(s.estado==='pendiente'){
-        out+='<div style="display:flex;gap:6px">'
-        out+='<button style="font-size:11px;padding:4px 10px;background:var(--green);color:#000;border:none;border-radius:6px;cursor:pointer" onclick="aprobarCambioDesdeJefe(''+s.id+'',''+panelKey+'')">✓ Aprobar</button>'
-        out+='<button style="font-size:11px;padding:4px 10px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer" onclick="rechazarCambioDesdeJefe(''+s.id+'',''+panelKey+'')">✗ Rechazar</button>'
-        out+='</div>'
-      }
-      out+='</div>'
       out+='</div>'
     })
   }
   out+='</div>'
   cont.innerHTML=out
 }
-async function aprobarCambioDesdeJefe(id,panel){
-  await db.from('horarios_cambios').update({estado:'aprobada'}).eq('id',id)
-  mostrarToastCarp('Solicitud aprobada')
-  if(panel==='JV')loadHorarioEnJV()
-  else if(panel==='JP')loadHorarioEnJP()
-}
-async function rechazarCambioDesdeJefe(id,panel){
-  await db.from('horarios_cambios').update({estado:'rechazada'}).eq('id',id)
-  mostrarToastCarp('Solicitud rechazada')
-  if(panel==='JV')loadHorarioEnJV()
-  else if(panel==='JP')loadHorarioEnJP()
-}
-async function loadHorarioEnJP(){
-  var cont=document.getElementById('jp-hor-body')
-  if(!cont)return
-  cont.innerHTML='<div class="es">Cargando...</div>'
-  var hoy=new Date().toISOString().slice(0,10)
-  var desde=null
-  if(typeof todasSemanasRef!=='undefined'&&todasSemanasRef.length){
-    var sem=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
-    if(sem)desde=sem.semana_desde
-  }
-  if(!desde){
-    var rSem=await db.from('semanas_referencia').select('semana_desde,semana_hasta').lte('semana_desde',hoy).gte('semana_hasta',hoy).maybeSingle()
-    if(rSem.data)desde=rSem.data.semana_desde
-  }
-  if(!desde){
-    var r2=await db.from('horarios').select('semana_desde').eq('empleado_nombre',CU.nombre).order('semana_desde',{ascending:false}).limit(1)
-    if(r2.data&&r2.data.length)desde=r2.data[0].semana_desde
-  }
-  if(!desde){cont.innerHTML='<div class="es">Sin horarios cargados</div>';return}
-  window._jpHorDesde=desde
-  await renderHorarioJefe('jp-hor-body',desde,['presentador','enrutador'],'JP')
-}
-async function openSolicitarCambioJV(){
-  var desde=window._jvHorDesde
+async function openSolicitarCambioSA(){
+  var desde=window._saHorDesde
   if(!desde){alert('No hay semana cargada');return}
   var r=CU.role||CU.rol
-  var rolAPuesto={jefe_ahorro:'asesor',jefe_pozo:'asesor_pozo'}
+  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador'}
   var puesto=rolAPuesto[r]||r
   var res=await db.from('horarios').select('empleado_nombre').eq('semana_desde',desde).eq('puesto',puesto)
   var companeros=(res.data||[]).filter(function(x){return x.empleado_nombre!==CU.nombre})
@@ -2529,9 +2390,155 @@ async function openSolicitarCambioJV(){
   sel.innerHTML=companeros.map(function(x){return '<option value="'+x.empleado_nombre+'">'+x.empleado_nombre+'</option>'}).join('')
   document.getElementById('hcam-motivo').value=''
   hi('hcam-err')
-  window._cambioDesdePanel='JV'
+  window._cambioDesdePanel='SA'
   sh('modal-hor-cambio')
 }
+
+// ── HORARIOS PANEL JEFE VENTAS (SJV) y JEFE PRESENTACIONES (SJP) ──
+function poblarSelectSemanas(selectId){
+  if(!todasSemanasRef||!todasSemanasRef.length)return
+  var sel=document.getElementById(selectId)
+  if(!sel)return
+  var hoy=new Date().toISOString().slice(0,10)
+  sel.innerHTML=todasSemanasRef.map(function(s){return '<option value="'+s.semana_desde+'">'+s.semana_label+'</option>'}).join('')
+  var semActual=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
+  if(semActual)sel.value=semActual.semana_desde
+  else if(todasSemanasRef.length)sel.value=todasSemanasRef[0].semana_desde
+}
+function jvhTab(t,btn){
+  hi('jvh-tsemana');hi('jvh-tsolicitudes')
+  sh(t==='semana'?'jvh-tsemana':'jvh-tsolicitudes')
+  document.querySelectorAll('#jv-thor button[id^="jvh-btn"]').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  if(t==='solicitudes')loadJVHorarioSolicitudes()
+}
+function jphTab(t,btn){
+  hi('jph-tsemana');hi('jph-tsolicitudes')
+  sh(t==='semana'?'jph-tsemana':'jph-tsolicitudes')
+  document.querySelectorAll('#jp-thor button[id^="jph-btn"]').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  if(t==='solicitudes')loadJPHorarioSolicitudes()
+}
+async function loadHorarioEnJV(){
+  var r=CU.role||CU.rol
+  if(!todasSemanasRef||!todasSemanasRef.length)await loadSemanasRef()
+  poblarSelectSemanas('jvh-semana')
+  await loadJVHorario()
+}
+async function loadJVHorario(){
+  var desde=document.getElementById('jvh-semana')?.value
+  if(!desde)return
+  var r=CU.role||CU.rol
+  var puestos={jefe_ahorro:['asesor'],jefe_pozo:['asesor_pozo']}[r]||[r]
+  await renderHorarioJefeGrilla('jvh-mi-horario','jvh-equipo',desde,puestos)
+}
+async function loadJVHorarioSolicitudes(){
+  var desde=document.getElementById('jvh-semana')?.value
+  if(!desde)return
+  var r=CU.role||CU.rol
+  var puestos={jefe_ahorro:['asesor'],jefe_pozo:['asesor_pozo']}[r]||[r]
+  await renderHorarioJefeSolicitudes('jvh-solicitudes',desde,puestos,'JV')
+}
+async function loadHorarioEnJP(){
+  if(!todasSemanasRef||!todasSemanasRef.length)await loadSemanasRef()
+  poblarSelectSemanas('jph-semana')
+  await loadJPHorario()
+}
+async function loadJPHorario(){
+  var desde=document.getElementById('jph-semana')?.value
+  if(!desde)return
+  await renderHorarioJefeGrilla('jph-mi-horario','jph-equipo',desde,['presentador','enrutador'])
+}
+async function loadJPHorarioSolicitudes(){
+  var desde=document.getElementById('jph-semana')?.value
+  if(!desde)return
+  await renderHorarioJefeSolicitudes('jph-solicitudes',desde,['presentador','enrutador'],'JP')
+}
+async function renderHorarioJefeGrilla(miHorId,equipoId,desde,puestos){
+  html(miHorId,'<div class="es">Cargando...</div>')
+  html(equipoId,'<div class="es">Cargando...</div>')
+  var resMio=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).maybeSingle()
+  var miHor=resMio.data
+  if(!miHor){
+    html(miHorId,'<div class="es">Sin horario asignado para esta semana</div>')
+  } else {
+    var out='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">'
+    DIAS.forEach(function(dia,i){
+      var val=miHor[dia]||'—'
+      out+='<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">'
+        +'<div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+DIAS_LABEL[i]+'</div>'
+        +'<div style="font-size:13px;font-weight:600;'+horColor(val)+'">'+val+'</div>'
+      +'</div>'
+    })
+    html(miHorId,out+'</div>')
+  }
+  var equipoTodo=[]
+  for(var pi=0;pi<puestos.length;pi++){
+    var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puestos[pi]).order('empleado_nombre')
+    if(rEq.data)equipoTodo=equipoTodo.concat(rEq.data)
+  }
+  if(!equipoTodo.length){html(equipoId,'<div class="es">Sin horarios cargados para esta semana</div>');return}
+  var outE='<div style="overflow-x:auto"><table><thead><tr>'
+    +'<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3)">Persona</th>'
+    +DIAS_LABEL.map(function(d){return '<th style="text-align:center;min-width:80px;font-size:12px;color:var(--text3)">'+d+'</th>'}).join('')
+  +'</tr></thead><tbody>'
+  equipoTodo.forEach(function(emp){
+    var esMio=emp.empleado_nombre===CU.nombre
+    outE+='<tr style="'+(esMio?'background:rgba(212,168,67,0.08)':'')+'">'
+      +'<td style="padding:8px 12px;color:var(--text);font-weight:'+(esMio?'600':'400')+'">'+emp.empleado_nombre+(esMio?' ★':'')+'</td>'
+    DIAS.forEach(function(dia){
+      var val=emp[dia]||'—'
+      outE+='<td style="text-align:center;padding:8px 6px;font-size:12px;'+horColor(val)+'">'+val+'</td>'
+    })
+    outE+='</tr>'
+  })
+  html(equipoId,outE+'</tbody></table></div>')
+}
+async function renderHorarioJefeSolicitudes(contId,desde,puestos,panel){
+  html(contId,'<div class="es">Cargando...</div>')
+  var rCam=await db.from('horarios_cambios').select('*').in('solicitante_puesto',puestos).eq('semana_desde',desde).order('created_at',{ascending:false})
+  var solicitudes=rCam.data||[]
+  if(!solicitudes.length){html(contId,'<div class="es">Sin solicitudes para esta semana</div>');return}
+  var out=''
+  solicitudes.forEach(function(s){
+    var estadoCol=s.estado==='pendiente'?'var(--amber)':s.estado==='aprobada'?'var(--green)':'var(--red)'
+    var estadoLabel=s.estado==='pendiente'?'Pendiente':s.estado==='aprobada'?'Aprobada':'Rechazada'
+    out+='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);gap:10px">'
+    out+='<div style="flex:1">'
+    if(s.tipo==='intercambio'){
+      out+='<div style="font-size:13px;font-weight:500;color:var(--text)"><b>'+s.solicitante_nombre+'</b> quiere cambiar con <b>'+s.receptor_nombre+'</b></div>'
+      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+' — '+s.horario_solicitante+' por '+s.horario_receptor+'</div>'
+    } else {
+      out+='<div style="font-size:13px;font-weight:500;color:var(--text)"><b>'+s.solicitante_nombre+'</b> — '+s.tipo.replace('_',' ')+' '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
+      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.horario_receptor+'</div>'
+    }
+    if(s.motivo)out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">Motivo: '+s.motivo+'</div>'
+    out+='</div>'
+    out+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'
+    out+='<span style="font-size:11px;font-weight:600;color:'+estadoCol+'">'+estadoLabel+'</span>'
+    if(s.estado==='pendiente'){
+      out+='<div style="display:flex;gap:6px">'
+      out+='<button style="font-size:11px;padding:4px 10px;background:var(--green);color:#000;border:none;border-radius:6px;cursor:pointer" onclick="aprobarCambioJefe(\''+s.id+'\',\''+panel+'\')">✓ Aprobar</button>'
+      out+='<button style="font-size:11px;padding:4px 10px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer" onclick="rechazarCambioJefe(\''+s.id+'\',\''+panel+'\')">✗ Rechazar</button>'
+      out+='</div>'
+    }
+    out+='</div>'
+    out+='</div>'
+  })
+  html(contId,out)
+}
+async function aprobarCambioJefe(id,panel){
+  await db.from('horarios_cambios').update({estado:'aprobada'}).eq('id',id)
+  mostrarToastCarp('Solicitud aprobada')
+  if(panel==='JV')loadJVHorarioSolicitudes();else loadJPHorarioSolicitudes()
+}
+async function rechazarCambioJefe(id,panel){
+  await db.from('horarios_cambios').update({estado:'rechazada'}).eq('id',id)
+  mostrarToastCarp('Solicitud rechazada')
+  if(panel==='JV')loadJVHorarioSolicitudes();else loadJPHorarioSolicitudes()
+}
+// parche enviarSolicitudCambio para panel SA
+var _origEnviarSolicitudCambio=null
 
 // ═══ PRESENTADOR ═══
 let prOps=[]
@@ -2695,8 +2702,7 @@ function rJPCob(){
 
 function jpTab(t,btn){
   hi('jp-top');hi('jp-tco');hi('jp-thor')
-  if(t==='hor'){sh('jp-thor');hi('jp-stats')}
-  else{sh('jp-stats');if(t==='op')sh('jp-top');else sh('jp-tco')}
+  if(t==='hor'){sh('jp-thor');hi('jp-stats')}else{sh('jp-stats');if(t==='op')sh('jp-top');else sh('jp-tco')}
   document.querySelectorAll('#SJP .sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   var sbItem=document.getElementById('sbitem-'+t);if(sbItem)sbItem.classList.add('active')
@@ -6358,7 +6364,7 @@ async function enviarSolicitudCambio(){
   var dia=document.getElementById('hcam-dia').value
   var motivo=document.getElementById('hcam-motivo').value.trim()
   var _pan=window._cambioDesdePanel;window._cambioDesdePanel=null
-  var desde=(_pan==='SA'?window._saHorDesde:_pan==='JV'?window._jvHorDesde:null)||document.getElementById('hr-semana')?.value
+  var desde=(_pan==='SA'?window._saHorDesde:null)||document.getElementById('hr-semana')?.value
   if(!desde)return
 
   // Buscar horarios actuales

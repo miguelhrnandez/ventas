@@ -5924,6 +5924,16 @@ function jhrTab(t,btn){
 async function loadHorarioEmpleado(){
   var desde=document.getElementById('hr-semana')?.value
   if(!desde||!document.getElementById('hr-mi-horario'))return
+  // Si no hay datos para esta semana, buscar la más reciente
+  var checkEsta=await db.from('horarios').select('id').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).maybeSingle()
+  if(!checkEsta.data){
+    var checkUlt=await db.from('horarios').select('semana_desde').eq('empleado_nombre',CU.nombre).order('semana_desde',{ascending:false}).limit(1)
+    if(checkUlt.data&&checkUlt.data.length){
+      desde=checkUlt.data[0].semana_desde
+      var sel=document.getElementById('hr-semana')
+      if(sel)sel.value=desde
+    }
+  }
   // Mi horario
   var res=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).single()
   var miHor=res.data

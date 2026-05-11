@@ -5609,7 +5609,7 @@ const PUESTOS_CONFIG = {
 async function initPremios(){
   const[sem,emp,gan,acc]=await Promise.all([
     db.from('premios_semanas').select('*').order('desde',{ascending:false}),
-    db.from('empleados_puesto').select('*').eq('activo',true).order('puesto').order('nombre'),
+    Promise.resolve({data:[]}), // empleados_puesto unificado en usuarios
     db.from('premios_ganadores').select('*').order('semana_desde',{ascending:false}),
     db.from('premios_acceso').select('*'),
   ])
@@ -5698,7 +5698,7 @@ function rPrmCarga(sem){
     } else if(puesto==='presentador'){
       empleados=allUsers.filter(u=>u.rol==='presentador').map(u=>({id:u.id,nombre:u.nombre}))
     } else {
-      empleados=prmEmpleados.filter(e=>e.puesto===puesto)
+      empleados=allUsers.filter(u=>u.rol===puesto).map(u=>({id:u.id,nombre:u.nombre,puesto:u.rol}))
     }
     if(!empleados.length&&puesto!=='asesor'&&puesto!=='presentador')return
 
@@ -5957,9 +5957,9 @@ function rPrmEmpleadosLista(){
   const lista=document.getElementById('prme-lista')
   if(!lista)return
   const grupos={}
-  prmEmpleados.forEach(e=>{
-    if(!grupos[e.puesto])grupos[e.puesto]=[]
-    grupos[e.puesto].push(e)
+  allUsers.filter(u=>u.rol&&u.rol!=='admin').forEach(u=>{
+    if(!grupos[u.rol])grupos[u.rol]=[]
+    grupos[u.rol].push({id:u.id,nombre:u.nombre,puesto:u.rol})
   })
   lista.innerHTML=Object.entries(grupos).map(([p,emps])=>{
     const cfg=PUESTOS_CONFIG[p]||{icon:'',label:p}
@@ -6320,11 +6320,7 @@ async function guardarNuevaSemana(){
   allUsers.forEach(function(u){
     if(u.rol&&u.rol!=='admin')empleados.push({nombre:u.nombre,puesto:u.rol})
   })
-  // Empleados de premios (promotores, recepcion, etc)
-  prmEmpleados.forEach(function(e){
-    if(!empleados.find(function(x){return x.nombre===e.nombre}))
-      empleados.push({nombre:e.nombre,puesto:e.puesto})
-  })
+  // todos los empleados ya están en allUsers
 
   if(!empleados.length){sh('hors-err');document.getElementById('hors-err').textContent='No hay empleados cargados';return}
 
@@ -6380,11 +6376,7 @@ function generarFilasVacias(desde,puestos){
       filas.push({id:'nuevo_'+u.id,semana_desde:desde,semana_hasta:hasta,semana_label:label,empleado_nombre:u.nombre,puesto:u.rol,lunes:'',martes:'',miercoles:'',jueves:'',viernes:'',sabado:'',domingo:''})
     }
   })
-  prmEmpleados.forEach(function(e){
-    if(puestos.includes(e.puesto)&&!filas.find(function(f){return f.empleado_nombre===e.nombre})){
-      filas.push({id:'nuevo_'+e.nombre,semana_desde:desde,semana_hasta:hasta,semana_label:label,empleado_nombre:e.nombre,puesto:e.puesto,lunes:'',martes:'',miercoles:'',jueves:'',viernes:'',sabado:'',domingo:''})
-    }
-  })
+
   filas.sort(function(a,b){return a.empleado_nombre.localeCompare(b.empleado_nombre)})
   return filas
 }

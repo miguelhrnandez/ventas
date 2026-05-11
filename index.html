@@ -730,6 +730,7 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
     <div class="card ox"><div id="ob-dispb"></div></div>
   </div>
   <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
+  <div id="ob-tret" class="hidden"><div id="ob-ret-body"></div></div>
   </div>
 </div>
 
@@ -2758,12 +2759,69 @@ async function showOB(){
   document.getElementById('SOB-sb').innerHTML=mkSidebar([
     {id:'mis',label:'Mis clientes',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',fn:"obTab('mis',document.getElementById('sbitem-mis'))"},
     {id:'disp',label:'Ventas disponibles',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',fn:"obTab('disp',document.getElementById('sbitem-disp'))"},
-    {id:'co',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"obTab('co',document.getElementById('sbitem-co'))"}
+    {id:'co',label:'Mis comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',fn:"obTab('co',document.getElementById('sbitem-co'))"},
+    {id:'ret',label:'Mis retenciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',fn:"obTab('ret',document.getElementById('sbitem-ret'))"}
   ],'mis',CU.nombre,'On Boarding',tieneExtra)
   await loadOBData();rOBStats();rOBMis()
   }catch(err){console.error('showOB error:',err);alert('Error al cargar panel OB: '+err.message)}
 }
 let obPagos=[]
+async function loadOBRetenciones(){
+  var cont=document.getElementById('ob-ret-body')
+  if(!cont)return
+  cont.innerHTML='<div class="es">Cargando...</div>'
+  // Cargar todos los pagos del OB
+  var r=await db.from('ob_pagos_cuota').select('*').eq('ob_id',CU.id).order('fecha_pago',{ascending:false})
+  var pagos=r.data||[]
+  if(!pagos.length){cont.innerHTML='<div class="es">Sin pagos de cuota registrados</div>';return}
+  // Agrupar por mes
+  var meses={}
+  pagos.forEach(function(p){
+    var mes=p.fecha_pago?p.fecha_pago.slice(0,7):'sin-fecha'
+    if(!meses[mes])meses[mes]=[]
+    meses[mes].push(p)
+  })
+  var mesKeys=Object.keys(meses).sort().reverse()
+  var totalGeneral=0
+  var out=''
+  mesKeys.forEach(function(mes){
+    var ps=meses[mes]
+    var totalMes=ps.reduce(function(a,p){return a+calcComCuota(p.numero_cuota,p.dia_del_mes)},0)
+    totalGeneral+=totalMes
+    var label=mes==='sin-fecha'?'Sin fecha':new Date(mes+'-15T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+    label=label.charAt(0).toUpperCase()+label.slice(1)
+    out+='<div class="card" style="margin-bottom:14px">'
+    out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+    out+='<div style="font-size:14px;font-weight:600;color:var(--text)">'+label+'</div>'
+    out+='<div style="font-size:13px;font-weight:600;color:var(--teal)">'+fmt(totalMes)+'</div>'
+    out+='</div>'
+    out+='<div style="display:flex;flex-direction:column;gap:6px">'
+    ps.forEach(function(p){
+      var com=calcComCuota(p.numero_cuota,p.dia_del_mes)
+      var esTemprano=p.dia_del_mes<=10
+      out+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg3);border-radius:8px;gap:8px">'
+      out+='<div style="flex:1">'
+      out+='<div style="font-size:12px;font-weight:500;color:var(--text)">M'+p.numero_cuota+' — '+fmtD(p.fecha_pago)+'</div>'
+      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+(p.metodo_pago||'Sin método')+'</div>'
+      out+='</div>'
+      out+='<div style="text-align:right">'
+      out+='<div style="font-size:12px;font-weight:600;color:var(--teal)">'+fmt(com)+'</div>'
+      out+='<div style="font-size:10px;color:'+(esTemprano?'var(--green)':'var(--amber)')+'">día '+p.dia_del_mes+(esTemprano?' (1-10)':' (11-30)')+'</div>'
+      out+='</div>'
+      if(p.comprobante_url){
+        out+='<a href="'+p.comprobante_url+'" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;white-space:nowrap">📎 ver</a>'
+      }
+      out+='</div>'
+    })
+    out+='</div></div>'
+  })
+  // Total general
+  out='<div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">'
+    +'<div style="font-size:13px;color:var(--text3)">Total acumulado</div>'
+    +'<div style="font-size:16px;font-weight:700;color:var(--teal)">'+fmt(totalGeneral)+'</div>'
+    +'</div>'+out
+  cont.innerHTML=out
+}
 async function loadOBData(){
   const[mis,disp,movs,pagos]=await Promise.all([
     db.from('operaciones').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
@@ -2893,8 +2951,9 @@ function rOBMis(isAdmin=false){
           var compLink=pago.comprobante_url?'<a href="'+pago.comprobante_url+'" target="_blank" style="font-size:9px;color:var(--teal);display:block;margin-top:3px">📎 ver</a>':''
           cuotasGrid+='<div style="background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:10px;text-align:center">'
             +'<div style="font-size:10px;color:var(--text3);margin-bottom:4px">M'+n+'</div>'
-            +'<div style="font-size:12px;color:var(--green);font-weight:600">Día '+pago.dia_del_mes+'</div>'
-            +'<div style="font-size:11px;color:var(--teal);margin-top:2px">'+fmt(com)+'</div>'
+            +'<div style="font-size:12px;color:var(--green);font-weight:600">'+fmtD(pago.fecha_pago)+'</div>'
+            +'<div style="font-size:11px;color:var(--text2);margin-top:1px">'+(pago.metodo_pago||'')+'</div>'
+            +'<div style="font-size:10px;color:var(--teal);margin-top:1px">Com: '+fmt(com)+'</div>'
             +((isAdmin||pago.ob_id===CU.id)?'<div style="display:flex;gap:3px;justify-content:center;margin-top:4px"><button onclick="event.stopPropagation();delOBPago(\''+pago.id+'\')" style="font-size:9px;padding:1px 5px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:4px;cursor:pointer">✕</button><button onclick="event.stopPropagation();editarComprobante(\''+pago.id+'\')" style="font-size:9px;padding:1px 5px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:4px;cursor:pointer">✏️</button></div>':'')
             +(pago.comprobante_url?'<a href="'+pago.comprobante_url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--teal);display:block;margin-top:3px">📎 comprobante</a>':'')
           +'</div>'
@@ -3401,15 +3460,14 @@ function rOBCom(){
 
 
 function obTab(t,btn){
-  hi('ob-tmis');hi('ob-tdisp');hi('ob-tco')
-  sh(t==='mis'?'ob-tmis':t==='disp'?'ob-tdisp':'ob-tco')
+  hi('ob-tmis');hi('ob-tdisp');hi('ob-tco');hi('ob-tret')
+  sh(t==='mis'?'ob-tmis':t==='disp'?'ob-tdisp':t==='ret'?'ob-tret':'ob-tco')
   document.querySelectorAll('#SOB .nav button').forEach(b=>b.classList.remove('active'))
   document.querySelectorAll('#SOB .sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   const sbItem=document.getElementById('sbitem-'+t);if(sbItem)sbItem.classList.add('active')
-  if(t==='disp')rOBDisp()
+  if(t==='ret')loadOBRetenciones()
   closeSbMobile()
-  if(t==='co')rOBCom()
 }
 
 

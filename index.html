@@ -1750,6 +1750,7 @@ async function enterPanel(r){
   else if(r==='jefe_pozo'||r==='coordinadora_promotores')await showJefeHorario()
   else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador')await showHorario()
   else if(r==='asesor_pozo')await showAsesorPozo()
+  initRealtime()
 }
 async function doLogin(){
   const u=gv('lu').trim(),p=gv('lp')
@@ -1780,6 +1781,40 @@ async function loadAll(){
     db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
   ])
   allOps=o.data||[];allUsers=u.data||[];allLl=(l.data||[]).map(x=>x.periodo_key);allLlData=l.data||[];allObMovs=om.data||[];allObPagos=op.data||[]
+}
+
+// ═══ REALTIME ═══
+var _rtChannel=null
+function initRealtime(){
+  if(_rtChannel)_rtChannel.unsubscribe()
+  _rtChannel=db.channel('masdueños-rt')
+    .on('postgres_changes',{event:'*',schema:'public',table:'horarios_cambios'},function(p){rtRecargar('horarios_cambios')})
+    .on('postgres_changes',{event:'*',schema:'public',table:'horarios'},function(p){rtRecargar('horarios')})
+    .on('postgres_changes',{event:'*',schema:'public',table:'ob_pagos_cuota'},function(p){rtRecargar('ob_pagos_cuota')})
+    .on('postgres_changes',{event:'*',schema:'public',table:'operaciones'},function(p){rtRecargar('operaciones')})
+    .subscribe()
+}
+async function rtRecargar(tabla){
+  var pv=screens.find(function(s){var el=document.getElementById(s);return el&&!el.classList.contains('hidden')})
+  if(tabla==='horarios'||tabla==='horarios_cambios'){
+    if(pv==='SA'){var ath=document.getElementById('a-thor');if(ath&&!ath.classList.contains('hidden'))loadHorarioEnSA()}
+    if(pv==='SJV'){var jvth=document.getElementById('jv-thor');if(jvth&&!jvth.classList.contains('hidden')){var ts=document.getElementById('jvh-tsemana');var tso=document.getElementById('jvh-tsolicitudes');if(ts&&!ts.classList.contains('hidden'))loadJVHorario();if(tso&&!tso.classList.contains('hidden'))loadJVHorarioSolicitudes()}}
+    if(pv==='SJP'){var jpth=document.getElementById('jp-thor');if(jpth&&!jpth.classList.contains('hidden')){var ts=document.getElementById('jph-tsemana');var tso=document.getElementById('jph-tsolicitudes');if(ts&&!ts.classList.contains('hidden'))loadJPHorario();if(tso&&!tso.classList.contains('hidden'))loadJPHorarioSolicitudes()}}
+    if(pv==='SHR'){loadHorarioEmpleado();var hrc=document.getElementById('hr-tcambios');if(hrc&&!hrc.classList.contains('hidden'))loadMisCambios()}
+    if(pv==='SJHR'){loadHorarios();if(tabla==='horarios_cambios')loadCambiosJHR()}
+  }
+  if(tabla==='ob_pagos_cuota'||tabla==='operaciones'){
+    var rOp=await db.from('operaciones').select('*').order('fecha',{ascending:false})
+    if(rOp.data)allOps=rOp.data
+    var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
+    if(rPag.data)allObPagos=rPag.data
+    if(pv==='SA'){rAStats();rAOps()}
+    if(pv==='SJV'){rJVStats();rJVCarp()}
+    if(pv==='SPR'){rPrStats();rPrOps()}
+    if(pv==='SJP'){rJPStats();rJPOps()}
+    if(pv==='SOB'){var rMov=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false});if(rMov.data)allObMovs=rMov.data;rOBStats();rOBMisClientes()}
+    if(pv==='SADM'){await loadAll();rAdmCarp()}
+  }
 }
 
 // ═══ MODAL EDITAR ═══
@@ -2429,14 +2464,14 @@ async function loadJVHorario(){
   var desde=document.getElementById('jvh-semana')?.value
   if(!desde)return
   var r=CU.role||CU.rol
-  var puestos={jefe_ahorro:['asesor'],jefe_pozo:['asesor_pozo']}[r]||[r]
+  var puestos={jefe_ahorro:['asesor','jefe_ahorro'],jefe_pozo:['asesor_pozo','jefe_pozo']}[r]||[r]
   await renderHorarioJefeGrilla('jvh-mi-horario','jvh-equipo',desde,puestos)
 }
 async function loadJVHorarioSolicitudes(){
   var desde=document.getElementById('jvh-semana')?.value
   if(!desde)return
   var r=CU.role||CU.rol
-  var puestos={jefe_ahorro:['asesor'],jefe_pozo:['asesor_pozo']}[r]||[r]
+  var puestos={jefe_ahorro:['asesor','jefe_ahorro'],jefe_pozo:['asesor_pozo','jefe_pozo']}[r]||[r]
   await renderHorarioJefeSolicitudes('jvh-solicitudes',desde,puestos,'JV')
 }
 async function loadHorarioEnJP(){
@@ -2447,12 +2482,12 @@ async function loadHorarioEnJP(){
 async function loadJPHorario(){
   var desde=document.getElementById('jph-semana')?.value
   if(!desde)return
-  await renderHorarioJefeGrilla('jph-mi-horario','jph-equipo',desde,['presentador','enrutador'])
+  await renderHorarioJefeGrilla('jph-mi-horario','jph-equipo',desde,['presentador','enrutador','jefe_presentaciones'])
 }
 async function loadJPHorarioSolicitudes(){
   var desde=document.getElementById('jph-semana')?.value
   if(!desde)return
-  await renderHorarioJefeSolicitudes('jph-solicitudes',desde,['presentador','enrutador'],'JP')
+  await renderHorarioJefeSolicitudes('jph-solicitudes',desde,['presentador','enrutador','jefe_presentaciones'],'JP')
 }
 async function renderHorarioJefeGrilla(miHorId,equipoId,desde,puestos){
   html(miHorId,'<div class="es">Cargando...</div>')
@@ -2855,11 +2890,13 @@ function rOBMis(isAdmin=false){
         const t=OB_CUOTAS[n]||{antes:0,despues:0}
         if(pago){
           const com=calcComCuota(n,pago.dia_del_mes)
+          var compLink=pago.comprobante_url?'<a href="'+pago.comprobante_url+'" target="_blank" style="font-size:9px;color:var(--teal);display:block;margin-top:3px">📎 ver</a>':''
           cuotasGrid+='<div style="background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:10px;text-align:center">'
             +'<div style="font-size:10px;color:var(--text3);margin-bottom:4px">M'+n+'</div>'
             +'<div style="font-size:12px;color:var(--green);font-weight:600">Día '+pago.dia_del_mes+'</div>'
             +'<div style="font-size:11px;color:var(--teal);margin-top:2px">'+fmt(com)+'</div>'
             +(isAdmin?'<button onclick="event.stopPropagation();delPagoCuota(\''+pago.id+'\',\''+op.id+'\')" style="font-size:9px;padding:1px 5px;margin-top:4px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:4px;cursor:pointer">✕</button>':'')
+            +(pago.comprobante_url?'<a href="'+pago.comprobante_url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--teal);display:block;margin-top:3px">📎 comprobante</a>':'')
           +'</div>'
         } else {
           cuotasGrid+='<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">'
@@ -2968,6 +3005,11 @@ function openOBPagoCuota(opId,cliente,numeroCuota){
         </div>
       </div>
       <div id="obp-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">Selecciona la fecha para ver la comision</div>
+      <div>
+        <label>Comprobante <span style="color:var(--text3);font-weight:400">(opcional)</span></label>
+        <input id="obp-comprobante" type="file" accept="image/*,.pdf" style="font-size:12px;cursor:pointer">
+        <div id="obp-comp-preview" style="margin-top:6px;display:none"></div>
+      </div>
       <div id="obp-err" style="display:none;font-size:12px;color:var(--red)"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button onclick="document.getElementById('ob-modal').remove()" style="flex:1">Cancelar</button>
@@ -2999,10 +3041,24 @@ async function guardarOBPago(opId,numeroCuota){
   if(obpEf>0&&obpTr>0)obpPago='Efectivo '+fmt(obpEf)+' + Transf. '+fmt(obpTr)
   else if(obpEf>0)obpPago='Efectivo'
   else if(obpTr>0)obpPago='Transferencia'
+  // Subir comprobante si hay archivo
+  var compUrl=null
+  var fileInput=document.getElementById('obp-comprobante')
+  if(fileInput&&fileInput.files&&fileInput.files[0]){
+    var file=fileInput.files[0]
+    var ext=file.name.split('.').pop().toLowerCase()
+    var fileName='comprobantes/'+CU.id+'_'+opId+'_m'+numeroCuota+'_'+Date.now()+'.'+ext
+    var{data:upData,error:upErr}=await db.storage.from('comprobantes').upload(fileName,file,{upsert:true})
+    if(!upErr){
+      var{data:urlData}=db.storage.from('comprobantes').getPublicUrl(fileName)
+      compUrl=urlData?.publicUrl||null
+    }
+  }
   const{error}=await db.from('ob_pagos_cuota').insert({
     operacion_id:opId,ob_id:CU.id,ob_nombre:CU.nombre,
     numero_cuota:numeroCuota,fecha_pago:f,dia_del_mes:dia,comision:com,
-    metodo_pago:obpPago||null
+    metodo_pago:obpPago||null,
+    comprobante_url:compUrl
   })
   if(error){if(errEl){errEl.textContent='Error: '+error.message;errEl.style.display='block'}return}
   document.getElementById('ob-modal').remove()

@@ -554,6 +554,7 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
   <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
 
   <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
+  <div id="a-thor" class="hidden"><div id="a-hor-body"></div></div>
   <div id="a-tn" class="hidden">
     <div class="card" style="max-width:520px">
       <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
@@ -1831,6 +1832,11 @@ async function guardarEdit(){
   closeEdit()
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps()
+  // Si es asesor_pozo, preseleccionar Pozo en el formulario
+  if((CU.role||CU.rol)==='asesor_pozo'){
+    var selPlan=document.getElementById('npl')
+    if(selPlan)selPlan.value='Pozo'
+  }
 }
 
 
@@ -1919,6 +1925,11 @@ async function showAs(){
   ],'o',CU.nombre,'Asesor de ventas',tieneExtra)
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps()
+  // Si es asesor_pozo, preseleccionar Pozo en el formulario
+  if((CU.role||CU.rol)==='asesor_pozo'){
+    var selPlan=document.getElementById('npl')
+    if(selPlan)selPlan.value='Pozo'
+  }
 }
 function rAStats(){
   const vc=aOps.filter(x=>x.estado==='venta'||x.monto>=100000)
@@ -1976,6 +1987,12 @@ function prevPago(){
   }
 }
 function prevT(){
+  // Preseleccionar plan si viene de asesor_pozo
+  if(CU&&(CU.role||CU.rol)==='asesor_pozo'){
+    var selPlan=document.getElementById('npl')
+    if(selPlan&&!selPlan.value)selPlan.value='Pozo'
+  }
+
   const m=parseInt(gv('nm')),el=document.getElementById('nprev')
   if(!m||isNaN(m)){hi('nprev');return}sh('nprev')
   const c=categ(m)
@@ -7146,6 +7163,112 @@ async function loadJefeHorariosEnPanel(containerId){
   var res=await q
   horDatos=res.data||[]
   rHorGrilla('jefe-hor-grilla-'+containerId, desde, true)
+}
+
+async function showAsesorPozo(){
+  // Los asesores de pozo usan el mismo panel que asesores pero con plan Pozo
+  CU._planDefault='Pozo'
+  await showAs()
+  // Cambiar subtítulo
+  var sub=document.querySelector('#SA .ps')
+  if(sub)sub.textContent='Panel de asesor - Plan Pozo'
+}
+
+async function initEmpleadoHorariosPanel(containerId){
+  horContexto='empleado'
+  await loadSemanasRef()
+  var el=document.getElementById(containerId)
+  if(!el)return
+
+  var meses=new Map()
+  todasSemanasRef.forEach(function(s){
+    if(!meses.has(s.mes)){
+      var d=new Date(s.mes+'-15T12:00:00')
+      var label=d.toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+      meses.set(s.mes,label.charAt(0).toUpperCase()+label.slice(1))
+    }
+  })
+  var arr=Array.from(meses.entries()).sort(function(a,b){return b[0].localeCompare(a[0])})
+  var mesOpts=arr.map(function(m){return '<option value="'+m[0]+'">'+m[1]+'</option>'}).join('')
+  var hoy=new Date().toISOString().slice(0,10)
+  var semActual=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
+  var mesActual=semActual?semActual.mes:arr[0]?arr[0][0]:''
+  var semsDeMes=todasSemanasRef.filter(function(s){return s.mes===mesActual})
+  var semOpts=semsDeMes.map(function(s){return '<option value="'+s.semana_desde+'"'+(semActual&&s.semana_desde===semActual.semana_desde?' selected':'')+'>'+s.semana_label+'</option>'}).join('')
+
+  el.innerHTML='<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">'
+    +'<select data-cid="'+containerId+'" onchange="onEmpHorMesChange(this)" style="width:auto;font-size:13px;min-width:150px" id="emp-hor-mes-'+containerId+'">'+mesOpts+'</select>'
+    +'<select data-cid="'+containerId+'" onchange="loadEmpHorEnPanel(this)" style="width:auto;font-size:13px;min-width:210px" id="emp-hor-sem-'+containerId+'">'+semOpts+'</select>'
+    +'</div>'
+    +'<div class="card" style="margin-bottom:14px"><div style="font-size:14px;font-weight:600;margin-bottom:12px">Mi horario</div><div id="emp-hor-mio-'+containerId+'"></div></div>'
+    +'<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:12px">Horario del equipo</div><div id="emp-hor-equipo-'+containerId+'"></div></div>'
+
+  var selMes=document.getElementById('emp-hor-mes-'+containerId)
+  if(selMes)selMes.value=mesActual
+
+  await cargarEmpHorEnPanel(containerId, semActual?semActual.semana_desde:'')
+}
+
+function onEmpHorMesChange(el){
+  var containerId=el.dataset.cid
+  var mes=el.value
+  var semsDeMes=todasSemanasRef.filter(function(s){return s.mes===mes})
+  var sel=document.getElementById('emp-hor-sem-'+containerId)
+  if(!sel)return
+  sel.innerHTML=semsDeMes.map(function(s){return '<option value="'+s.semana_desde+'">'+s.semana_label+'</option>'}).join('')
+  cargarEmpHorEnPanel(containerId, sel.value)
+}
+
+function loadEmpHorEnPanel(el){
+  cargarEmpHorEnPanel(el.dataset.cid, el.value)
+}
+
+async function cargarEmpHorEnPanel(containerId, desde){
+  if(!desde)return
+  var r=CU.role||CU.rol
+  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',on_boarding:'on_boarding'}
+  var puesto=rolAPuesto[r]||r
+
+  var resMio=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).maybeSingle()
+  var miHor=resMio.data
+
+  var elMio=document.getElementById('emp-hor-mio-'+containerId)
+  if(elMio){
+    if(!miHor){elMio.innerHTML='<div class="es">Sin horario asignado para esta semana</div>'}
+    else{
+      var out='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">'
+      DIAS.forEach(function(dia,i){
+        var val=miHor[dia]||'—'
+        out+='<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">'
+          +'<div style="font-size:10px;color:var(--text3);margin-bottom:4px">'+DIAS_LABEL[i]+'</div>'
+          +'<div style="font-size:12px;font-weight:600;'+horColor(val)+'">'+val+'</div>'
+        +'</div>'
+      })
+      out+='</div>'
+      elMio.innerHTML=out
+    }
+  }
+
+  var resEquipo=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puesto).order('empleado_nombre')
+  var equipo=resEquipo.data||[]
+  var elEq=document.getElementById('emp-hor-equipo-'+containerId)
+  if(elEq){
+    if(!equipo.length){elEq.innerHTML='<div class="es">Sin datos del equipo</div>'}
+    else{
+      var outE='<div style="overflow-x:auto"><table><thead><tr><th>Persona</th>'+DIAS_LABEL.map(function(d){return '<th style="text-align:center;min-width:80px">'+d+'</th>'}).join('')+'</tr></thead><tbody>'
+      equipo.forEach(function(emp){
+        var esMio=emp.empleado_nombre===CU.nombre
+        outE+='<tr style="'+(esMio?'background:rgba(212,168,67,0.08)':'')+'"><td style="color:var(--text);font-weight:'+(esMio?'600':'400')+'">'+emp.empleado_nombre+(esMio?' ★':'')+'</td>'
+        DIAS.forEach(function(dia){
+          var val=emp[dia]||'—'
+          outE+='<td style="text-align:center;font-size:11px;'+horColor(val)+'">'+val+'</td>'
+        })
+        outE+='</tr>'
+      })
+      outE+='</tbody></table></div>'
+      elEq.innerHTML=outE
+    }
+  }
 }
 
 function abrirMyPass(){sh("modal-mypass")}

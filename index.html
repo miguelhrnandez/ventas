@@ -623,7 +623,7 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
       </div>
       <div class="card">
         <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jvh-equipo"></div>
+        <div id="jvh-equipo"><table><tbody id="jvh-grilla-body"></tbody></table></div>
       </div>
     </div>
     <div id="jvh-tsolicitudes" class="hidden">
@@ -666,7 +666,7 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
       </div>
       <div class="card">
         <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jph-equipo"></div>
+        <div id="jph-equipo"><table><tbody id="jph-grilla-body"></tbody></table></div>
       </div>
     </div>
     <div id="jph-tsolicitudes" class="hidden">
@@ -2466,7 +2466,11 @@ async function loadJVHorario(){
   if(!desde)return
   var r=CU.role||CU.rol
   var puestos={jefe_ahorro:['asesor','jefe_ahorro'],jefe_pozo:['asesor_pozo','jefe_pozo']}[r]||[r]
-  await renderHorarioJefeGrilla('jvh-mi-horario','jvh-equipo',desde,puestos)
+  await renderHorarioJefeGrilla('jvh-mi-horario',null,desde,puestos)
+  var res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  horDatos=(res.data||[]).filter(function(h){return puestos.includes(h.puesto)})
+  if(!horDatos.length)horDatos=generarFilasVacias(desde,puestos)
+  rHorGrilla('jvh-grilla-body',desde,true)
 }
 async function loadJVHorarioSolicitudes(){
   var desde=document.getElementById('jvh-semana')?.value
@@ -2483,7 +2487,12 @@ async function loadHorarioEnJP(){
 async function loadJPHorario(){
   var desde=document.getElementById('jph-semana')?.value
   if(!desde)return
-  await renderHorarioJefeGrilla('jph-mi-horario','jph-equipo',desde,['presentador','enrutador','jefe_presentaciones'])
+  var puestos=['presentador','enrutador','jefe_presentaciones']
+  await renderHorarioJefeGrilla('jph-mi-horario',null,desde,puestos)
+  var res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  horDatos=(res.data||[]).filter(function(h){return puestos.includes(h.puesto)})
+  if(!horDatos.length)horDatos=generarFilasVacias(desde,puestos)
+  rHorGrilla('jph-grilla-body',desde,true)
 }
 async function loadJPHorarioSolicitudes(){
   var desde=document.getElementById('jph-semana')?.value
@@ -2492,7 +2501,7 @@ async function loadJPHorarioSolicitudes(){
 }
 async function renderHorarioJefeGrilla(miHorId,equipoId,desde,puestos){
   html(miHorId,'<div class="es">Cargando...</div>')
-  html(equipoId,'<div class="es">Cargando...</div>')
+  if(equipoId)html(equipoId,'<div class="es">Cargando...</div>')
   var resMio=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).maybeSingle()
   var miHor=resMio.data
   if(!miHor){
@@ -2514,6 +2523,7 @@ async function renderHorarioJefeGrilla(miHorId,equipoId,desde,puestos){
     var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puestos[pi]).order('empleado_nombre')
     if(rEq.data)equipoTodo=equipoTodo.concat(rEq.data)
   }
+  if(!equipoId)return
   if(!equipoTodo.length){html(equipoId,'<div class="es">Sin horarios cargados para esta semana</div>');return}
   var outE='<div style="overflow-x:auto"><table><thead><tr>'
   outE+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3)">Persona</th>'
@@ -6021,12 +6031,12 @@ const HOR_COLOR={
 
 // Puestos que puede editar cada jefe
 const JEFE_PUESTOS={
-  'jefe_promotores':    ['promotor','coordinadora_promotores'],
+  'jefe_promotores':    ['promotor','coordinadora_promotores','jefe_promotores'],
   'coordinadora_promotores': ['promotor'],
-  'jefe_captacion':     ['recepcion','pretester','host','detector_pozo'],
-  'jefe_ahorro':        ['asesor'],
+  'jefe_captacion':     ['recepcion','pretester','host','detector_pozo','jefe_captacion'],
+  'jefe_ahorro':        ['asesor','jefe_ahorro'],
   'jefe_pozo':          ['asesor_pozo','jefe_pozo'],
-  'jefe_presentaciones':['presentador','enrutador'],
+  'jefe_presentaciones':['presentador','enrutador','jefe_presentaciones'],
   'on_boarding':        ['on_boarding'],
   'admin':              null, // todos
 }
@@ -6167,16 +6177,18 @@ async function loadHorarios(){
   const desde=document.getElementById('hor-semana')?.value
   if(!desde)return
   var q=db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
-  // Si es jefe (no admin), filtrar solo sus puestos
+  var puestosJefe=null
   if(horContexto==='jefe'&&CU){
     var r=CU.role||CU.rol
-    var puestos=JEFE_PUESTOS[r]
-    if(puestos&&puestos.length){
-      q=q.in('puesto',puestos)
-    }
+    puestosJefe=JEFE_PUESTOS[r]
+    if(puestosJefe&&puestosJefe.length)q=q.in('puesto',puestosJefe)
   }
   const res=await q
   horDatos=res.data||[]
+  if(!horDatos.length){
+    var puestosGen=puestosJefe||Object.values(JEFE_PUESTOS).flat().filter(function(v,i,a){return a.indexOf(v)===i})
+    horDatos=generarFilasVacias(desde,puestosGen)
+  }
   rHorGrilla('hor-grilla-body', desde, horContexto!=='empleado')
 }
 
@@ -6355,15 +6367,36 @@ async function importarExcelHorario(file){
 }
 
 // ── JEFE: panel propio ──
+function generarFilasVacias(desde,puestos){
+  var filas=[]
+  var hoy=desde
+  // Obtener semana_hasta (6 días después)
+  var dD=new Date(desde+'T00:00:00')
+  var dH=new Date(dD);dH.setDate(dD.getDate()+6)
+  var hasta=dH.toISOString().slice(0,10)
+  var label='Semana '+String(dD.getDate()).padStart(2,'0')+'/'+String(dD.getMonth()+1).padStart(2,'0')+' al '+String(dH.getDate()).padStart(2,'0')+'/'+String(dH.getMonth()+1).padStart(2,'0')
+  allUsers.forEach(function(u){
+    if(u.rol&&puestos.includes(u.rol)){
+      filas.push({id:'nuevo_'+u.id,semana_desde:desde,semana_hasta:hasta,semana_label:label,empleado_nombre:u.nombre,puesto:u.rol,lunes:'',martes:'',miercoles:'',jueves:'',viernes:'',sabado:'',domingo:''})
+    }
+  })
+  prmEmpleados.forEach(function(e){
+    if(puestos.includes(e.puesto)&&!filas.find(function(f){return f.empleado_nombre===e.nombre})){
+      filas.push({id:'nuevo_'+e.nombre,semana_desde:desde,semana_hasta:hasta,semana_label:label,empleado_nombre:e.nombre,puesto:e.puesto,lunes:'',martes:'',miercoles:'',jueves:'',viernes:'',sabado:'',domingo:''})
+    }
+  })
+  filas.sort(function(a,b){return a.empleado_nombre.localeCompare(b.empleado_nombre)})
+  return filas
+}
 async function loadHorariosJefe(){
   var desde=document.getElementById('jhr-semana')?.value
   if(!desde)return
   var res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
   horDatos=res.data||[]
-  // Filtrar solo los puestos que puede editar este jefe
   var r=CU.role||CU.rol
   var puestos=JEFE_PUESTOS[r]
   if(puestos)horDatos=horDatos.filter(function(h){return puestos.includes(h.puesto)})
+  if(!horDatos.length&&puestos)horDatos=generarFilasVacias(desde,puestos)
   rHorGrilla('jhr-grilla-body', desde, true)
 }
 

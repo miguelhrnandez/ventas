@@ -2770,11 +2770,10 @@ async function loadOBRetenciones(){
   var cont=document.getElementById('ob-ret-body')
   if(!cont)return
   cont.innerHTML='<div class="es">Cargando...</div>'
-  // Cargar todos los pagos del OB
   var r=await db.from('ob_pagos_cuota').select('*').eq('ob_id',CU.id).order('fecha_pago',{ascending:false})
   var pagos=r.data||[]
   if(!pagos.length){cont.innerHTML='<div class="es">Sin pagos de cuota registrados</div>';return}
-  // Agrupar por mes
+  // Construir lista de meses disponibles
   var meses={}
   pagos.forEach(function(p){
     var mes=p.fecha_pago?p.fecha_pago.slice(0,7):'sin-fecha'
@@ -2782,46 +2781,58 @@ async function loadOBRetenciones(){
     meses[mes].push(p)
   })
   var mesKeys=Object.keys(meses).sort().reverse()
-  var totalGeneral=0
-  var out=''
-  mesKeys.forEach(function(mes){
-    var ps=meses[mes]
-    var totalMes=ps.reduce(function(a,p){return a+calcComCuota(p.numero_cuota,p.dia_del_mes)},0)
-    totalGeneral+=totalMes
-    var label=mes==='sin-fecha'?'Sin fecha':new Date(mes+'-15T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+  // Selector de mes
+  var mesActual=document.getElementById('ob-ret-mes')?.value||mesKeys[0]
+  var opcionesMes=mesKeys.map(function(m){
+    var label=m==='sin-fecha'?'Sin fecha':new Date(m+'-15T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'})
     label=label.charAt(0).toUpperCase()+label.slice(1)
-    out+='<div class="card" style="margin-bottom:14px">'
-    out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
-    out+='<div style="font-size:14px;font-weight:600;color:var(--text)">'+label+'</div>'
-    out+='<div style="font-size:13px;font-weight:600;color:var(--teal)">'+fmt(totalMes)+'</div>'
-    out+='</div>'
+    return '<option value="'+m+'"'+(m===mesActual?' selected':'')+'>'+label+'</option>'
+  }).join('')
+  // Calcular totales por mes para el selector
+  var totalMesActual=0
+  var totalGeneral=pagos.reduce(function(a,p){return a+calcComCuota(p.numero_cuota,p.dia_del_mes)},0)
+  var psMes=meses[mesActual]||[]
+  totalMesActual=psMes.reduce(function(a,p){return a+calcComCuota(p.numero_cuota,p.dia_del_mes)},0)
+  var labelMesActual=mesActual==='sin-fecha'?'Sin fecha':new Date(mesActual+'-15T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+  labelMesActual=labelMesActual.charAt(0).toUpperCase()+labelMesActual.slice(1)
+  var out=''
+  // Header con selector y totales
+  out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">'
+  out+='<select id="ob-ret-mes" onchange="loadOBRetenciones()" style="font-size:13px;width:auto">'+opcionesMes+'</select>'
+  out+='<div style="display:flex;gap:16px">'
+  out+='<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Este mes</div><div style="font-size:15px;font-weight:700;color:var(--teal)">'+fmt(totalMesActual)+'</div></div>'
+  out+='<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Total acumulado</div><div style="font-size:15px;font-weight:700;color:var(--green)">'+fmt(totalGeneral)+'</div></div>'
+  out+='</div></div>'
+  // Lista de pagos del mes seleccionado
+  out+='<div class="card">'
+  out+='<div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">'+labelMesActual+' — '+psMes.length+' pago'+(psMes.length!==1?'s':'')+'</div>'
+  if(!psMes.length){
+    out+='<div class="es">Sin pagos en este mes</div>'
+  } else {
     out+='<div style="display:flex;flex-direction:column;gap:6px">'
-    ps.forEach(function(p){
+    psMes.forEach(function(p){
       var com=calcComCuota(p.numero_cuota,p.dia_del_mes)
       var esTemprano=p.dia_del_mes<=10
-      out+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg3);border-radius:8px;gap:8px">'
+      out+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg3);border-radius:8px;gap:8px">'
       out+='<div style="flex:1">'
       out+='<div style="font-size:12px;font-weight:500;color:var(--text)">M'+p.numero_cuota+' — '+fmtD(p.fecha_pago)+'</div>'
       out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+(p.metodo_pago||'Sin método')+'</div>'
       out+='</div>'
       out+='<div style="text-align:right">'
-      out+='<div style="font-size:12px;font-weight:600;color:var(--teal)">'+fmt(com)+'</div>'
-      out+='<div style="font-size:10px;color:'+(esTemprano?'var(--green)':'var(--amber)')+'">día '+p.dia_del_mes+(esTemprano?' (1-10)':' (11-30)')+'</div>'
+      out+='<div style="font-size:13px;font-weight:600;color:var(--teal)">'+fmt(com)+'</div>'
+      out+='<div style="font-size:10px;color:'+(esTemprano?'var(--green)':'var(--amber)')+';margin-top:1px">día '+p.dia_del_mes+(esTemprano?' (1-10)':' (11-30)')+'</div>'
       out+='</div>'
       if(p.comprobante_url){
-        out+='<a href="'+p.comprobante_url+'" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;white-space:nowrap">📎 ver</a>'
+        out+='<a href="'+p.comprobante_url+'" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;white-space:nowrap;margin-left:4px">📎</a>'
       }
       out+='</div>'
     })
-    out+='</div></div>'
-  })
-  // Total general
-  out='<div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">'
-    +'<div style="font-size:13px;color:var(--text3)">Total acumulado</div>'
-    +'<div style="font-size:16px;font-weight:700;color:var(--teal)">'+fmt(totalGeneral)+'</div>'
-    +'</div>'+out
+    out+='</div>'
+  }
+  out+='</div>'
   cont.innerHTML=out
 }
+
 async function loadOBData(){
   const[mis,disp,movs,pagos]=await Promise.all([
     db.from('operaciones').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),

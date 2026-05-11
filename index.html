@@ -3080,8 +3080,8 @@ function editarComprobante(pagoId){
   inner+='<button class="bp" id="ecomp-btn-save" style="flex:2">Guardar</button>'
   inner+='</div></div></div>'
   modal.innerHTML=inner
-  document.getElementById('ecomp-btn-save').onclick=function(){guardarEditComprobante(pagoId)}
   document.body.appendChild(modal)
+  document.getElementById('ecomp-btn-save').onclick=function(){guardarEditComprobante(pagoId)}
 }
 async function guardarEditComprobante(pagoId){
   var fileInput=document.getElementById('ecomp-file')

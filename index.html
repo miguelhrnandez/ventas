@@ -2152,25 +2152,72 @@ async function loadHorarioEnSA(){
     var r2=await db.from('horarios').select('*').eq('empleado_nombre',CU.nombre).order('semana_desde',{ascending:false}).limit(1)
     if(r2.data&&r2.data.length){miHor=r2.data[0];desde=miHor.semana_desde}
   }
-  if(!miHor){cont.innerHTML='<div class="es">Sin horario asignado</div>';return}
+  if(!desde){cont.innerHTML='<div class="es">Sin horario asignado</div>';return}
   var dDesde=new Date(desde+'T00:00:00')
   var dHasta=new Date(dDesde)
   dHasta.setDate(dDesde.getDate()+6)
   var fmtF=function(d){return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
   var DLOCAL=['lunes','martes','miercoles','jueves','viernes','sabado','domingo']
   var DLBL=['Lun','Mar','Mie','Jue','Vie','Sab','Dom']
-  var out='<div class="card">'
-  out+='<div style="font-size:13px;color:var(--text3);margin-bottom:14px">Semana '+fmtF(dDesde)+' al '+fmtF(dHasta)+'</div>'
-  out+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">'
-  DLOCAL.forEach(function(dia,i){
-    var val=miHor[dia]||'--'
-    var estilo=horColor(val)
-    out+='<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">'
-    out+='<div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+DLBL[i]+'</div>'
-    out+='<div style="font-size:13px;font-weight:600;'+estilo+'">'+val+'</div>'
+  // Mapeo rol -> puesto para filtrar el equipo
+  var r=CU.role||CU.rol
+  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',
+    on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',
+    pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador',
+    jefe_ahorro:'asesor',jefe_pozo:'asesor_pozo',jefe_presentaciones:'presentador',
+    jefe_promotores:'promotor',jefe_captacion:'recepcion'}
+  var puesto=rolAPuesto[r]||r
+  // Cargar todo el equipo del mismo puesto
+  var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puesto).order('empleado_nombre')
+  var equipo=rEq.data||[]
+  // Si el usuario no tiene horario propio pero hay equipo, igual mostramos
+  var out=''
+  // ── Mi horario ──
+  out+='<div class="card" style="margin-bottom:16px">'
+  out+='<div style="font-size:15px;font-weight:600;margin-bottom:12px">Mi horario</div>'
+  out+='<div style="font-size:12px;color:var(--text3);margin-bottom:14px">Semana '+fmtF(dDesde)+' al '+fmtF(dHasta)+'</div>'
+  if(!miHor){
+    out+='<div class="es">Sin horario asignado esta semana</div>'
+  } else {
+    out+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">'
+    DLOCAL.forEach(function(dia,i){
+      var val=miHor[dia]||'--'
+      var estilo=horColor(val)
+      out+='<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">'
+      out+='<div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+DLBL[i]+'</div>'
+      out+='<div style="font-size:13px;font-weight:600;'+estilo+'">'+val+'</div>'
+      out+='</div>'
+    })
     out+='</div>'
-  })
-  out+='</div></div>'
+  }
+  out+='</div>'
+  // ── Horario del equipo ──
+  if(equipo.length){
+    out+='<div class="card">'
+    out+='<div style="font-size:15px;font-weight:600;margin-bottom:14px">Horarios del equipo</div>'
+    out+='<div style="overflow-x:auto">'
+    out+='<table><thead><tr>'
+    out+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3);font-weight:500">Nombre</th>'
+    DLBL.forEach(function(d){
+      out+='<th style="text-align:center;padding:8px 10px;font-size:12px;color:var(--text3);font-weight:500">'+d+'</th>'
+    })
+    out+='</tr></thead><tbody>'
+    equipo.forEach(function(emp){
+      var esMio=emp.empleado_nombre===CU.nombre
+      out+='<tr style="'+(esMio?'background:rgba(255,255,255,0.04)':'')+'">'
+      out+='<td style="padding:8px 12px;font-size:13px;font-weight:'+(esMio?'600':'400')+';color:var(--text);white-space:nowrap">'
+        +emp.empleado_nombre+(esMio?' <span style="font-size:10px;color:var(--text3)">(yo)</span>':'')
+      +'</td>'
+      DLOCAL.forEach(function(dia){
+        var val=emp[dia]||'--'
+        var estilo=horColor(val)
+        out+='<td style="text-align:center;padding:8px 10px;font-size:12px;font-weight:500;'+estilo+'">'+val+'</td>'
+      })
+      out+='</tr>'
+    })
+    out+='</tbody></table>'
+    out+='</div></div>'
+  }
   cont.innerHTML=out
 }
 

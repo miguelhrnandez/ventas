@@ -1702,7 +1702,8 @@ async function enterPanel(r){
   else if(r==='on_boarding')await showOB()
   else if(r==='jefe_promotores'||r==='jefe_captacion')await showPremiosYHorario()
   else if(r==='jefe_pozo'||r==='coordinadora_promotores')await showJefeHorario()
-  else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador'||r==='asesor_pozo')await showHorario()
+  else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador')await showHorario()
+  else if(r==='asesor_pozo')await showAsesorPozo()
 }
 async function doLogin(){
   const u=gv('lu').trim(),p=gv('lp')

@@ -2123,63 +2123,55 @@ function aTab(t,btn){
   else{sh('a-stats');if(t==='o')sh('a-to');else if(t==='n')sh('a-tn');else sh('a-tc')}
   document.querySelectorAll('#SA .sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
-  const sbItem=document.getElementById('sbitem-'+t);if(sbItem)sbItem.classList.add('active')
+  var sbItem=document.getElementById('sbitem-'+t);if(sbItem)sbItem.classList.add('active')
   if(t==='c')rACom()
   if(t==='hor')loadHorarioEnSA()
   closeSbMobile()
-  if(t==='n'){const hoy=new Date().toISOString().slice(0,10);const fi=document.getElementById('nfecha');if(fi&&!fi.value)fi.value=hoy}
+  if(t==='n'){var hoy=new Date().toISOString().slice(0,10);var fi=document.getElementById('nfecha');if(fi&&!fi.value)fi.value=hoy}
 }
-
 async function loadHorarioEnSA(){
   var cont=document.getElementById('a-hor-body')
   if(!cont)return
-  html('a-hor-body','<div class=\"es\">Cargando horario...</div>')
+  cont.innerHTML='<div class="es">Cargando horario...</div>'
   var hoy=new Date().toISOString().slice(0,10)
   var desde=null
-  // Buscar semana actual en todasSemanasRef si ya está cargado
-  if(todasSemanasRef&&todasSemanasRef.length){
+  if(typeof todasSemanasRef!=='undefined'&&todasSemanasRef.length){
     var sem=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
     if(sem)desde=sem.semana_desde
   }
-  // Si no encontramos en cache, buscar en BD
   if(!desde){
     var rSem=await db.from('semanas_referencia').select('semana_desde,semana_hasta').lte('semana_desde',hoy).gte('semana_hasta',hoy).maybeSingle()
     if(rSem.data)desde=rSem.data.semana_desde
   }
-  // Buscar el horario del empleado (semana actual o la más reciente)
   var miHor=null
   if(desde){
     var r1=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).maybeSingle()
     miHor=r1.data
   }
   if(!miHor){
-    // Buscar la semana más reciente con horario
     var r2=await db.from('horarios').select('*').eq('empleado_nombre',CU.nombre).order('semana_desde',{ascending:false}).limit(1)
     if(r2.data&&r2.data.length){miHor=r2.data[0];desde=miHor.semana_desde}
   }
-  if(!miHor){
-    html('a-hor-body','<div class=\"es\">Sin horario asignado</div>')
-    return
-  }
-  // Calcular semana_hasta (6 días después de semana_desde)
+  if(!miHor){cont.innerHTML='<div class="es">Sin horario asignado</div>';return}
   var dDesde=new Date(desde+'T00:00:00')
-  var dHasta=new Date(dDesde);dHasta.setDate(dDesde.getDate()+6)
-  var fmtFecha=function(d){return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
-  var out='<div class=\"card\">'\
-    +'<div style=\"font-size:13px;color:var(--text3);margin-bottom:14px\">Semana '+fmtFecha(dDesde)+' al '+fmtFecha(dHasta)+'</div>'\
-    +'<div style=\"display:grid;grid-template-columns:repeat(7,1fr);gap:8px\">'\
-  var DIAS_LOCAL=['lunes','martes','miercoles','jueves','viernes','sabado','domingo']\
-  var DIAS_LBL=['Lun','Mar','Mie','Jue','Vie','Sab','Dom']\
-  DIAS_LOCAL.forEach(function(dia,i){\
-    var val=miHor[dia]||'—'\
-    var estilo=horColor(val)\
-    out+='<div style=\"background:var(--bg3);border-radius:8px;padding:10px;text-align:center\">'\
-      +'<div style=\"font-size:11px;color:var(--text3);margin-bottom:4px\">'+DIAS_LBL[i]+'</div>'\
-      +'<div style=\"font-size:13px;font-weight:600;'+estilo+'\">'+val+'</div>'\
-      +'</div>'\
-  })\
-  out+='</div></div>'\
-  html('a-hor-body',out)
+  var dHasta=new Date(dDesde)
+  dHasta.setDate(dDesde.getDate()+6)
+  var fmtF=function(d){return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
+  var DLOCAL=['lunes','martes','miercoles','jueves','viernes','sabado','domingo']
+  var DLBL=['Lun','Mar','Mie','Jue','Vie','Sab','Dom']
+  var out='<div class="card">'
+  out+='<div style="font-size:13px;color:var(--text3);margin-bottom:14px">Semana '+fmtF(dDesde)+' al '+fmtF(dHasta)+'</div>'
+  out+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">'
+  DLOCAL.forEach(function(dia,i){
+    var val=miHor[dia]||'--'
+    var estilo=horColor(val)
+    out+='<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">'
+    out+='<div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+DLBL[i]+'</div>'
+    out+='<div style="font-size:13px;font-weight:600;'+estilo+'">'+val+'</div>'
+    out+='</div>'
+  })
+  out+='</div></div>'
+  cont.innerHTML=out
 }
 
 // ═══ JEFE VENTAS ═══

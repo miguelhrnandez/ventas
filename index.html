@@ -1832,7 +1832,7 @@ async function guardarEdit(){
   if(error){sh('me-err');document.getElementById('me-err').textContent='Error al guardar.';return}
   closeEdit()
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
-  aOps=data||[];rAStats();rAOps()
+  aOps=data||[];rAStats();rAOps();aTab('o',document.getElementById('sbitem-o'))
   // Si es asesor_pozo, preseleccionar Pozo en el formulario
   if((CU.role||CU.rol)==='asesor_pozo'){
     var selPlan=document.getElementById('npl')
@@ -1933,7 +1933,7 @@ async function showAs(){
     {id:'hor',label:'Mi horario',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',fn:"aTab('hor',document.getElementById('sbitem-hor'))"}
   ],'o',CU.nombre,rolLabel,tieneExtra)
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
-  aOps=data||[];rAStats();rAOps()
+  aOps=data||[];rAStats();rAOps();aTab('o',document.getElementById('sbitem-o'))
   // Si es asesor_pozo, preseleccionar Pozo en el formulario
   if(esPozo){
     setTimeout(function(){
@@ -2119,11 +2119,8 @@ function rACom(){
 
 function aTab(t,btn){
   hi('a-to');hi('a-tn');hi('a-tc');hi('a-thor')
-  if(t==='o')sh('a-to')
-  else if(t==='n')sh('a-tn')
-  else if(t==='hor')sh('a-thor')
-  else sh('a-tc')
-  document.querySelectorAll('#SA .nav button').forEach(b=>b.classList.remove('active'))
+  if(t==='hor'){sh('a-thor');hi('a-stats')}
+  else{sh('a-stats');if(t==='o')sh('a-to');else if(t==='n')sh('a-tn');else sh('a-tc')}
   document.querySelectorAll('#SA .sb-item').forEach(b=>b.classList.remove('active'))
   if(btn)btn.classList.add('active')
   const sbItem=document.getElementById('sbitem-'+t);if(sbItem)sbItem.classList.add('active')

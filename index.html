@@ -2895,7 +2895,7 @@ function rOBMis(isAdmin=false){
             +'<div style="font-size:10px;color:var(--text3);margin-bottom:4px">M'+n+'</div>'
             +'<div style="font-size:12px;color:var(--green);font-weight:600">Día '+pago.dia_del_mes+'</div>'
             +'<div style="font-size:11px;color:var(--teal);margin-top:2px">'+fmt(com)+'</div>'
-            +((isAdmin||pago.ob_id===CU.id)?'<button onclick="event.stopPropagation();delPagoCuota(\''+pago.id+'\',\''+op.id+'\')" style="font-size:9px;padding:1px 5px;margin-top:4px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:4px;cursor:pointer">✕</button>':'')
+            +((isAdmin||pago.ob_id===CU.id)?'<div style="display:flex;gap:3px;justify-content:center;margin-top:4px"><button onclick="event.stopPropagation();delOBPago(\''+pago.id+'\')" style="font-size:9px;padding:1px 5px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:4px;cursor:pointer">✕</button><button onclick="event.stopPropagation();editarComprobante(\''+pago.id+'\')" style="font-size:9px;padding:1px 5px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:4px;cursor:pointer">✏️</button></div>':'')
             +(pago.comprobante_url?'<a href="'+pago.comprobante_url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--teal);display:block;margin-top:3px">📎 comprobante</a>':'')
           +'</div>'
         } else {
@@ -3064,6 +3064,48 @@ async function guardarOBPago(opId,numeroCuota){
   document.getElementById('ob-modal').remove()
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
   else{await loadOBData();rOBStats();rOBMis()}
+}
+function cerrarModalEditComp(){var m=document.getElementById('modal-edit-comp');if(m)m.remove()}
+function editarComprobante(pagoId){
+  var modal=document.createElement('div')
+  modal.id='modal-edit-comp'
+  modal.className='modal-bg'
+  var inner='<div class="modal" style="max-width:380px">'
+  inner+='<div style="font-size:15px;font-weight:600;margin-bottom:16px">Editar comprobante</div>'
+  inner+='<div style="display:flex;flex-direction:column;gap:12px">'
+  inner+='<div><label>Nuevo comprobante</label><input id="ecomp-file" type="file" accept="image/*,.pdf" style="font-size:12px;cursor:pointer"></div>'
+  inner+='<div id="ecomp-err" class="hidden" style="font-size:12px;color:var(--red)"></div>'
+  inner+='<div style="display:flex;gap:8px;margin-top:4px">'
+  inner+='<button onclick="cerrarModalEditComp()" style="flex:1">Cancelar</button>'
+  inner+='<button class="bp" id="ecomp-btn-save" style="flex:2">Guardar</button>'
+  inner+='</div></div></div>'
+  modal.innerHTML=inner
+  document.getElementById('ecomp-btn-save').onclick=function(){guardarEditComprobante(pagoId)}
+  document.body.appendChild(modal)
+}
+async function guardarEditComprobante(pagoId){
+  var fileInput=document.getElementById('ecomp-file')
+  var errEl=document.getElementById('ecomp-err')
+  if(!fileInput||!fileInput.files||!fileInput.files[0]){
+    errEl.textContent='Selecciona un archivo';errEl.style.display='block';return
+  }
+  var file=fileInput.files[0]
+  var ext=file.name.split('.').pop().toLowerCase()
+  var fileName='comprobantes/edit_'+pagoId+'_'+Date.now()+'.'+ext
+  var btnGuardar=document.querySelector('#modal-edit-comp .bp')
+  if(btnGuardar){btnGuardar.textContent='Subiendo...';btnGuardar.disabled=true}
+  var{data:upData,error:upErr}=await db.storage.from('comprobantes').upload(fileName,file,{upsert:true})
+  if(upErr){errEl.textContent='Error al subir: '+upErr.message;errEl.style.display='block';if(btnGuardar){btnGuardar.textContent='Guardar';btnGuardar.disabled=false}return}
+  var{data:urlData}=db.storage.from('comprobantes').getPublicUrl(fileName)
+  var compUrl=urlData?.publicUrl||null
+  var{error}=await db.from('ob_pagos_cuota').update({comprobante_url:compUrl}).eq('id',pagoId)
+  if(error){errEl.textContent='Error al guardar: '+error.message;errEl.style.display='block';if(btnGuardar){btnGuardar.textContent='Guardar';btnGuardar.disabled=false}return}
+  document.getElementById('modal-edit-comp').remove()
+  mostrarToastCarp('Comprobante actualizado')
+  var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
+  if(rPag.data)allObPagos=rPag.data
+  if(CU&&CU.role==='admin'){adminVerClientesOB()}
+  else{rOBStats();rOBMis()}
 }
 async function delOBPago(pagoId){
   if(!confirm('Eliminar este pago registrado?'))return

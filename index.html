@@ -4277,7 +4277,10 @@ function rAdmCom(){
             // Detalle expandible de ventas
             var detalleHtml=''
             if(r.rolKey==='asesor'&&r.aid){
-              var opsAsesor=p.ops.filter(x=>x.asesor_id===r.aid)
+              var opsAsesor=p.ops.filter(function(x){
+                if(x.asesor_id===r.aid)return true
+                return x.co_asesores&&x.co_asesores.some(function(s){return s.asesor_id===r.aid&&s.porcentaje>0})
+              })
               detalleHtml='<tr id="comdet-'+k+'-'+r.aid+'" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
               opsAsesor.forEach(function(op){
                 var c=categ(op.monto)

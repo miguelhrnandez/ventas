@@ -1831,6 +1831,14 @@ async function rtRecargar(tabla){
 }
 
 // ═══ MODAL EDITAR ═══
+function openEditAdmin(id){
+  // Forzar que use allOps (panel admin)
+  var _aOpsBak=aOps
+  aOps=allOps
+  openEdit(id)
+  // Parchear guardarEdit para recargar allOps
+  window._editFromAdmin=true
+}
 function openEdit(id){
   editId=id
   const op=allOps.find(x=>x.id===id)
@@ -1959,6 +1967,11 @@ async function guardarEdit(){
   document.getElementById('me-btn').textContent='Guardar cambios'
   if(error){sh('me-err');document.getElementById('me-err').textContent='Error al guardar.';return}
   closeEdit()
+  if(window._editFromAdmin){
+    window._editFromAdmin=false
+    await loadAll();rAdmCarp();rAdmTodas()
+    return
+  }
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();rAOps();aTab('o',document.getElementById('sbitem-o'))
   // Si es asesor_pozo, preseleccionar Pozo en el formulario
@@ -4174,6 +4187,7 @@ function rAdmTodas(){
     const btnFecha='<button onclick="openEditFecha(\''+op.id+'\',\''+op.fecha+'\')" style="font-size:11px;padding:3px 7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text2);cursor:pointer">📅</button>'
     const btnMover='<button onclick="openMoverById(\''+op.id+'\')" style="font-size:11px;padding:3px 7px;background:var(--purple-bg);border:1px solid rgba(192,132,252,0.2);border-radius:6px;color:var(--purple);cursor:pointer">↗ Mover</button>'
     const btnDel='<button onclick="deleteOp(\''+op.id+'\',\'admin\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'
+    const btnEdit='<button onclick="openEditAdmin(\''+op.id+'\')" style="font-size:11px;padding:3px 7px;background:var(--blue-bg);border:1px solid rgba(96,165,250,0.2);border-radius:6px;color:var(--blue);cursor:pointer">✏ Editar</button>'
     const obsTitle=(op.obs||'').replace(/"/g,"'")
     filas+='<tr>'
       +'<td>'+fmtD(op.fecha)+'</td>'
@@ -4186,7 +4200,7 @@ function rAdmTodas(){
       +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
       +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
       +'<td style="max-width:100px;font-size:12px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+obsTitle+'">'+(op.obs||'-')+'</td>'
-      +'<td><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+btnAceptar+btnDenegar+btnFecha+btnMover+btnDel+'</div></td>'
+      +'<td><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+btnEdit+btnAceptar+btnDenegar+btnFecha+btnMover+btnDel+'</div></td>'
       +'</tr>'
   })
   html('adm-tob','<table><thead><tr>'

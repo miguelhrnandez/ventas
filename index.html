@@ -426,6 +426,18 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
         <div id="me-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
       </div>
       <div><label>Observaciones</label><textarea id="me-obs" rows="2" style="resize:vertical"></textarea></div>
+      <div>
+        <label>Asesor</label>
+        <select id="me-asesor" style="width:100%"></select>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <label style="margin:0">Split de comisión <span style="font-size:11px;color:var(--text3);font-weight:400">(opcional — si la venta es compartida)</span></label>
+          <button onclick="agregarSplitRow()" style="font-size:11px;padding:4px 10px">+ Agregar asesor</button>
+        </div>
+        <div id="me-split-rows" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div id="me-split-total" style="font-size:11px;color:var(--text3);margin-top:4px;text-align:right"></div>
+      </div>
       <div id="me-prev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
       <div id="me-err" class="hidden em"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
@@ -1820,71 +1832,96 @@ async function rtRecargar(tabla){
 
 // ═══ MODAL EDITAR ═══
 function openEdit(id){
-  const op=aOps.find(x=>String(x.id)===String(id));if(!op)return
   editId=id
-  const esVenta=categ(op.monto).isVenta
-  // Separar apellido y nombre del cliente
-  var partes_cliente = op.cliente ? op.cliente.split(' ') : []
-  var apellido_edit = '', nombre_edit = ''
-  if(partes_cliente.length >= 2){
-    apellido_edit = partes_cliente.slice(0, Math.ceil(partes_cliente.length/2)).join(' ')
-    nombre_edit = partes_cliente.slice(Math.ceil(partes_cliente.length/2)).join(' ')
-  } else {
-    apellido_edit = op.cliente || ''
+  const op=allOps.find(x=>x.id===id)
+  if(!op)return
+  hi('me-monto-lock')
+  const c=categ(op.monto)
+  if(c.isVenta){sh('me-monto-lock')}
+  const parts=(op.cliente||'').split(' ')
+  const nom=parts.pop()||''
+  const ap=parts.join(' ')
+  document.getElementById('me-apellido').value=ap
+  document.getElementById('me-nombre').value=nom
+  document.getElementById('me-plan').value=op.plan||'Ahorro'
+  document.getElementById('me-monto').value=op.monto||''
+  document.getElementById('me-unidad').value=op.unidad||''
+  document.getElementById('me-celular').value=op.celular||''
+  document.getElementById('me-obs').value=op.obs||''
+  // Poblar select de asesor
+  var selAs=document.getElementById('me-asesor')
+  var asesores=allUsers.filter(function(u){return u.rol==='asesor'||u.rol==='asesor_pozo'})
+  selAs.innerHTML=asesores.map(function(u){
+    return '<option value="'+u.id+'" data-nombre="'+u.nombre+'"'+(u.id===op.asesor_id?' selected':'')+'>'+u.nombre+'</option>'
+  }).join('')
+  // Split existente
+  window._splitRows=op.co_asesores||[]
+  renderSplitRows()
+  // Método de pago
+  var ef=0,tr=0
+  if(op.metodo_pago){
+    var mef=op.metodo_pago.match(/Efectivo \$([0-9.]+)/)
+    var mtr=op.metodo_pago.match(/Transferencia \$([0-9.]+)/)
+    if(mef)ef=parseFloat(mef[1].replace('.',''))
+    if(mtr)tr=parseFloat(mtr[1].replace('.',''))
+    if(op.metodo_pago==='Efectivo')ef=op.monto
+    if(op.metodo_pago==='Transferencia')tr=op.monto
   }
-  sv('me-apellido', apellido_edit)
-  sv('me-nombre', nombre_edit);sv('me-plan',op.plan);sv('me-monto',op.monto);sv('me-unidad',op.unidad||'')
-  sv('me-celular',op.celular||'');sv('me-obs',op.obs||'')
-  // Cargar forma de pago
-  var mpago=op.metodo_pago||''
-  var meEf=document.getElementById('me-ef'),meTr=document.getElementById('me-tr')
-  var mePrev=document.getElementById('me-pago-prev')
-  if(meEf)meEf.value=''
-  if(meTr)meTr.value=''
-  if(mePrev)mePrev.textContent=''
-  if(mpago){
-    if(mpago.includes('+')){ // "Efectivo $X + Transferencia $Y"
-      var partes=mpago.split('+')
-      if(meEf&&partes[0])meEf.value=partes[0].replace(/[^0-9]/g,'')
-      if(meTr&&partes[1])meTr.value=partes[1].replace(/[^0-9]/g,'')
-    } else if(mpago.toLowerCase().includes('efectivo')&&meEf){
-      meEf.value=op.monto||''
-    } else if(meTr){
-      meTr.value=op.monto||''
-    }
-  }
-  const montoEl=document.getElementById('me-monto')
-  const planEl=document.getElementById('me-plan')
-  const lockEl=document.getElementById('me-monto-lock')
-  if(esVenta){
-    montoEl.readOnly=true;montoEl.style.opacity='0.5';montoEl.style.cursor='not-allowed'
-    planEl.disabled=true;planEl.style.opacity='0.5'
-    if(lockEl)lockEl.style.display='flex'
-  } else {
-    montoEl.readOnly=false;montoEl.style.opacity='1';montoEl.style.cursor=''
-    planEl.disabled=false;planEl.style.opacity='1'
-    if(lockEl)lockEl.style.display='none'
-  }
-  hi('me-err');prevEditTipo()
+  document.getElementById('me-ef').value=ef||''
+  document.getElementById('me-tr').value=tr||''
+  hi('me-err');hi('me-prev')
+  prevEditTipo()
   sh('modal-edit')
 }
-function closeEdit(){hi('modal-edit');editId=null}
-function prevEditPago(){
-  const ef=parseFloat(document.getElementById('me-ef')?.value)||0
-  const tr=parseFloat(document.getElementById('me-tr')?.value)||0
-  const el=document.getElementById('me-pago-prev')
+function agregarSplitRow(){
+  if(!window._splitRows)window._splitRows=[]
+  window._splitRows.push({asesor_id:'',asesor_nombre:'',porcentaje:''})
+  renderSplitRows()
+}
+function renderSplitRows(){
+  var cont=document.getElementById('me-split-rows')
+  if(!cont)return
+  var rows=window._splitRows||[]
+  var asesores=allUsers.filter(function(u){return u.rol==='asesor'||u.rol==='asesor_pozo'})
+  var html=''
+  rows.forEach(function(r,i){
+    var opts=asesores.map(function(u){
+      return '<option value="'+u.id+'" data-nombre="'+u.nombre+'"'+(u.asesor_id===r.asesor_id?' selected':'')+'>'+u.nombre+'</option>'
+    }).join('')
+    html+='<div style="display:grid;grid-template-columns:1fr 80px 32px;gap:6px;align-items:center">'
+    html+='<select onchange="updateSplitRow('+i+',\'asesor\',this)"><option value="">Elegir asesor</option>'+opts+'</select>'
+    html+='<input type="number" placeholder="%" min="1" max="100" value="'+(r.porcentaje||'')+'" onchange="updateSplitRow('+i+',\'pct\',this)" style="text-align:center">'
+    html+='<button onclick="eliminarSplitRow('+i+')" style="padding:4px 6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2)">✕</button>'
+    html+='</div>'
+  })
+  cont.innerHTML=html
+  actualizarTotalSplit()
+}
+function updateSplitRow(i,campo,el){
+  if(!window._splitRows)return
+  if(campo==='asesor'){
+    var opt=el.options[el.selectedIndex]
+    window._splitRows[i].asesor_id=el.value
+    window._splitRows[i].asesor_nombre=opt?opt.getAttribute('data-nombre'):''
+  } else {
+    window._splitRows[i].porcentaje=parseFloat(el.value)||0
+  }
+  actualizarTotalSplit()
+}
+function eliminarSplitRow(i){
+  window._splitRows.splice(i,1)
+  renderSplitRows()
+}
+function actualizarTotalSplit(){
+  var rows=window._splitRows||[]
+  var total=rows.reduce(function(a,r){return a+(parseFloat(r.porcentaje)||0)},0)
+  var el=document.getElementById('me-split-total')
   if(!el)return
-  if(ef>0&&tr>0)el.innerHTML='<span style="color:var(--text2)">💵 Efectivo: <strong>'+fmt(ef)+'</strong> + 🏦 Transferencia: <strong>'+fmt(tr)+'</strong></span>'
-  else if(ef>0)el.innerHTML='<span style="color:var(--text2)">💵 Solo efectivo: <strong>'+fmt(ef)+'</strong></span>'
-  else if(tr>0)el.innerHTML='<span style="color:var(--text2)">🏦 Solo transferencia: <strong>'+fmt(tr)+'</strong></span>'
-  else el.textContent=''
+  if(!rows.length){el.textContent='';return}
+  el.textContent='Total: '+total+'%'
+  el.style.color=total===100?'var(--green)':'var(--amber)'
 }
-function prevEditTipo(){
-  const m=parseInt(gv('me-monto')),el=document.getElementById('me-prev')
-  if(!m||isNaN(m)){hi('me-prev');return}sh('me-prev')
-  const c=categ(m)
-  el.innerHTML=`Categoria: <strong style="color:var(--${c.cls.includes('completa')?'green':c.cls.includes('bonificada')?'blue':'amber'})">${c.label}</strong>` + (c.isVenta?` - Comision est.: <span class="ag">${fmt(calcC(m))}</span>`:'')
-}
+
 async function guardarEdit(){
   hi('me-err')
   const me_ap=(document.getElementById('me-apellido')?.value||'').trim().toUpperCase()
@@ -1909,7 +1946,16 @@ async function guardarEdit(){
     esConversionAVenta=true
   }
   document.getElementById('me-btn').textContent='Guardando...'
-  const{error}=await db.from('operaciones').update({cliente:cl,plan:pl,monto:mo,unidad:un,celular:mecel,metodo_pago:mepago||null,obs:ob,estado:c.isVenta?'venta':'reserva'}).eq('id',editId)
+  // Asesor
+  var selAs=document.getElementById('me-asesor')
+  var asOpt=selAs?selAs.options[selAs.selectedIndex]:null
+  var newAsesorId=selAs?selAs.value:null
+  var newAsesorNombre=asOpt?asOpt.getAttribute('data-nombre'):null
+  // Split
+  var splitRows=(window._splitRows||[]).filter(function(r){return r.asesor_id&&r.porcentaje>0})
+  var updateData={cliente:cl,plan:pl,monto:mo,unidad:un,celular:mecel,metodo_pago:mepago||null,obs:ob,estado:c.isVenta?'venta':'reserva',co_asesores:splitRows.length?splitRows:[]}
+  if(newAsesorId){updateData.asesor_id=newAsesorId;updateData.asesor_nombre=newAsesorNombre}
+  const{error}=await db.from('operaciones').update(updateData).eq('id',editId)
   document.getElementById('me-btn').textContent='Guardar cambios'
   if(error){sh('me-err');document.getElementById('me-err').textContent='Error al guardar.';return}
   closeEdit()

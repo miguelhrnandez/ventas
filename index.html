@@ -451,7 +451,9 @@ function initAdmCtxMenu(){
   m.id='adm-ctx'
   m.className='adm-ctx-menu'
   document.body.appendChild(m)
-  document.addEventListener('click',function(){closeAdmMenus()})
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.adm-menu-btn'))closeAdmMenus()
+  })
 }
 function closeAdmMenus(){
   var m=document.getElementById('adm-ctx')
@@ -502,10 +504,6 @@ async function openSolicitarCambioSA(){
   sh('modal-hor-cambio')
 }
 
-document.addEventListener('click',function(e){
-  var btn=e.target.closest('.adm-menu-btn')
-  if(btn){e.stopPropagation();toggleAdmMenu(btn)}
-})
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
@@ -4266,7 +4264,7 @@ function rAdmTodas(){
     if(c.isVenta && op.carpeta_tesoreria !== 'denegada')
       btnDnAfuera = '<button onclick="openDenegar(\'' + oid2 + '\')" style="font-size:11px;padding:3px 8px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">✗</button>'
     var opFecha = op.fecha||''
-    var menuHtml = '<div style="display:flex;gap:4px;align-items:center">' + btnAcAfuera + btnDnAfuera + '<button class="adm-menu-btn" data-id="'+oid2+'" data-fecha="'+opFecha+'" style="font-size:14px;padding:2px 10px;font-weight:700;letter-spacing:2px;line-height:1">⋯</button></div>'
+    var menuHtml = '<div style="display:flex;gap:4px;align-items:center">' + btnAcAfuera + btnDnAfuera + '<button onclick="toggleAdmMenu(this)" data-id="'+oid2+'" data-fecha="'+opFecha+'" style="font-size:14px;padding:2px 10px;font-weight:700;letter-spacing:2px;line-height:1">⋯</button></div>'
     filas+='<tr>'
       +'<td>'+fmtD(op.fecha)+'</td>'
       +'<td style="color:var(--text)">'+op.asesor_nombre+'</td>'

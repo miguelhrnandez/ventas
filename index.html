@@ -2300,6 +2300,62 @@ async function loadAll(){
 }
 
 // ═══ MODAL EDITAR ═══
+
+// ═══ FUNCIONES EDITAR OPERACIÓN (ADMIN) ═══
+function openEditAdmin(id){
+  window._editFromAdmin=true
+  openEdit(id)
+}
+function agregarSplitRow(){
+  if(!window._splitRows)window._splitRows=[]
+  window._splitRows.push({asesor_id:'',asesor_nombre:'',porcentaje:''})
+  renderSplitRows()
+}
+function renderSplitRows(){
+  var cont=document.getElementById('me-split-rows')
+  if(!cont)return
+  var rows=window._splitRows||[]
+  var asesores=allUsers.filter(function(u){return u.rol==='asesor'||u.rol==='asesor_pozo'})
+  var out=''
+  rows.forEach(function(r,i){
+    var opts=asesores.map(function(u){
+      return '<option value="'+u.id+'"'+(u.id===r.asesor_id?' selected':'')+' data-nombre="'+u.nombre+'">'+u.nombre+'</option>'
+    }).join('')
+    out+='<div style="display:grid;grid-template-columns:1fr 80px 32px;gap:6px;align-items:center">'
+    out+='<select onchange="updateSplitRow('+i+',this,\'asesor\')"><option value="">Elegir asesor</option>'+opts+'</select>'
+    out+='<input type="number" placeholder="%" min="1" max="100" value="'+(r.porcentaje||'')+'" onchange="updateSplitRow('+i+',this,\'pct\')" style="text-align:center">'
+    out+='<button onclick="eliminarSplitRow('+i+')" style="padding:4px 6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:6px">✕</button>'
+    out+='</div>'
+  })
+  cont.innerHTML=out
+  actualizarTotalSplit()
+}
+function updateSplitRow(i,el,campo){
+  if(!window._splitRows)return
+  if(campo==='asesor'){
+    var opt=el.options[el.selectedIndex]
+    window._splitRows[i].asesor_id=el.value
+    window._splitRows[i].asesor_nombre=opt?opt.getAttribute('data-nombre'):''
+  } else {
+    window._splitRows[i].porcentaje=parseFloat(el.value)||0
+  }
+  actualizarTotalSplit()
+}
+function eliminarSplitRow(i){
+  if(!window._splitRows)return
+  window._splitRows.splice(i,1)
+  renderSplitRows()
+}
+function actualizarTotalSplit(){
+  var rows=window._splitRows||[]
+  var total=rows.reduce(function(a,r){return a+(parseFloat(r.porcentaje)||0)},0)
+  var el=document.getElementById('me-split-total')
+  if(!el)return
+  if(!rows.length){el.textContent='';return}
+  el.textContent='Total: '+total+'%'
+  el.style.color=total===100?'var(--green)':'var(--amber)'
+}
+
 function openEdit(id){
   editId=id
   const op=allOps.find(x=>x.id===id)

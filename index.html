@@ -2687,9 +2687,18 @@ function rACom(){
   function comParaAsesor(op){
     var base=calcC(op.monto,!!op.ob_id)
     if(!op.co_asesores||!op.co_asesores.length)return base
-    var split=op.co_asesores.find(function(r){return r.asesor_id===CU.id&&r.porcentaje>0})
-    if(!split)return op.asesor_id===CU.id?base:0
-    return Math.round(base*(split.porcentaje/100))
+    var split=op.co_asesores.filter(function(r){return r.asesor_id&&r.porcentaje>0})
+    if(!split.length)return base
+    // Soy co-asesor?
+    var miParte=split.find(function(r){return r.asesor_id===CU.id})
+    if(miParte)return Math.round(base*(miParte.porcentaje/100))
+    // Soy el principal? recibo 100% - suma co-asesores
+    if(op.asesor_id===CU.id){
+      var pctCoAsesores=split.reduce(function(a,r){return a+r.porcentaje},0)
+      var pctPrincipal=100-pctCoAsesores
+      return pctPrincipal>0?Math.round(base*(pctPrincipal/100)):0
+    }
+    return 0
   }
   const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+comParaAsesor(x),0)
   const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+comParaAsesor(x),0)
@@ -4158,7 +4167,16 @@ function rAdmCom(){
       var comTotal=calcC(op.monto,op.es_ob_venta)
       var split=op.co_asesores&&op.co_asesores.length?op.co_asesores.filter(function(r){return r.asesor_id&&r.porcentaje>0}):[]
       if(split.length){
-        // Distribuir según porcentajes del split
+        // co_asesores son los co-asesores con su %. El principal recibe el resto.
+        var pctCoAsesores=split.reduce(function(a,r){return a+r.porcentaje},0)
+        var pctPrincipal=100-pctCoAsesores
+        // Asesor principal
+        if(pctPrincipal>0){
+          var comPrincipal=Math.round(comTotal*(pctPrincipal/100))
+          if(op.carpeta_tesoreria==='aceptada')porAs[op.asesor_id].com+=comPrincipal
+          else porAs[op.asesor_id].comPend+=comPrincipal
+        }
+        // Co-asesores
         split.forEach(function(r){
           var aid=r.asesor_id
           var nombre=r.asesor_nombre||aid
@@ -4167,11 +4185,6 @@ function rAdmCom(){
           if(op.carpeta_tesoreria==='aceptada')porAs[aid].com+=comParte
           else porAs[aid].comPend+=comParte
         })
-        // El asesor principal no recibe comisión si está en el split
-        var enSplit=split.find(function(r){return r.asesor_id===op.asesor_id})
-        if(!enSplit){
-          // Si el principal no está en el split, no recibe nada (el split lo cubre todo)
-        }
       } else {
         // Sin split: comisión completa al asesor principal
         if(op.carpeta_tesoreria==='aceptada')porAs[op.asesor_id].com+=comTotal
@@ -4224,7 +4237,15 @@ function rAdmCom(){
                 '<span class="badge b-pend">'+pendCount+' pendiente'+(pendCount!==1?'s':'')+'</span>'
               var tieneOpsConComision=r.com>0||r.comPend>0
               if(!tieneOpsConComision&&acpCount===0&&pendCount===0)return null
-              return{nombre:r.nombre,rolKey:'asesor',aid:r.aid,total:r.com,comPend:r.comPend,det:acpCount+' venta'+(acpCount!==1?'s':'')+' - 50% c/tope $250k',colorCls:'ag',carpetaStatus:status}
+              // Calcular % real recibido para el detalle
+              var opsConSplit=p.ops.filter(function(x){
+                return x.co_asesores&&x.co_asesores.length&&(
+                  x.asesor_id===r.aid||
+                  x.co_asesores.some(function(s){return s.asesor_id===r.aid})
+                )
+              })
+              var detSplit=opsConSplit.length?' ('+opsConSplit.length+' con split)':''
+              return{nombre:r.nombre,rolKey:'asesor',aid:r.aid,total:r.com,comPend:r.comPend,det:acpCount+' venta'+(acpCount!==1?'s':'')+' - 50% c/tope $250k'+detSplit,colorCls:'ag',carpetaStatus:status}
             }).filter(Boolean),
             ...(comJA>0?[{nombre:jefeAh?jefeAh.nombre:'Jefe Ahorro',rolKey:'jefe_ahorro',opsJefe:opAh,total:comJA,det:opAhAcp.length+' ventas aceptadas ahorro - 16.5%'+(opAh.length-opAhAcp.length>0?' ('+( opAh.length-opAhAcp.length)+' denegadas/pend.)':''),colorCls:'ag'}]:[]),
             ...(comJP>0?[{nombre:jefePo?jefePo.nombre:'Jefe Pozo',rolKey:'jefe_pozo',opsJefe:opPo,total:comJP,det:opPoAcp.length+' ventas aceptadas pozo - 16.5%'+(opPo.length-opPoAcp.length>0?' ('+(opPo.length-opPoAcp.length)+' denegadas/pend.)':''),colorCls:'ag'}]:[]),
@@ -4251,11 +4272,22 @@ function rAdmCom(){
               detalleHtml='<tr id="comdet-'+k+'-'+r.aid+'" style="display:none"><td colspan="5" style="padding:0 12px 12px 24px"><div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:12px">'
               opsAsesor.forEach(function(op){
                 var c=categ(op.monto)
-                var com=op.carpeta_tesoreria==='aceptada'?'<span class="ag">'+fmt(calcC(op.monto,op.es_ob_venta))+'</span>':'<span style="color:var(--amber)">pend.</span>'
-                detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">'
-                  +'<span style="color:var(--text)">'+op.cliente+'</span>'
-                  +'<span style="display:flex;gap:12px;align-items:center">'
-                    +'<span class="am">'+fmt(op.monto)+'</span>'
+                var comBase=calcC(op.monto,op.es_ob_venta)
+                var splitTag=''
+                if(op.co_asesores&&op.co_asesores.length){
+                  var splitArr=op.co_asesores.filter(function(s){return s.asesor_id&&s.porcentaje>0})
+                  var miSplit=splitArr.find(function(s){return s.asesor_id===r.aid})
+                  if(miSplit){
+                    comBase=Math.round(comBase*(miSplit.porcentaje/100))
+                    splitTag=' <span style="font-size:10px;background:rgba(96,165,250,0.12);color:var(--blue);padding:1px 6px;border-radius:4px;font-weight:600">'+miSplit.porcentaje+'% split</span>'
+                  } else if(op.asesor_id===r.aid){
+                    var pctCo=splitArr.reduce(function(a,s){return a+s.porcentaje},0)
+                    comBase=Math.round(comBase*((100-pctCo)/100))
+                    splitTag=' <span style="font-size:10px;background:rgba(96,165,250,0.12);color:var(--blue);padding:1px 6px;border-radius:4px;font-weight:600">'+(100-pctCo)+'% split</span>'
+                  }
+                }
+                var com=op.carpeta_tesoreria==='aceptada'?'<span class="ag">'+fmt(comBase)+'</span>':'<span style="color:var(--amber)">pend.</span>'
+                detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">'+'<span style="color:var(--text)">'+op.cliente+splitTag+'</span>'+'<span style="display:flex;gap:12px;align-items:center">'+'<span class="am">'+fmt(op.monto)+'</span>'
                     +'<span class="badge '+c.cls+'">'+c.label+'</span>'
                     +com
                   +'</span>'

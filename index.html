@@ -4173,6 +4173,21 @@ function rAdmCom(){
     </div>`
   }).join(''))
 }
+function admTab(t,btn){
+  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb','prm','hor'].forEach(function(x){hi('adm-T'+x)});sh('adm-T'+t)
+  document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('active')})
+  if(btn)btn.classList.add('active')
+  if(t==='co'){pobPer();rAdmCom()}
+  if(t==='to'){document.getElementById('adm-fa').innerHTML='<option value="">Todos los asesores</option>'+allUsers.filter(function(x){return x.rol==='asesor'}).map(function(a){return '<option value="'+a.id+'">'+a.nombre+'</option>'}).join('');rAdmTodas()}
+  if(t==='us'){rAdmUsers();rRoles();poblarRolCustomSelect()}
+  if(t==='pr')rAdmPres()
+  if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
+  if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
+  if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
+  if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
+  if(t==='prm'){initPremios()}
+  if(t==='hor'){var rCU=CU?CU.role||CU.rol:'admin';initHorarios(rCU==='admin'?'admin':'jefe')}
+}
 function rAdmTodas(){
   const fa=gv('adm-fa'),fe=gv('adm-fe')
   let ops=allOps.slice()

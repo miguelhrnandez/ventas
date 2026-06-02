@@ -681,159 +681,6 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
 <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
 <!-- HORARIO EMPLEADO -->
-<div id="SHR" class="hidden wrap">
-  <div class="ph">
-    <div><div class="pt" id="hr-nom"></div><div class="ps" id="hr-sub"></div></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="toggleTema()" id="hr-tema-btn" style="font-size:12px">☀️ Tema claro</button>
-      <button onclick="sh('modal-mypass')">Mi contraseña</button>
-      <button onclick="logout()">Cerrar sesion</button>
-    </div>
-  </div>
-  <div class="nav" style="margin-bottom:16px">
-    <button class="active" onclick="hrTab('semana',this)">Mi horario</button>
-    <button onclick="hrTab('cambios',this)">Mis solicitudes</button>
-    <!-- extras solo visible para admin/jefe -->
-  </div>
-  <!-- Selector semana -->
-  <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-    <select id="hr-semana" onchange="loadHorarioEmpleado()" style="width:auto;font-size:13px"></select>
-  </div>
-  <div id="hr-tsemana">
-    <div class="card" style="margin-bottom:14px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:16px">Mi horario de la semana</div>
-      <div id="hr-mi-horario"></div>
-    </div>
-    <div class="card">
-      <div style="font-size:15px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-      <div id="hr-equipo"></div>
-    </div>
-  </div>
-  <div id="hr-tcambios" class="hidden">
-    <div class="card" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="font-size:15px;font-weight:600">Mis solicitudes</div>
-        <button class="bp" onclick="openSolicitarCambio()" style="font-size:12px;padding:6px 14px">+ Solicitar cambio</button>
-      </div>
-      <div id="hr-mis-cambios"></div>
-    </div>
-  </div>
-  <!-- extras removido del panel empleado -->
-  <div id="hr-textras" class="hidden"></div>
-</div>
-
-<!-- PANEL JEFE HORARIOS (para jefes de equipo que cargan horarios) -->
-<div id="SJHR" class="hidden wrap">
-  <div class="ph">
-    <div><div class="pt" id="jhr-nom"></div><div class="ps" id="jhr-sub"></div></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="toggleTema()" style="font-size:12px">☀️ Tema claro</button>
-      <button onclick="sh('modal-mypass')">Mi contraseña</button>
-      <button onclick="logout()">Cerrar sesion</button>
-    </div>
-  </div>
-  <div class="nav" style="margin-bottom:16px">
-    <button class="active" onclick="jhrTab('grilla',this)">Horarios del equipo</button>
-    <button onclick="jhrTab('cambios',this)">Solicitudes</button>
-    <button onclick="jhrTab('extras',this)">Extras / Feriados</button>
-  </div>
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-    <select id="jhr-mes" onchange="onJhrMesChange()" style="width:auto;font-size:13px;min-width:140px"></select>
-    <select id="jhr-semana" onchange="loadHorariosJefe()" style="width:auto;font-size:13px;min-width:200px"></select>
-  </div>
-  <div id="jhr-tgrilla"><div id="jhr-grilla-body"></div></div>
-  <div id="jhr-tcambios" class="hidden"><div id="jhr-cambios-body"></div></div>
-  <div id="jhr-textras" class="hidden"><div id="jhr-extras-body"></div></div>
-</div>
-
-<!-- LOGIN CARRUSEL -->
-<div id="SL" style="min-height:100vh;position:relative;overflow:hidden;display:flex;flex-direction:column">
-  <div style="position:fixed;inset:0;background:linear-gradient(135deg,#0f0f0f 0%,#1a1209 50%,#0f0f0f 100%);z-index:0"></div>
-  <div style="position:fixed;inset:0;z-index:0;overflow:hidden">
-    <div class="sl-particle" style="width:300px;height:300px;top:-100px;left:-100px;animation-delay:0s"></div>
-    <div class="sl-particle" style="width:200px;height:200px;bottom:100px;right:-50px;animation-delay:2s"></div>
-    <div class="sl-particle" style="width:150px;height:150px;top:50%;left:60%;animation-delay:4s"></div>
-  </div>
-  <!-- Header con login -->
-  <div style="position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:20px 32px;flex-wrap:wrap;gap:12px">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="width:40px;height:40px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#0f0f0f" stroke-width="2.5" stroke-linejoin="round"/><path d="M9 22V12h6v10" stroke="#0f0f0f" stroke-width="2.5" stroke-linejoin="round"/></svg>
-      </div>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:var(--text)">MásDueños</div>
-        <div style="font-size:11px;color:var(--text3)">Sistema de ventas · Liniers</div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:12px;padding:10px 16px;flex-wrap:wrap">
-      <input id="lu" type="text" placeholder="Usuario" style="width:130px;background:transparent;border:none;font-size:13px;color:var(--text);outline:none;padding:0">
-      <div style="width:1px;height:20px;background:var(--border2)"></div>
-      <input id="lp" type="password" placeholder="Contrasena" style="width:120px;background:transparent;border:none;font-size:13px;color:var(--text);outline:none;padding:0">
-      <button class="bp" id="lb" onclick="doLogin()" style="padding:7px 18px;font-size:13px;border-radius:8px;white-space:nowrap">Ingresar →</button>
-    </div>
-  </div>
-  <div id="le" class="hidden em" style="position:relative;z-index:10;text-align:right;padding:0 32px;margin-top:-8px"></div>
-  <!-- Carrusel -->
-  <div style="position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
-    <div id="sl-slides" style="width:100%;max-width:900px">
-      <!-- Slide 1: Foto equipo -->
-      <div class="sl-slide" id="slide-0">
-        <div style="text-align:center;margin-bottom:20px">
-          <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Bienvenidos al equipo</div>
-          <div style="font-size:32px;font-weight:800;color:var(--text);line-height:1.1">MásDueños <span style="color:var(--accent)">Liniers</span></div>
-          <div style="font-size:14px;color:var(--text2);margin-top:8px">Juntos construimos el camino al éxito</div>
-        </div>
-        <div style="border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:380px;position:relative">
-          <img id="sl-foto-eq" src="https://i.imgur.com/xmhrB3e.jpg" style="width:100%;object-fit:cover;max-height:380px;border-radius:20px;transition:opacity 0.5s" onerror="this.src='https://i.imgur.com/UcDGv7o.jpg'">
-        </div>
-      </div>
-      <!-- Slide 2: Ranking -->
-      <div class="sl-slide" id="slide-1" style="display:none">
-        <div style="text-align:center;margin-bottom:24px">
-          <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">🏆 Últimas 2 semanas</div>
-          <div style="font-size:32px;font-weight:800;color:var(--text)">Top vendedores</div>
-        </div>
-        <div id="sl-ranking" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;max-width:800px;margin:0 auto"></div>
-      </div>
-      <!-- Slide 3: Frase -->
-      <div class="sl-slide" id="slide-2" style="display:none">
-        <div style="text-align:center;max-width:700px;margin:0 auto;padding:30px 20px">
-          <div style="font-size:50px;margin-bottom:20px">💡</div>
-          <div id="sl-frase" style="font-size:26px;font-weight:700;color:var(--text);line-height:1.4;font-style:italic"></div>
-          <div style="width:60px;height:3px;background:var(--accent);margin:24px auto 0;border-radius:2px"></div>
-        </div>
-      </div>
-      <!-- Slide 4: Cumpleanos -->
-      <div class="sl-slide" id="slide-3" style="display:none">
-        <div style="text-align:center;margin-bottom:24px">
-          <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">🎂 Este mes</div>
-          <div style="font-size:32px;font-weight:800;color:var(--text)">Cumpleaños del equipo</div>
-        </div>
-        <div id="sl-cumples" style="max-width:700px;margin:0 auto"></div>
-      </div>
-      <!-- Slide 5: Meta -->
-      <div class="sl-slide" id="slide-4" style="display:none">
-        <div style="text-align:center;margin-bottom:24px">
-          <div style="font-size:12px;font-weight:500;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">📊 Plan de batalla</div>
-          <div style="font-size:32px;font-weight:800;color:var(--text)">Meta del mes</div>
-        </div>
-        <div id="sl-meta" style="max-width:700px;margin:0 auto"></div>
-      </div>
-    </div>
-    <!-- Dots -->
-    <div style="display:flex;gap:8px;margin-top:24px" id="sl-dots">
-      <div class="sl-dot active" onclick="goToSlide(0)"></div>
-      <div class="sl-dot" onclick="goToSlide(1)"></div>
-      <div class="sl-dot" onclick="goToSlide(2)"></div>
-      <div class="sl-dot" onclick="goToSlide(3)"></div>
-      <div class="sl-dot" onclick="goToSlide(4)"></div>
-    </div>
-  </div>
-  <div style="position:relative;z-index:10;text-align:center;padding:12px;color:var(--text3);font-size:11px">
-    © 2026 MásDueños · Sistema de gestión
-  </div>
-</div>
-
 
 
 <!-- MODAL PERFIL ADMIN -->
@@ -1310,19 +1157,7 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Clientes
       </button>
-      <button class="sb-item" onclick="admTab('pb',this)" id="sb-pb">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Plan de batalla
-      </button>
-      <button class="sb-item" onclick="admTab('prm',this)" id="sb-prm">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        Premios
-      </button>
-      <button class="sb-item" onclick="admTab('hor',this)" id="sb-hor">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Horarios
-      </button>
-    </div>
+                      </div>
     <div class="sb-bottom">
       <button class="sb-item" onclick="sh('modal-mypass')" style="color:var(--text2)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
@@ -1550,239 +1385,6 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
       </div>
     </div>
   </div>
-  <div id="adm-Thor" class="hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-      <div>
-        <div style="font-size:18px;font-weight:600">📅 Horarios</div>
-        <div style="font-size:13px;color:var(--text2);margin-top:2px">Gestión de horarios semanales</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select id="hor-mes" onchange="onHorMesChange()" style="width:auto;font-size:13px;min-width:150px"></select>
-        <select id="hor-semana" onchange="loadHorarios()" style="width:auto;font-size:13px;min-width:210px"></select>
-        <button onclick="openHorImportar()" class="bb" style="font-size:12px;padding:6px 14px">📥 Importar Excel</button>
-      </div>
-    </div>
-    <!-- Tabs -->
-    <div class="nav" style="margin-bottom:16px">
-      <button class="active" onclick="horTab('grilla',this)">Grilla semanal</button>
-      <button onclick="horTab('cambios',this)">Solicitudes de cambio</button>
-      <button onclick="horTab('rrhh',this)">RRHH / Horas extras</button>
-      <button onclick="horTab('feriados',this)">Feriados</button>
-      <button onclick="horTab('empleados',this)">Gestionar empleados</button>
-    </div>
-    <div id="hor-tgrilla"><div id="hor-grilla-body"></div></div>
-    <div id="hor-templeados" class="hidden">
-      <div style="display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start">
-        <div class="card">
-          <div style="font-size:15px;font-weight:600;margin-bottom:14px">Agregar a la grilla</div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div><label>Nombre</label><input id="hemp-nom" placeholder="Nombre completo"></div>
-            <div><label>Puesto</label>
-              <select id="hemp-puesto">
-                <option value="jefe_promotores">Jefe promotores</option>
-                <option value="coordinadora_promotores">Coordinadora promotores</option>
-                <option value="promotor">Promotor</option>
-                <option value="jefe_captacion">Jefe captacion</option>
-                <option value="recepcion">Recepcion</option>
-                <option value="pretester">Pretester</option>
-                <option value="host">Host</option>
-                <option value="detector_pozo">Detector de pozo</option>
-                <option value="jefe_presentaciones">Jefe presentaciones</option>
-                <option value="presentador">Presentador</option>
-                <option value="enrutador">Enrutador</option>
-                <option value="jefe_ahorro">Jefe ventas</option>
-                <option value="asesor">Asesor</option>
-                <option value="jefe_pozo">Jefe pozo</option>
-                <option value="asesor_pozo">Asesor pozo</option>
-                <option value="on_boarding">On Boarding</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <div><label>Agregar a semana</label>
-              <select id="hemp-semana" style="width:100%"></select>
-            </div>
-            <div id="hemp-ok" class="hidden aok">Empleado agregado</div>
-            <div id="hemp-err" class="hidden em"></div>
-            <button class="bp" onclick="agregarEmpleadoGrilla()">Agregar a la grilla</button>
-          </div>
-        </div>
-        <div class="card">
-          <div style="font-size:15px;font-weight:600;margin-bottom:14px">Empleados en la grilla</div>
-          <div style="display:flex;gap:8px;margin-bottom:12px">
-            <select id="hemp-f-semana" onchange="loadEmpleadosGrilla()" style="width:auto;font-size:13px"></select>
-            <select id="hemp-f-puesto" onchange="loadEmpleadosGrilla()" style="width:auto;font-size:13px">
-              <option value="">Todos los puestos</option>
-              <option value="promotor">Promotores</option>
-              <option value="recepcion">Recepcion</option>
-              <option value="pretester">Pretester</option>
-              <option value="host">Host</option>
-              <option value="asesor">Asesores</option>
-              <option value="presentador">Presentadores</option>
-              <option value="on_boarding">On Boarding</option>
-            </select>
-          </div>
-          <div id="hemp-lista"></div>
-        </div>
-      </div>
-    </div>
-    <div id="hor-tcambios" class="hidden">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <div style="font-size:15px;font-weight:600">Solicitudes de cambio de horario</div>
-          <select id="hor-cambios-filtro" onchange="loadCambios()" style="width:auto;font-size:13px">
-            <option value="">Todas</option>
-            <option value="pendiente">Pendientes</option>
-            <option value="aprobado">Aprobadas</option>
-            <option value="rechazado">Rechazadas</option>
-          </select>
-        </div>
-        <div id="hor-cambios-body"></div>
-      </div>
-    </div>
-    <div id="hor-trrhh" class="hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-        <div><div style="font-size:18px;font-weight:600">⏱ RRHH — Horas extras</div>
-        <div style="font-size:13px;color:var(--text2);margin-top:2px">Calculado automáticamente desde los horarios cargados</div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <select id="rrhh-periodo" onchange="loadRRHH()" style="width:auto;font-size:13px">
-            <option value="">Seleccionar período...</option>
-          </select>
-          <select id="rrhh-puesto" onchange="loadRRHH()" style="width:auto;font-size:13px">
-            <option value="">Todos los puestos</option>
-            <option value="promotor">Promotores</option>
-            <option value="coordinadora_promotores">Coordinadora</option>
-            <option value="recepcion">Recepcion</option>
-            <option value="pretester">Pretester</option>
-            <option value="host">Host</option>
-            <option value="detector_pozo">Det. Pozo</option>
-            <option value="presentador">Presentadores</option>
-            <option value="enrutador">Enrutador</option>
-            <option value="asesor">Asesores</option>
-            <option value="asesor_pozo">Asesores Pozo</option>
-            <option value="on_boarding">On Boarding</option>
-          </select>
-          <button onclick="recalcularRRHH()" class="bb" style="font-size:12px;padding:6px 14px">🔄 Recalcular</button>
-        </div>
-      </div>
-      <!-- Resumen cards -->
-      <div id="rrhh-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px"></div>
-      <!-- Tabla detalle -->
-      <div class="card ox">
-        <div id="rrhh-tabla"></div>
-      </div>
-    </div>
-
-    <div id="hor-tferiados" class="hidden">
-      <div style="display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start">
-        <div class="card">
-          <div style="font-size:15px;font-weight:600;margin-bottom:14px">Cargar feriado</div>
-          <div id="fer-ok" class="hidden aok">Feriado cargado</div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div><label>Fecha</label><input id="fer-fecha" type="date"></div>
-            <div><label>Nombre</label><input id="fer-nom" placeholder="Ej: Día del trabajador"></div>
-            <div><label>Tipo</label>
-              <select id="fer-tipo">
-                <option value="nacional">Nacional</option>
-                <option value="puente">Puente turístico</option>
-                <option value="no_laborable">No laborable</option>
-              </select>
-            </div>
-            <button class="bp" onclick="cargarFeriado()">Cargar feriado</button>
-          </div>
-        </div>
-        <div class="card">
-          <div style="font-size:15px;font-weight:600;margin-bottom:14px">Feriados cargados</div>
-          <div id="fer-lista"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="hor-textras" class="hidden"></div>
-  </div>
-
-  <div id="adm-Tprm" class="hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-      <div>
-        <div style="font-size:18px;font-weight:600">🏆 Premios semanales</div>
-        <div style="font-size:13px;color:var(--text2);margin-top:2px">Mejor rendimiento por puesto</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select id="prm-semana" onchange="loadPremios()" style="width:auto;font-size:13px"></select>
-        <button onclick="openPrmSemana()" style="font-size:12px;padding:6px 14px">📅 Gestionar semanas</button>
-        <button onclick="openPrmEmpleados()" style="font-size:12px;padding:6px 14px">👥 Empleados</button>
-        <button onclick="cargarAccesosPRM();sh('modal-prm-acceso')" style="font-size:12px;padding:6px 14px">🔒 Accesos</button>
-      </div>
-    </div>
-    <!-- Cargar leads -->
-    <div id="prm-carga" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-bottom:20px"></div>
-    <!-- Ganadores de la semana -->
-    <div class="card" style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-        <div style="font-size:15px;font-weight:600">🥇 Ganadores de la semana</div>
-        <button class="bp" onclick="calcularGanadores()" style="font-size:12px;padding:6px 16px">Calcular ganadores</button>
-      </div>
-      <div id="prm-ganadores"></div>
-    </div>
-    <!-- Historial -->
-    <div class="card">
-      <div style="font-size:15px;font-weight:600;margin-bottom:14px">📋 Historial de ganadores</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <select id="prm-hist-puesto" onchange="loadHistorial()" style="width:auto;font-size:13px">
-          <option value="">Todos los puestos</option>
-          <option value="promotor">Promotor</option>
-          <option value="recepcion">Recepción</option>
-          <option value="pretester">Pretester</option>
-          <option value="host">Host</option>
-          <option value="presentador">Presentador</option>
-          <option value="detector_pozo">Detector de pozo</option>
-          <option value="asesor">Asesor</option>
-        </select>
-      </div>
-      <div id="prm-historial"></div>
-    </div>
-  </div>
-
-  <div id="adm-Tpb" class="hidden">
-    <!-- PLAN DE BATALLA -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-      <div>
-        <div style="font-size:18px;font-weight:600">Plan de batalla</div>
-        <div style="font-size:13px;color:var(--text2);margin-top:2px">Seguimiento del funnel de ventas por mes</div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <select id="pb-mes" onchange="loadPB()" style="width:auto;font-size:13px"></select>
-        <button class="bp" onclick="abrirPBMetas()" style="font-size:12px;padding:6px 14px">⚙ Configurar metas</button>
-        <button onclick="sh('modal-pb-acceso')" style="font-size:12px;padding:6px 14px">👥 Accesos</button>
-      </div>
-    </div>
-    <!-- Stats resumen -->
-    <div id="pb-stats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px"></div>
-    <!-- Tabla funnel -->
-    <div class="card" style="margin-bottom:16px;overflow-x:auto">
-      <div style="font-size:14px;font-weight:600;margin-bottom:14px">Funnel del mes</div>
-      <div id="pb-funnel"></div>
-    </div>
-    <!-- Tabla diaria -->
-    <div class="card" style="overflow-x:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <div style="font-size:14px;font-weight:600">Datos diarios</div>
-        <button class="bg" onclick="openPBDia()" style="font-size:12px;padding:5px 12px">+ Cargar día</button>
-      </div>
-      <div id="pb-diario"></div>
-    </div>
-    <!-- Tabla tasas y target -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Tasas de conversión</div>
-        <div id="pb-tasas"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Escenarios de ventas</div>
-        <div id="pb-target"></div>
-      </div>
-    </div>
-  </div>
-
   <div id="adm-Tcl" class="hidden">
     <div class="card" style="margin-bottom:14px;padding:14px 16px">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
@@ -2112,7 +1714,7 @@ const sv=(id,val)=>{document.getElementById(id).value=val}
 const sh=id=>document.getElementById(id).classList.remove('hidden')
 const hi=id=>document.getElementById(id).classList.add('hidden')
 const html=(id,h)=>{document.getElementById(id).innerHTML=h}
-const screens=['SL','SA','SJV','SPR','SJP','SOB','SADM','SHR','SJHR','SRS']
+const screens=['SL','SA','SJV','SPR','SJP','SOB','SADM','SRS']
 
 function categ(m){
   if(m<100000)return{label:'Reserva',cls:'b-reserva',isVenta:false}
@@ -2262,9 +1864,8 @@ async function enterPanel(r){
   else if(r==='presentador')await showPr()
   else if(r==='jefe_presentaciones')await showJP()
   else if(r==='on_boarding')await showOB()
-  else if(r==='jefe_promotores'||r==='jefe_captacion')await showPremiosYHorario()
-  else if(r==='jefe_pozo'||r==='coordinadora_promotores')await showJefeHorario()
-  else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador')await showHorario()
+  else if(r==='jefe_promotores'||r==='jefe_captacion'||r==='coordinadora_promotores')await showAdm()
+  else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador')await showAdm()
   else if(r==='asesor_pozo')await showAsesorPozo()
   initRealtime()
 }
@@ -4524,7 +4125,7 @@ function pobPer(){
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb','prm','hor'].forEach(function(x){hi('adm-T'+x)});sh('adm-T'+t)
+  ['cp','pr','co','to','us','inc','liq','ob','ret','cl'].forEach(function(x){hi('adm-T'+x)});sh('adm-T'+t)
   document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('active')})
   if(btn)btn.classList.add('active')
   if(t==='co'){pobPer();rAdmCom()}
@@ -4534,9 +4135,6 @@ function admTab(t,btn){
   if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
   if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
   if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
-  if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
-  if(t==='prm'){initPremios()}
-  if(t==='hor'){var rCU=CU?CU.role||CU.rol:'admin';initHorarios(rCU==='admin'?'admin':'jefe')}
 }
 
 // ═══ CAMBIAR FECHA ═══

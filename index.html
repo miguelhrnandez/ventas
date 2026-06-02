@@ -4256,9 +4256,7 @@ function toggleAdmMenu(btn){
 function closeAdmMenus(){
   document.querySelectorAll('.adm-menu').forEach(function(m){m.style.display='none'})
 }
-document.addEventListener('click',function(e){
-  if(!e.target.closest('.adm-menu-wrap'))closeAdmMenus()
-})
+
 function ddExec(el){closeAdmMenus();var a=el.getAttribute('data-action');try{eval(a)}catch(e){console.error(e)}}
 
 async function deleteOp(id,source){

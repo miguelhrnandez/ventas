@@ -2574,7 +2574,7 @@ function rAStats(){
   html('a-stats',`<div class="sc"><div class="sv">${vcompl.length}</div><div class="sl">Ventas completas</div></div>
     <div class="sc"><div class="sv">${vbon.length}</div><div class="sl">Ventas bonificadas</div></div>
     <div class="sc"><div class="sv">${res.length}</div><div class="sl">Reservas</div></div>
-    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesoreria==='aceptada').reduce(function(a,x){var base=calcC(x.monto,!!x.ob_id);if(x.co_asesores&&x.co_asesores.length){var sp=x.co_asesores.filter(function(s){return s.asesor_id&&s.porcentaje>0});var mi=sp.find(function(s){return s.asesor_id===CU.id});if(mi)return a+Math.round(base*(mi.porcentaje/100));if(x.asesor_id===CU.id){var pct=sp.reduce(function(a,s){return a+s.porcentaje},0);return a+Math.round(base*((100-pct)/100))}return a}return a+base},0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
 }
 function rAOps(){
   if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciones</div>');return}
@@ -2732,11 +2732,20 @@ function rACom(){
       const c=categ(op.monto)
       filas+='<tr>'
         +'<td style="font-size:12px">'+fmtD(op.fecha)+'</td>'
-        +'<td style="color:var(--text)">'+op.cliente+'</td>'
+        +(function(){
+          var tag=''
+          if(op.co_asesores&&op.co_asesores.length){
+            var sp=op.co_asesores.filter(function(s){return s.asesor_id&&s.porcentaje>0})
+            var miParte=sp.find(function(s){return s.asesor_id===CU.id})
+            if(miParte)tag=' <span style="font-size:10px;background:rgba(96,165,250,0.12);color:var(--blue);padding:1px 6px;border-radius:4px;font-weight:600">'+miParte.porcentaje+'% split</span>'
+            else if(op.asesor_id===CU.id){var pctCo=sp.reduce(function(a,s){return a+s.porcentaje},0);tag=' <span style="font-size:10px;background:rgba(96,165,250,0.12);color:var(--blue);padding:1px 6px;border-radius:4px;font-weight:600">'+(100-pctCo)+'% split</span>'}
+          }
+          return '<td style="color:var(--text)">'+op.cliente+tag+'</td>'
+        })()
         +'<td>'+op.plan+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(calcC(op.monto,op.es_ob_venta)):'pendiente')+'</td>'
+        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(comParaAsesor(op)):'pendiente')+'</td>'
         +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
         +'</tr>'
     })

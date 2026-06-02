@@ -4022,6 +4022,58 @@ function toggleComDet(id){
   if(arr)arr.style.transform=visible?'rotate(0deg)':'rotate(90deg)'
 }
 let admComSort={field:"total",dir:"desc"}
+function pobPer(){
+  const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
+  vn.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);byP[p.key]=p.label})
+  const ks=Object.keys(byP).sort().reverse(),sel=document.getElementById('adm-fp'),cur=sel.value
+  sel.innerHTML='<option value="">Todos los periodos</option>'+ks.map(k=>`<option value="${k}">${byP[k]}</option>`).join('')
+  if(cur)sel.value=cur
+}
+function rIncentivos(){
+  const fu=gv('inc-f-usr'),ft=gv('inc-f-tipo')
+  let items=allIncentivos.slice()
+  if(fu)items=items.filter(x=>x.usuario_id===fu)
+  if(ft)items=items.filter(x=>x.tipo===ft)
+  if(!items.length){html('inc-list','<div class="es">Sin incentivos cargados</div>');return}
+  const total=items.reduce((a,x)=>a+x.monto,0)
+  html('inc-list',`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-size:12px;color:var(--text2)">${items.length} registro${items.length!==1?'s':''}</span><span class="ag">${fmt(total)}</span></div>`+
+  `<table><thead><tr><th>Fecha</th><th>Empleado</th><th>Tipo</th><th>Monto</th><th>Descripcion</th><th></th></tr></thead>
+  <tbody>${items.map(i=>`<tr>
+    <td>${fmtD(i.fecha)}</td>
+    <td style="color:var(--text)">${i.usuario_nombre}</td>
+    <td><span class="badge ${i.tipo==='mensual'?'b-jefe_ahorro':'b-on_boarding'}">${i.tipo==='mensual'?'Mensual':'Semanal'}</span></td>
+    <td class="ag">${fmt(i.monto)}</td>
+    <td style="font-size:12px;color:var(--text3)">${i.descripcion||'-'}</td>
+    <td><button class="br" onclick="delIncentivo('${i.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+function rLiquidaciones(){
+  if(!allLiquidaciones.length){html('liq-list','<div class="es">Sin liquidaciones registradas</div>');return}
+  html('liq-list',`<table><thead><tr><th>Empleado</th><th>Monto</th><th>Fecha liq.</th><th>Descripcion</th><th>Estado</th><th>Accion</th></tr></thead>
+  <tbody>${allLiquidaciones.map(l=>`<tr>
+    <td style="color:var(--text)">${l.usuario_nombre}</td>
+    <td class="ag">${fmt(l.monto)}</td>
+    <td>${fmtD(l.fecha_liquidacion)}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.descripcion||'-'}</td>
+    <td>${l.estado==='pagado'?`<span class="badge b-acp">Pagado RRHH</span><div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtD(l.fecha_pago)}</div>`:'<span class="badge b-pend">Pendiente</span>'}</td>
+    <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+      ${l.estado!=='pagado'?`<button class="bg" onclick="pagarLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Marcar pagado</button>`:''}
+      <button class="br" onclick="delLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button>
+    </div></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function loadIncentivos(){
+  try{const{data}=await db.from('incentivos').select('*').order('fecha',{ascending:false});allIncentivos=data||[]}catch(e){allIncentivos=[]}
+}
+async function loadLiquidaciones(){
+  try{const{data}=await db.from('liquidaciones').select('*').order('fecha_liquidacion',{ascending:false});allLiquidaciones=data||[]}catch(e){allLiquidaciones=[]}
+}
+function poblarSelUsrIncentivos(){
+  const opts='<option value="">Todos</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+  document.getElementById('inc-f-usr').innerHTML=opts
+  document.getElementById('inc-usr').innerHTML='<option value="">Seleccionar...</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+  document.getElementById('liq-usr').innerHTML='<option value="">Seleccionar...</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+}
 function rAdmCom(){
   // Comisiones agrupadas igual que las carpetas (fecha_carpeta || fecha)
   const filtro=gv('adm-fp')

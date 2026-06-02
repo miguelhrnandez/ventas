@@ -4226,17 +4226,14 @@ function rAdmTodas(){
     var btnDnAfuera = ''
     if(c.isVenta && op.carpeta_tesoreria !== 'denegada')
       btnDnAfuera = '<button onclick="openDenegar(\'' + oid2 + '\')" style="font-size:11px;padding:3px 8px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">✗</button>'
-    var menuItems = []
-    menuItems.push({label:'✏ Editar', onclick:'openEditAdmin(\'' + oid2 + '\')', color:'var(--blue)'})
-    menuItems.push({label:'📅 Cambiar fecha', onclick:'openEditFecha(\'' + oid2 + '\',\'' + op.fecha + '\')', color:'var(--text2)'})
-    menuItems.push({label:'↗ Mover carpeta', onclick:'openMoverById(\'' + oid2 + '\')', color:'var(--purple)'})
-    menuItems.push({label:'🗑 Eliminar', onclick:'deleteOp(\'' + oid2 + '\',\'admin\')', color:'var(--red)'})
+    var opFecha = op.fecha||''
     var menuDropdown = '<div class="adm-menu-wrap" style="position:relative;display:inline-block">'
     menuDropdown += '<button onclick="toggleAdmMenu(this)" style="font-size:13px;padding:3px 9px;font-weight:700;letter-spacing:1px">⋯</button>'
     menuDropdown += '<div class="adm-menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:999;min-width:170px;padding:4px;white-space:nowrap">'
-    menuItems.forEach(function(item){
-      menuDropdown += '<div data-action="' + item.onclick + '" onclick="ddExec(this)" style="padding:8px 12px;border-radius:7px;cursor:pointer;font-size:13px;color:' + item.color + '" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'transparent\'">' + item.label + '</div>'
-    })
+    menuDropdown += '<div onclick="closeAdmMenus();openEditAdmin(this.dataset.id)" data-id="'+oid2+'" style="padding:8px 12px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--blue)" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'transparent\'">✏ Editar</div>'
+    menuDropdown += '<div onclick="closeAdmMenus();openEditFecha(this.dataset.id,this.dataset.fecha)" data-id="'+oid2+'" data-fecha="'+opFecha+'" style="padding:8px 12px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--text2)" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'transparent\'">📅 Cambiar fecha</div>'
+    menuDropdown += '<div onclick="closeAdmMenus();openMoverById(this.dataset.id)" data-id="'+oid2+'" style="padding:8px 12px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--purple)" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'transparent\'">↗ Mover carpeta</div>'
+    menuDropdown += '<div onclick="closeAdmMenus();deleteOp(this.dataset.id,\'admin\')" data-id="'+oid2+'" style="padding:8px 12px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--red)" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'transparent\'">🗑 Eliminar</div>'
     menuDropdown += '</div></div>'
     var menuHtml = '<div style="display:flex;gap:4px;align-items:center">' + btnAcAfuera + btnDnAfuera + menuDropdown + '</div>'
     filas+='<tr>'

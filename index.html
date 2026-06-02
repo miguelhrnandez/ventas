@@ -4225,6 +4225,50 @@ function rAdmCom(){
     </div>`
   }).join(''))
 }
+
+// ═══ MENÚ ACCIONES ADMIN ═══
+function initAdmCtxMenu(){
+  if(document.getElementById('adm-ctx'))return
+  var m=document.createElement('div')
+  m.id='adm-ctx'
+  m.className='adm-ctx-menu'
+  document.body.appendChild(m)
+  document.addEventListener('click',function(){closeAdmMenus()})
+}
+function closeAdmMenus(){
+  var m=document.getElementById('adm-ctx')
+  if(m)m.style.display='none'
+}
+function toggleAdmMenu(btn){
+  initAdmCtxMenu()
+  var m=document.getElementById('adm-ctx')
+  var id=btn.getAttribute('data-id')
+  var fecha=btn.getAttribute('data-fecha')||''
+  var rect=btn.getBoundingClientRect()
+  m.innerHTML=''
+  var items=[
+    {label:'✏ Editar',color:'var(--blue)',fn:function(){openEditAdmin(id)}},
+    {label:'📅 Cambiar fecha',color:'var(--text2)',fn:function(){openEditFecha(id,fecha)}},
+    {label:'↗ Mover carpeta',color:'var(--purple)',fn:function(){openMoverById(id)}},
+    {label:'🗑 Eliminar',color:'var(--red)',fn:function(){deleteOp(id,'admin')}}
+  ]
+  items.forEach(function(item){
+    var div=document.createElement('div')
+    div.className='adm-ctx-item'
+    div.textContent=item.label
+    div.style.color=item.color
+    div.onclick=function(e){e.stopPropagation();closeAdmMenus();item.fn()}
+    m.appendChild(div)
+  })
+  var top=rect.bottom+window.scrollY+4
+  var left=rect.right+window.scrollX-170
+  if(left<8)left=8
+  m.style.top=top+'px'
+  m.style.left=left+'px'
+  m.style.display='block'
+  event.stopPropagation()
+}
+
 function rAdmTodas(){
   const fa=gv('adm-fa'),fe=gv('adm-fe')
   let ops=allOps.slice()

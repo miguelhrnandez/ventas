@@ -1845,23 +1845,19 @@ async function rtRecargar(tabla){
     if(pv==='SPR'){rPrStats();rPrOps()}
     if(pv==='SJP'){rJPStats();rJPOps()}
     if(pv==='SOB'){var rMov=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false});if(rMov.data)allObMovs=rMov.data;rOBStats();rOBMisClientes()}
-    if(pv==='SADM'){await loadAll();rAdmCarp()}
+    if(pv==='SADM'){await loadAll();rAdmCarp();rAdmStats();rAdmTodas()}
   }
 }
 
 // ═══ MODAL EDITAR ═══
 function openEditAdmin(id){
-  // Forzar que use allOps (panel admin)
-  var _aOpsBak=aOps
-  aOps=allOps
-  openEdit(id)
-  // Parchear guardarEdit para recargar allOps
   window._editFromAdmin=true
+  openEdit(id)
 }
 function openEdit(id){
   editId=id
   const op=allOps.find(x=>x.id===id)
-  if(!op)return
+  if(!op){console.error('openEdit: op no encontrada para id',id,'allOps.length=',allOps.length);return}
   hi('me-monto-lock')
   const c=categ(op.monto)
   if(c.isVenta){sh('me-monto-lock')}
@@ -1963,7 +1959,7 @@ async function guardarEdit(){
   else if(meef>0)mepago='Efectivo'
   else if(metr>0)mepago='Transferencia'
   if(!cl||!pl||!mo||isNaN(mo)||mo<=0){sh('me-err');document.getElementById('me-err').textContent='Completa apellido, plan y monto.';return}
-  const opActual=aOps.find(x=>x.id===editId)
+  const opActual=allOps.find(x=>x.id===editId)||aOps.find(x=>x.id===editId)
   const c=categ(mo)
   var esConversionAVenta=false
   if(opActual&&!categ(opActual.monto).isVenta&&c.isVenta){
@@ -1988,7 +1984,7 @@ async function guardarEdit(){
   closeEdit()
   if(window._editFromAdmin){
     window._editFromAdmin=false
-    await loadAll();rAdmCarp();rAdmTodas()
+    await loadAll();rAdmCarp();rAdmStats();rAdmTodas()
     return
   }
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
@@ -3887,7 +3883,7 @@ function rAdmCarp(){
 
 async function setTes(id,estado){
   await db.from('operaciones').update({carpeta_tesoreria:estado,fecha_tesoreria:new Date().toISOString().slice(0,10)}).eq('id',id)
-  await loadAll();rAdmCarp();rAdmStats()
+  await loadAll();rAdmCarp();rAdmStats();rAdmTodas()
 }
 async function markLL(key){
   await db.from('carpetas_llevadas').upsert({periodo_key:key,fecha_llevada:new Date().toISOString().slice(0,10)})

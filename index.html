@@ -2672,14 +2672,27 @@ let aComFiltro={desde:'',hasta:''}
 function rACom(){
   const desde=document.getElementById('ac-desde')?.value||''
   const hasta=document.getElementById('ac-hasta')?.value||''
-  let ops=aOps.filter(x=>categ(x.monto).isVenta)
+  // Incluir ops donde el asesor está en el split de co_asesores
+  var opsExtra=allOps.filter(function(op){
+    if(op.asesor_id===CU.id)return false // ya está en aOps
+    if(!op.co_asesores||!op.co_asesores.length)return false
+    return op.co_asesores.some(function(r){return r.asesor_id===CU.id&&r.porcentaje>0})
+  })
+  let ops=aOps.concat(opsExtra).filter(x=>categ(x.monto).isVenta)
   if(desde)ops=ops.filter(x=>x.fecha_tesoreria>=desde)
   if(hasta)ops=ops.filter(x=>x.fecha_tesoreria<=hasta)
   const byP={}
   ops.forEach(op=>{const p=getPer(op.fecha_tesoreria||op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
-  const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
-  const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
+  function comParaAsesor(op){
+    var base=calcC(op.monto,!!op.ob_id)
+    if(!op.co_asesores||!op.co_asesores.length)return base
+    var split=op.co_asesores.find(function(r){return r.asesor_id===CU.id&&r.porcentaje>0})
+    if(!split)return op.asesor_id===CU.id?base:0
+    return Math.round(base*(split.porcentaje/100))
+  }
+  const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+comParaAsesor(x),0)
+  const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+comParaAsesor(x),0)
 
   let filtros='<div class="card" style="margin-bottom:16px">'
     +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
@@ -2703,8 +2716,8 @@ function rACom(){
   ks.forEach(k=>{
     const p=byP[k]
     const acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
-    const tot=acp.reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
-    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcC(x.monto,!!x.ob_id),0)
+    const tot=acp.reduce((a,x)=>a+comParaAsesor(x),0)
+    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+comParaAsesor(x),0)
     let filas=''
     p.ops.forEach(op=>{
       const c=categ(op.monto)
@@ -4141,7 +4154,30 @@ function rAdmCom(){
   html('adm-cob',ks.map(k=>{
     const p=byP[k]
     const porAs={}
-    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0};if(op.carpeta_tesoreria==='aceptada'){porAs[op.asesor_id].com+=calcC(op.monto,op.es_ob_venta)}else{porAs[op.asesor_id].comPend+=calcC(op.monto,op.es_ob_venta)};porAs[op.asesor_id].ops+=1})
+    p.ops.forEach(op=>{if(!porAs[op.asesor_id])porAs[op.asesor_id]={nombre:op.asesor_nombre,aid:op.asesor_id,com:0,comPend:0,ops:0}
+      var comTotal=calcC(op.monto,op.es_ob_venta)
+      var split=op.co_asesores&&op.co_asesores.length?op.co_asesores.filter(function(r){return r.asesor_id&&r.porcentaje>0}):[]
+      if(split.length){
+        // Distribuir según porcentajes del split
+        split.forEach(function(r){
+          var aid=r.asesor_id
+          var nombre=r.asesor_nombre||aid
+          var comParte=Math.round(comTotal*(r.porcentaje/100))
+          if(!porAs[aid])porAs[aid]={nombre:nombre,aid:aid,com:0,comPend:0,ops:0}
+          if(op.carpeta_tesoreria==='aceptada')porAs[aid].com+=comParte
+          else porAs[aid].comPend+=comParte
+        })
+        // El asesor principal no recibe comisión si está en el split
+        var enSplit=split.find(function(r){return r.asesor_id===op.asesor_id})
+        if(!enSplit){
+          // Si el principal no está en el split, no recibe nada (el split lo cubre todo)
+        }
+      } else {
+        // Sin split: comisión completa al asesor principal
+        if(op.carpeta_tesoreria==='aceptada')porAs[op.asesor_id].com+=comTotal
+        else porAs[op.asesor_id].comPend+=comTotal
+      }
+      porAs[op.asesor_id].ops+=1})
     const opAh=p.ops.filter(x=>x.plan==='Ahorro'),opAhAcp=opAh.filter(x=>x.carpeta_tesoreria==='aceptada'),comJA=opAhAcp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
     const opPo=p.ops.filter(x=>x.plan==='Pozo'),opPoAcp=opPo.filter(x=>x.carpeta_tesoreria==='aceptada'),comJP=opPoAcp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
     const presAcp=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id&&getPer(x.fecha_pago_presentador||x.fecha_carpeta||x.fecha).key===k)

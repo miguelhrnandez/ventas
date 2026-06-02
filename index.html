@@ -5,7 +5,473 @@
 <link rel="icon" type="image/png" href="https://i.imgur.com/KIJTwqK.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MásDueños — Sistema de ventas</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ═══ NUEVAS FUNCIONES ═══
+async function loadHorarioEnSA(){
+  var cont=document.getElementById('a-hor-body')
+  if(!cont)return
+  cont.innerHTML='<div class="es">Cargando horario...</div>'
+  var hoy=new Date().toISOString().slice(0,10)
+  var desde=null
+  if(typeof todasSemanasRef!=='undefined'&&todasSemanasRef.length){
+    var sem=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
+    if(sem)desde=sem.semana_desde
+  }
+  if(!desde){
+    var rSem=await db.from('semanas_referencia').select('semana_desde,semana_hasta').lte('semana_desde',hoy).gte('semana_hasta',hoy).maybeSingle()
+    if(rSem.data)desde=rSem.data.semana_desde
+  }
+  if(!desde){
+    var r2=await db.from('horarios').select('semana_desde').eq('empleado_nombre',CU.nombre).order('semana_desde',{ascending:false}).limit(1)
+    if(r2.data&&r2.data.length)desde=r2.data[0].semana_desde
+  }
+  if(!desde){cont.innerHTML='<div class="es">Sin horario asignado</div>';return}
+  window._saHorDesde=desde
+  var dDesde=new Date(desde+'T00:00:00')
+  var dHasta=new Date(dDesde);dHasta.setDate(dDesde.getDate()+6)
+  var fmtF=function(d){return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
+  var r=CU.role||CU.rol
+  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador'}
+  var puesto=rolAPuesto[r]||r
+  var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puesto).order('empleado_nombre')
+  var equipo=rEq.data||[]
+  var rCam=await db.from('horarios_cambios').select('*').eq('solicitante_nombre',CU.nombre).eq('semana_desde',desde).order('created_at',{ascending:false})
+  var misSolicitudes=rCam.data||[]
+  var out=''
+  out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">'
+  out+='<div><div style="font-size:15px;font-weight:600">Horario del equipo</div>'
+  out+='<div style="font-size:12px;color:var(--text3);margin-top:2px">Semana '+fmtF(dDesde)+' al '+fmtF(dHasta)+'</div></div>'
+  out+='<button onclick="openSolicitarCambioSA()" style="font-size:12px;padding:7px 14px">+ Pedir cambio de turno</button>'
+  out+='</div>'
+  out+='<div class="card" style="margin-bottom:16px"><div style="overflow-x:auto">'
+  out+='<table><thead><tr>'
+  out+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3);font-weight:500">Nombre</th>'
+  DIAS_LABEL.forEach(function(d){out+='<th style="text-align:center;min-width:80px;font-size:12px;color:var(--text3)">'+d+'</th>'})
+  out+='</tr></thead><tbody>'
+  if(!equipo.length){
+    out+='<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Sin horarios cargados para esta semana</td></tr>'
+  } else {
+    equipo.forEach(function(emp){
+      var esMio=emp.empleado_nombre===CU.nombre
+      out+='<tr style="'+(esMio?'background:rgba(212,168,67,0.08)':'')+'">'
+      out+='<td style="padding:8px 12px;font-size:13px;font-weight:'+(esMio?'600':'400')+';color:var(--text)">'+emp.empleado_nombre+(esMio?' ★':'')+'</td>'
+      DIAS.forEach(function(dia){
+        var val=emp[dia]||'—'
+        out+='<td style="text-align:center;padding:8px 6px;font-size:12px;font-weight:500;'+horColor(val)+'">'+val+'</td>'
+      })
+      out+='</tr>'
+    })
+  }
+  out+='</tbody></table></div></div>'
+  out+='<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:12px">Mis solicitudes</div>'
+  if(!misSolicitudes.length){
+    out+='<div class="es">Sin solicitudes para esta semana</div>'
+  } else {
+    misSolicitudes.forEach(function(s){
+      var estadoCol=s.estado==='pendiente'?'var(--amber)':s.estado==='aprobada'?'var(--green)':'var(--red)'
+      var estadoLabel=s.estado==='pendiente'?'Pendiente':s.estado==='aprobada'?'Aprobada':'Rechazada'
+      out+='<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">'
+      out+='<div>'
+      if(s.tipo==='intercambio')out+='<div style="font-size:13px">Cambio con '+s.receptor_nombre+' — '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
+      else out+='<div style="font-size:13px">'+s.tipo.replace('_',' ')+' — '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
+      if(s.motivo)out+='<div style="font-size:11px;color:var(--text3)">'+s.motivo+'</div>'
+      out+='</div>'
+      out+='<span style="font-size:11px;font-weight:600;color:'+estadoCol+'">'+estadoLabel+'</span>'
+      out+='</div>'
+    })
+  }
+  out+='</div>'
+  cont.innerHTML=out
+}
+async function loadHorarioEnJV(){
+  var r=CU.role||CU.rol
+  if(!todasSemanasRef||!todasSemanasRef.length)await loadSemanasRef()
+  poblarSelectSemanas('jvh-semana')
+  await loadJVHorario()
+}
+async function loadHorarioEnJP(){
+  if(!todasSemanasRef||!todasSemanasRef.length)await loadSemanasRef()
+  poblarSelectSemanas('jph-semana')
+  await loadJPHorario()
+}
+async function loadJVHorario(){
+  var desde=document.getElementById('jvh-semana')?.value
+  if(!desde)return
+  var r=CU.role||CU.rol
+  var puestos={jefe_ahorro:['asesor','jefe_ahorro'],jefe_pozo:['asesor_pozo','jefe_pozo']}[r]||[r]
+  await renderHorarioJefeGrilla('jvh-mi-horario',null,desde,puestos)
+  var res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  horDatos=(res.data||[]).filter(function(h){return puestos.includes(h.puesto)})
+  if(!horDatos.length)horDatos=generarFilasVacias(desde,puestos)
+  rHorGrilla('jvh-grilla-body',desde,true)
+}
+async function loadJVHorarioSolicitudes(){
+  var desde=document.getElementById('jvh-semana')?.value
+  if(!desde)return
+  var r=CU.role||CU.rol
+  var puestos={jefe_ahorro:['asesor','jefe_ahorro'],jefe_pozo:['asesor_pozo','jefe_pozo']}[r]||[r]
+  await renderHorarioJefeSolicitudes('jvh-solicitudes',desde,puestos,'JV')
+}
+async function loadJPHorario(){
+  var desde=document.getElementById('jph-semana')?.value
+  if(!desde)return
+  var puestos=['presentador','enrutador','jefe_presentaciones']
+  await renderHorarioJefeGrilla('jph-mi-horario',null,desde,puestos)
+  var res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
+  horDatos=(res.data||[]).filter(function(h){return puestos.includes(h.puesto)})
+  if(!horDatos.length)horDatos=generarFilasVacias(desde,puestos)
+  rHorGrilla('jph-grilla-body',desde,true)
+}
+async function loadJPHorarioSolicitudes(){
+  var desde=document.getElementById('jph-semana')?.value
+  if(!desde)return
+  await renderHorarioJefeSolicitudes('jph-solicitudes',desde,['presentador','enrutador','jefe_presentaciones'],'JP')
+}
+async function renderHorarioJefeGrilla(miHorId,equipoId,desde,puestos){
+  html(miHorId,'<div class="es">Cargando...</div>')
+  if(equipoId)html(equipoId,'<div class="es">Cargando...</div>')
+  var resMio=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).maybeSingle()
+  var miHor=resMio.data
+  if(!miHor){
+    html(miHorId,'<div class="es">Sin horario asignado para esta semana</div>')
+  } else {
+    var out='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">'
+    DIAS.forEach(function(dia,i){
+      var val=miHor[dia]||'—'
+      out+='<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">'
+      out+='<div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+DIAS_LABEL[i]+'</div>'
+      out+='<div style="font-size:13px;font-weight:600;'+horColor(val)+'">'+val+'</div>'
+      out+='</div>'
+    })
+    out+='</div>'
+    html(miHorId,out)
+  }
+  var equipoTodo=[]
+  for(var pi=0;pi<puestos.length;pi++){
+    var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puestos[pi]).order('empleado_nombre')
+    if(rEq.data)equipoTodo=equipoTodo.concat(rEq.data)
+  }
+  if(!equipoId)return
+  if(!equipoTodo.length){html(equipoId,'<div class="es">Sin horarios cargados para esta semana</div>');return}
+  var outE='<div style="overflow-x:auto"><table><thead><tr>'
+  outE+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3)">Persona</th>'
+  DIAS_LABEL.forEach(function(d){outE+='<th style="text-align:center;min-width:80px;font-size:12px;color:var(--text3)">'+d+'</th>'})
+  outE+='</tr></thead><tbody>'
+  equipoTodo.forEach(function(emp){
+    var esMio=emp.empleado_nombre===CU.nombre
+    outE+='<tr style="'+(esMio?'background:rgba(212,168,67,0.08)':'')+'">'
+    outE+='<td style="padding:8px 12px;color:var(--text);font-weight:'+(esMio?'600':'400')+'">'+emp.empleado_nombre+(esMio?' ★':'')+'</td>'
+    DIAS.forEach(function(dia){
+      var val=emp[dia]||'—'
+      outE+='<td style="text-align:center;padding:8px 6px;font-size:12px;'+horColor(val)+'">'+val+'</td>'
+    })
+    outE+='</tr>'
+  })
+  outE+='</tbody></table></div>'
+  html(equipoId,outE)
+}
+async function renderHorarioJefeSolicitudes(contId,desde,puestos,panel){
+  html(contId,'<div class="es">Cargando...</div>')
+  var rCam=await db.from('horarios_cambios').select('*').in('solicitante_puesto',puestos).eq('semana_desde',desde).order('created_at',{ascending:false})
+  var solicitudes=rCam.data||[]
+  if(!solicitudes.length){html(contId,'<div class="es">Sin solicitudes para esta semana</div>');return}
+  var out=''
+  solicitudes.forEach(function(s){
+    var estadoCol=s.estado==='pendiente'?'var(--amber)':s.estado==='aprobada'?'var(--green)':'var(--red)'
+    var estadoLabel=s.estado==='pendiente'?'Pendiente':s.estado==='aprobada'?'Aprobada':'Rechazada'
+    out+='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);gap:10px">'
+    out+='<div style="flex:1">'
+    if(s.tipo==='intercambio'){
+      out+='<div style="font-size:13px;font-weight:500;color:var(--text)"><b>'+s.solicitante_nombre+'</b> quiere cambiar con <b>'+s.receptor_nombre+'</b></div>'
+      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+' — '+s.horario_solicitante+' por '+s.horario_receptor+'</div>'
+    } else {
+      out+='<div style="font-size:13px;font-weight:500;color:var(--text)"><b>'+s.solicitante_nombre+'</b> — '+s.tipo.replace('_',' ')+' '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
+      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.horario_receptor+'</div>'
+    }
+    if(s.motivo)out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">Motivo: '+s.motivo+'</div>'
+    out+='</div>'
+    out+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'
+    out+='<span style="font-size:11px;font-weight:600;color:'+estadoCol+'">'+estadoLabel+'</span>'
+    if(s.estado==='pendiente'){
+      out+='<div style="display:flex;gap:6px">'
+      out+='<button style="font-size:11px;padding:4px 10px;background:var(--green);color:#000;border:none;border-radius:6px;cursor:pointer" onclick="aprobarCambioJefe(\''+s.id+'\',\''+panel+'\')">✓ Aprobar</button>'
+      out+='<button style="font-size:11px;padding:4px 10px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer" onclick="rechazarCambioJefe(\''+s.id+'\',\''+panel+'\')">✗ Rechazar</button>'
+      out+='</div>'
+    }
+    out+='</div>'
+    out+='</div>'
+  })
+  html(contId,out)
+}
+async function aprobarCambioJefe(id,panel){
+  await db.from('horarios_cambios').update({estado:'aprobada'}).eq('id',id)
+  mostrarToastCarp('Solicitud aprobada')
+  if(panel==='JV')loadJVHorarioSolicitudes();else loadJPHorarioSolicitudes()
+}
+async function rechazarCambioJefe(id,panel){
+  await db.from('horarios_cambios').update({estado:'rechazada'}).eq('id',id)
+  mostrarToastCarp('Solicitud rechazada')
+  if(panel==='JV')loadJVHorarioSolicitudes();else loadJPHorarioSolicitudes()
+}
+function jvhTab(t,btn){
+  hi('jvh-tsemana');hi('jvh-tsolicitudes')
+  sh(t==='semana'?'jvh-tsemana':'jvh-tsolicitudes')
+  document.querySelectorAll('#jv-thor button[id^="jvh-btn"]').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  if(t==='solicitudes')loadJVHorarioSolicitudes()
+}
+function jphTab(t,btn){
+  hi('jph-tsemana');hi('jph-tsolicitudes')
+  sh(t==='semana'?'jph-tsemana':'jph-tsolicitudes')
+  document.querySelectorAll('#jp-thor button[id^="jph-btn"]').forEach(b=>b.classList.remove('active'))
+  if(btn)btn.classList.add('active')
+  if(t==='solicitudes')loadJPHorarioSolicitudes()
+}
+function poblarSelectSemanas(selectId){
+  if(!todasSemanasRef||!todasSemanasRef.length)return
+  var sel=document.getElementById(selectId)
+  if(!sel)return
+  var hoy=new Date().toISOString().slice(0,10)
+  sel.innerHTML=todasSemanasRef.map(function(s){return '<option value="'+s.semana_desde+'">'+s.semana_label+'</option>'}).join('')
+  var semActual=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
+  if(semActual)sel.value=semActual.semana_desde
+  else if(todasSemanasRef.length)sel.value=todasSemanasRef[0].semana_desde
+}
+function generarFilasVacias(desde,puestos){
+  var filas=[]
+  var hoy=desde
+  // Obtener semana_hasta (6 días después)
+  var dD=new Date(desde+'T00:00:00')
+  var dH=new Date(dD);dH.setDate(dD.getDate()+6)
+  var hasta=dH.toISOString().slice(0,10)
+  var label='Semana '+String(dD.getDate()).padStart(2,'0')+'/'+String(dD.getMonth()+1).padStart(2,'0')+' al '+String(dH.getDate()).padStart(2,'0')+'/'+String(dH.getMonth()+1).padStart(2,'0')
+  allUsers.forEach(function(u){
+    if(u.rol&&puestos.includes(u.rol)){
+      filas.push({id:'nuevo_'+u.id,semana_desde:desde,semana_hasta:hasta,semana_label:label,empleado_nombre:u.nombre,puesto:u.rol,lunes:'',martes:'',miercoles:'',jueves:'',viernes:'',sabado:'',domingo:''})
+    }
+  })
+
+  filas.sort(function(a,b){return a.empleado_nombre.localeCompare(b.empleado_nombre)})
+  return filas
+}
+function initRealtime(){
+  if(_rtChannel)_rtChannel.unsubscribe()
+  _rtChannel=db.channel('masdueños-rt')
+    .on('postgres_changes',{event:'*',schema:'public',table:'horarios_cambios'},function(p){rtRecargar('horarios_cambios')})
+    .on('postgres_changes',{event:'*',schema:'public',table:'horarios'},function(p){rtRecargar('horarios')})
+    .on('postgres_changes',{event:'*',schema:'public',table:'ob_pagos_cuota'},function(p){rtRecargar('ob_pagos_cuota')})
+    .on('postgres_changes',{event:'*',schema:'public',table:'operaciones'},function(p){rtRecargar('operaciones')})
+    .subscribe()
+}
+async function rtRecargar(tabla){
+  var pv=screens.find(function(s){var el=document.getElementById(s);return el&&!el.classList.contains('hidden')})
+  if(tabla==='horarios'||tabla==='horarios_cambios'){
+    if(pv==='SA'){var ath=document.getElementById('a-thor');if(ath&&!ath.classList.contains('hidden'))loadHorarioEnSA()}
+    if(pv==='SJV'){var jvth=document.getElementById('jv-thor');if(jvth&&!jvth.classList.contains('hidden')){var ts=document.getElementById('jvh-tsemana');var tso=document.getElementById('jvh-tsolicitudes');if(ts&&!ts.classList.contains('hidden'))loadJVHorario();if(tso&&!tso.classList.contains('hidden'))loadJVHorarioSolicitudes()}}
+    if(pv==='SJP'){var jpth=document.getElementById('jp-thor');if(jpth&&!jpth.classList.contains('hidden')){var ts=document.getElementById('jph-tsemana');var tso=document.getElementById('jph-tsolicitudes');if(ts&&!ts.classList.contains('hidden'))loadJPHorario();if(tso&&!tso.classList.contains('hidden'))loadJPHorarioSolicitudes()}}
+    if(pv==='SHR'){loadHorarioEmpleado();var hrc=document.getElementById('hr-tcambios');if(hrc&&!hrc.classList.contains('hidden'))loadMisCambios()}
+    if(pv==='SJHR'){loadHorarios();if(tabla==='horarios_cambios')loadCambiosJHR()}
+  }
+  if(tabla==='ob_pagos_cuota'||tabla==='operaciones'){
+    var rOp=await db.from('operaciones').select('*').order('fecha',{ascending:false})
+    if(rOp.data)allOps=rOp.data
+    var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
+    if(rPag.data)allObPagos=rPag.data
+    if(pv==='SA'){rAStats();rAOps()}
+    if(pv==='SJV'){rJVStats();rJVCarp()}
+    if(pv==='SPR'){rPrStats();rPrOps()}
+    if(pv==='SJP'){rJPStats();rJPOps()}
+    if(pv==='SOB'){var rMov=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false});if(rMov.data)allObMovs=rMov.data;rOBStats();rOBMisClientes()}
+    if(pv==='SADM'){await loadAll();rAdmCarp();rAdmStats();rAdmTodas()}
+  }
+}
+async function loadOBRetenciones(){
+  var cont=document.getElementById('ob-ret-body')
+  if(!cont)return
+  cont.innerHTML='<div class="es">Cargando...</div>'
+  var r=await db.from('ob_pagos_cuota').select('*').eq('ob_id',CU.id).order('fecha_pago',{ascending:false})
+  var pagos=r.data||[]
+  if(!pagos.length){cont.innerHTML='<div class="es">Sin pagos de cuota registrados</div>';return}
+  // Construir lista de meses disponibles
+  var meses={}
+  pagos.forEach(function(p){
+    var mes=p.fecha_pago?p.fecha_pago.slice(0,7):'sin-fecha'
+    if(!meses[mes])meses[mes]=[]
+    meses[mes].push(p)
+  })
+  var mesKeys=Object.keys(meses).sort().reverse()
+  // Selector de mes
+  var mesActual=document.getElementById('ob-ret-mes')?.value||mesKeys[0]
+  var opcionesMes=mesKeys.map(function(m){
+    var label=m==='sin-fecha'?'Sin fecha':new Date(m+'-15T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+    label=label.charAt(0).toUpperCase()+label.slice(1)
+    return '<option value="'+m+'"'+(m===mesActual?' selected':'')+'>'+label+'</option>'
+  }).join('')
+  // Calcular totales por mes para el selector
+  var totalMesActual=0
+  var totalGeneral=pagos.reduce(function(a,p){return a+calcComCuota(p.numero_cuota,p.dia_del_mes)},0)
+  var psMes=meses[mesActual]||[]
+  totalMesActual=psMes.reduce(function(a,p){return a+calcComCuota(p.numero_cuota,p.dia_del_mes)},0)
+  var labelMesActual=mesActual==='sin-fecha'?'Sin fecha':new Date(mesActual+'-15T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'})
+  labelMesActual=labelMesActual.charAt(0).toUpperCase()+labelMesActual.slice(1)
+  var out=''
+  // Header con selector y totales
+  out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">'
+  out+='<select id="ob-ret-mes" onchange="loadOBRetenciones()" style="font-size:13px;width:auto">'+opcionesMes+'</select>'
+  out+='<div style="display:flex;gap:16px">'
+  out+='<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Este mes</div><div style="font-size:15px;font-weight:700;color:var(--teal)">'+fmt(totalMesActual)+'</div></div>'
+  out+='<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Total acumulado</div><div style="font-size:15px;font-weight:700;color:var(--green)">'+fmt(totalGeneral)+'</div></div>'
+  out+='</div></div>'
+  // Lista de pagos del mes seleccionado
+  out+='<div class="card">'
+  out+='<div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">'+labelMesActual+' — '+psMes.length+' pago'+(psMes.length!==1?'s':'')+'</div>'
+  if(!psMes.length){
+    out+='<div class="es">Sin pagos en este mes</div>'
+  } else {
+    out+='<div style="display:flex;flex-direction:column;gap:6px">'
+    psMes.forEach(function(p){
+      var com=calcComCuota(p.numero_cuota,p.dia_del_mes)
+      var esTemprano=p.dia_del_mes<=10
+      out+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg3);border-radius:8px;gap:8px">'
+      out+='<div style="flex:1">'
+      out+='<div style="font-size:12px;font-weight:500;color:var(--text)">M'+p.numero_cuota+' — '+fmtD(p.fecha_pago)+'</div>'
+      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+(p.metodo_pago||'Sin método')+'</div>'
+      out+='</div>'
+      out+='<div style="text-align:right">'
+      out+='<div style="font-size:13px;font-weight:600;color:var(--teal)">'+fmt(com)+'</div>'
+      out+='<div style="font-size:10px;color:'+(esTemprano?'var(--green)':'var(--amber)')+';margin-top:1px">día '+p.dia_del_mes+(esTemprano?' (1-10)':' (11-30)')+'</div>'
+      out+='</div>'
+      if(p.comprobante_url){
+        out+='<a href="'+p.comprobante_url+'" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;white-space:nowrap;margin-left:4px">📎</a>'
+      }
+      out+='</div>'
+    })
+    out+='</div>'
+  }
+  out+='</div>'
+  cont.innerHTML=out
+}
+function editarComprobante(pagoId){
+  var modal=document.createElement('div')
+  modal.id='modal-edit-comp'
+  modal.className='modal-bg'
+  var inner='<div class="modal" style="max-width:380px">'
+  inner+='<div style="font-size:15px;font-weight:600;margin-bottom:16px">Editar comprobante</div>'
+  inner+='<div style="display:flex;flex-direction:column;gap:12px">'
+  inner+='<div><label>Nuevo comprobante</label><input id="ecomp-file" type="file" accept="image/*,.pdf" style="font-size:12px;cursor:pointer"></div>'
+  inner+='<div id="ecomp-err" class="hidden" style="font-size:12px;color:var(--red)"></div>'
+  inner+='<div style="display:flex;gap:8px;margin-top:4px">'
+  inner+='<button onclick="cerrarModalEditComp()" style="flex:1">Cancelar</button>'
+  inner+='<button class="bp" id="ecomp-btn-save" style="flex:2">Guardar</button>'
+  inner+='</div></div></div>'
+  modal.innerHTML=inner
+  document.body.appendChild(modal)
+  document.getElementById('ecomp-btn-save').onclick=function(){guardarEditComprobante(pagoId)}
+}
+function cerrarModalEditComp(){var m=document.getElementById('modal-edit-comp');if(m)m.remove()}
+async function guardarEditComprobante(pagoId){
+  var fileInput=document.getElementById('ecomp-file')
+  var errEl=document.getElementById('ecomp-err')
+  if(!fileInput||!fileInput.files||!fileInput.files[0]){
+    errEl.textContent='Selecciona un archivo';errEl.style.display='block';return
+  }
+  var file=fileInput.files[0]
+  var ext=file.name.split('.').pop().toLowerCase()
+  var fileName='comprobantes/edit_'+pagoId+'_'+Date.now()+'.'+ext
+  var btnGuardar=document.querySelector('#modal-edit-comp .bp')
+  if(btnGuardar){btnGuardar.textContent='Subiendo...';btnGuardar.disabled=true}
+  var{data:upData,error:upErr}=await db.storage.from('comprobantes').upload(fileName,file,{upsert:true})
+  if(upErr){errEl.textContent='Error al subir: '+upErr.message;errEl.style.display='block';if(btnGuardar){btnGuardar.textContent='Guardar';btnGuardar.disabled=false}return}
+  var{data:urlData}=db.storage.from('comprobantes').getPublicUrl(fileName)
+  var compUrl=urlData?.publicUrl||null
+  var{error}=await db.from('ob_pagos_cuota').update({comprobante_url:compUrl}).eq('id',pagoId)
+  if(error){errEl.textContent='Error al guardar: '+error.message;errEl.style.display='block';if(btnGuardar){btnGuardar.textContent='Guardar';btnGuardar.disabled=false}return}
+  document.getElementById('modal-edit-comp').remove()
+  mostrarToastCarp('Comprobante actualizado')
+  var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
+  if(rPag.data)allObPagos=rPag.data
+  if(CU&&CU.role==='admin'){adminVerClientesOB()}
+  else{rOBStats();rOBMis()}
+}
+function openEditAdmin(id){
+  window._editFromAdmin=true
+  openEdit(id)
+}
+function agregarSplitRow(){
+  if(!window._splitRows)window._splitRows=[]
+  window._splitRows.push({asesor_id:'',asesor_nombre:'',porcentaje:''})
+  renderSplitRows()
+}
+function renderSplitRows(){
+  var cont=document.getElementById('me-split-rows')
+  if(!cont)return
+  var rows=window._splitRows||[]
+  var asesores=allUsers.filter(function(u){return u.rol==='asesor'||u.rol==='asesor_pozo'})
+  var html=''
+  rows.forEach(function(r,i){
+    var opts=asesores.map(function(u){
+      return '<option value="'+u.id+'" data-nombre="'+u.nombre+'"'+(u.asesor_id===r.asesor_id?' selected':'')+'>'+u.nombre+'</option>'
+    }).join('')
+    html+='<div style="display:grid;grid-template-columns:1fr 80px 32px;gap:6px;align-items:center">'
+    html+='<select onchange="updateSplitRow('+i+',\'asesor\',this)"><option value="">Elegir asesor</option>'+opts+'</select>'
+    html+='<input type="number" placeholder="%" min="1" max="100" value="'+(r.porcentaje||'')+'" onchange="updateSplitRow('+i+',\'pct\',this)" style="text-align:center">'
+    html+='<button onclick="eliminarSplitRow('+i+')" style="padding:4px 6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2)">✕</button>'
+    html+='</div>'
+  })
+  cont.innerHTML=html
+  actualizarTotalSplit()
+}
+function updateSplitRow(i,campo,el){
+  if(!window._splitRows)return
+  if(campo==='asesor'){
+    var opt=el.options[el.selectedIndex]
+    window._splitRows[i].asesor_id=el.value
+    window._splitRows[i].asesor_nombre=opt?opt.getAttribute('data-nombre'):''
+  } else {
+    window._splitRows[i].porcentaje=parseFloat(el.value)||0
+  }
+  actualizarTotalSplit()
+}
+function eliminarSplitRow(i){
+  window._splitRows.splice(i,1)
+  renderSplitRows()
+}
+function actualizarTotalSplit(){
+  var rows=window._splitRows||[]
+  var total=rows.reduce(function(a,r){return a+(parseFloat(r.porcentaje)||0)},0)
+  var el=document.getElementById('me-split-total')
+  if(!el)return
+  if(!rows.length){el.textContent='';return}
+  el.textContent='Total: '+total+'%'
+  el.style.color=total===100?'var(--green)':'var(--amber)'
+}
+function toggleAdmMenu(btn){
+  var menu=btn.nextElementSibling
+  if(!menu)return
+  var isOpen=menu.style.display==='block'
+  document.querySelectorAll('.adm-menu').forEach(function(m){m.style.display='none'})
+  if(!isOpen)menu.style.display='block'
+  event.stopPropagation()
+}
+function closeAdmMenus(){
+  document.querySelectorAll('.adm-menu').forEach(function(m){m.style.display='none'})
+}
+async function openSolicitarCambioSA(){
+  var desde=window._saHorDesde
+  if(!desde){alert('No hay semana cargada');return}
+  var r=CU.role||CU.rol
+  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador'}
+  var puesto=rolAPuesto[r]||r
+  var res=await db.from('horarios').select('empleado_nombre').eq('semana_desde',desde).eq('puesto',puesto)
+  var companeros=(res.data||[]).filter(function(x){return x.empleado_nombre!==CU.nombre})
+  var sel=document.getElementById('hcam-receptor')
+  sel.innerHTML=companeros.map(function(x){return '<option value="'+x.empleado_nombre+'">'+x.empleado_nombre+'</option>'}).join('')
+  document.getElementById('hcam-motivo').value=''
+  hi('hcam-err')
+  window._cambioDesdePanel='SA'
+  sh('modal-hor-cambio')
+}
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -390,8 +856,6 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
   <div class="modal" style="max-width:600px">
     <div style="font-size:16px;font-weight:600;margin-bottom:20px;color:var(--text)">Editar operación</div>
     <div style="display:flex;flex-direction:column;gap:0">
-
-      <!-- SECCIÓN: Cliente -->
       <div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:12px">
         <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Cliente</div>
         <div class="g2">
@@ -403,8 +867,6 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
           <div><label>ID Reserva</label><input id="me-unidad" placeholder="Ej: 12345"></div>
         </div>
       </div>
-
-      <!-- SECCIÓN: Venta -->
       <div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:12px">
         <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Venta</div>
         <div class="g2">
@@ -423,40 +885,25 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
         <div style="margin-top:10px">
           <label>Forma de pago</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-              <input id="me-ef" type="number" placeholder="0" oninput="prevEditPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-              <input id="me-tr" type="number" placeholder="0" oninput="prevEditPago()">
-            </div>
+            <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label><input id="me-ef" type="number" placeholder="0" oninput="prevEditPago()"></div>
+            <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label><input id="me-tr" type="number" placeholder="0" oninput="prevEditPago()"></div>
           </div>
           <div id="me-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
         </div>
         <div style="margin-top:10px"><label>Observaciones</label><textarea id="me-obs" rows="2" style="resize:vertical"></textarea></div>
       </div>
-
-      <!-- SECCIÓN: Asesor y comisiones -->
       <div style="background:var(--bg3);border-radius:10px;padding:14px 16px;margin-bottom:12px">
         <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Asesor y comisiones</div>
-        <div>
-          <label>Asesor principal</label>
-          <select id="me-asesor" style="width:100%"></select>
-        </div>
+        <div><label>Asesor principal</label><select id="me-asesor" style="width:100%"></select></div>
         <div style="margin-top:12px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div>
-              <div style="font-size:13px;font-weight:500;color:var(--text)">Split de comisión</div>
-              <div style="font-size:11px;color:var(--text3)">Solo si la venta es compartida entre varios asesores</div>
-            </div>
+            <div><div style="font-size:13px;font-weight:500;color:var(--text)">Split de comisión</div><div style="font-size:11px;color:var(--text3)">Solo si la venta es compartida</div></div>
             <button onclick="agregarSplitRow()" style="font-size:11px;padding:5px 12px;white-space:nowrap">+ Agregar</button>
           </div>
           <div id="me-split-rows" style="display:flex;flex-direction:column;gap:6px"></div>
           <div id="me-split-total" style="font-size:11px;margin-top:6px;text-align:right"></div>
         </div>
       </div>
-
       <div id="me-prev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2);margin-bottom:12px"></div>
       <div id="me-err" class="hidden em" style="margin-bottom:8px"></div>
       <div style="display:flex;gap:8px">
@@ -1815,45 +2262,7 @@ async function loadAll(){
   allOps=o.data||[];allUsers=u.data||[];allLl=(l.data||[]).map(x=>x.periodo_key);allLlData=l.data||[];allObMovs=om.data||[];allObPagos=op.data||[]
 }
 
-// ═══ REALTIME ═══
-var _rtChannel=null
-function initRealtime(){
-  if(_rtChannel)_rtChannel.unsubscribe()
-  _rtChannel=db.channel('masdueños-rt')
-    .on('postgres_changes',{event:'*',schema:'public',table:'horarios_cambios'},function(p){rtRecargar('horarios_cambios')})
-    .on('postgres_changes',{event:'*',schema:'public',table:'horarios'},function(p){rtRecargar('horarios')})
-    .on('postgres_changes',{event:'*',schema:'public',table:'ob_pagos_cuota'},function(p){rtRecargar('ob_pagos_cuota')})
-    .on('postgres_changes',{event:'*',schema:'public',table:'operaciones'},function(p){rtRecargar('operaciones')})
-    .subscribe()
-}
-async function rtRecargar(tabla){
-  var pv=screens.find(function(s){var el=document.getElementById(s);return el&&!el.classList.contains('hidden')})
-  if(tabla==='horarios'||tabla==='horarios_cambios'){
-    if(pv==='SA'){var ath=document.getElementById('a-thor');if(ath&&!ath.classList.contains('hidden'))loadHorarioEnSA()}
-    if(pv==='SJV'){var jvth=document.getElementById('jv-thor');if(jvth&&!jvth.classList.contains('hidden')){var ts=document.getElementById('jvh-tsemana');var tso=document.getElementById('jvh-tsolicitudes');if(ts&&!ts.classList.contains('hidden'))loadJVHorario();if(tso&&!tso.classList.contains('hidden'))loadJVHorarioSolicitudes()}}
-    if(pv==='SJP'){var jpth=document.getElementById('jp-thor');if(jpth&&!jpth.classList.contains('hidden')){var ts=document.getElementById('jph-tsemana');var tso=document.getElementById('jph-tsolicitudes');if(ts&&!ts.classList.contains('hidden'))loadJPHorario();if(tso&&!tso.classList.contains('hidden'))loadJPHorarioSolicitudes()}}
-    if(pv==='SHR'){loadHorarioEmpleado();var hrc=document.getElementById('hr-tcambios');if(hrc&&!hrc.classList.contains('hidden'))loadMisCambios()}
-    if(pv==='SJHR'){loadHorarios();if(tabla==='horarios_cambios')loadCambiosJHR()}
-  }
-  if(tabla==='ob_pagos_cuota'||tabla==='operaciones'){
-    var rOp=await db.from('operaciones').select('*').order('fecha',{ascending:false})
-    if(rOp.data)allOps=rOp.data
-    var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
-    if(rPag.data)allObPagos=rPag.data
-    if(pv==='SA'){rAStats();rAOps()}
-    if(pv==='SJV'){rJVStats();rJVCarp()}
-    if(pv==='SPR'){rPrStats();rPrOps()}
-    if(pv==='SJP'){rJPStats();rJPOps()}
-    if(pv==='SOB'){var rMov=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false});if(rMov.data)allObMovs=rMov.data;rOBStats();rOBMisClientes()}
-    if(pv==='SADM'){await loadAll();rAdmCarp();rAdmStats();rAdmTodas()}
-  }
-}
-
 // ═══ MODAL EDITAR ═══
-function openEditAdmin(id){
-  window._editFromAdmin=true
-  openEdit(id)
-}
 function openEdit(id){
   editId=id
   const op=allOps.find(x=>x.id===id)
@@ -1896,55 +2305,23 @@ function openEdit(id){
   prevEditTipo()
   sh('modal-edit')
 }
-function agregarSplitRow(){
-  if(!window._splitRows)window._splitRows=[]
-  window._splitRows.push({asesor_id:'',asesor_nombre:'',porcentaje:''})
-  renderSplitRows()
-}
-function renderSplitRows(){
-  var cont=document.getElementById('me-split-rows')
-  if(!cont)return
-  var rows=window._splitRows||[]
-  var asesores=allUsers.filter(function(u){return u.rol==='asesor'||u.rol==='asesor_pozo'})
-  var html=''
-  rows.forEach(function(r,i){
-    var opts=asesores.map(function(u){
-      return '<option value="'+u.id+'" data-nombre="'+u.nombre+'"'+(u.asesor_id===r.asesor_id?' selected':'')+'>'+u.nombre+'</option>'
-    }).join('')
-    html+='<div style="display:grid;grid-template-columns:1fr 80px 32px;gap:6px;align-items:center">'
-    html+='<select onchange="updateSplitRow('+i+',\'asesor\',this)"><option value="">Elegir asesor</option>'+opts+'</select>'
-    html+='<input type="number" placeholder="%" min="1" max="100" value="'+(r.porcentaje||'')+'" onchange="updateSplitRow('+i+',\'pct\',this)" style="text-align:center">'
-    html+='<button onclick="eliminarSplitRow('+i+')" style="padding:4px 6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2)">✕</button>'
-    html+='</div>'
-  })
-  cont.innerHTML=html
-  actualizarTotalSplit()
-}
-function updateSplitRow(i,campo,el){
-  if(!window._splitRows)return
-  if(campo==='asesor'){
-    var opt=el.options[el.selectedIndex]
-    window._splitRows[i].asesor_id=el.value
-    window._splitRows[i].asesor_nombre=opt?opt.getAttribute('data-nombre'):''
-  } else {
-    window._splitRows[i].porcentaje=parseFloat(el.value)||0
-  }
-  actualizarTotalSplit()
-}
-function eliminarSplitRow(i){
-  window._splitRows.splice(i,1)
-  renderSplitRows()
-}
-function actualizarTotalSplit(){
-  var rows=window._splitRows||[]
-  var total=rows.reduce(function(a,r){return a+(parseFloat(r.porcentaje)||0)},0)
-  var el=document.getElementById('me-split-total')
+function closeEdit(){hi('modal-edit');editId=null}
+function prevEditPago(){
+  const ef=parseFloat(document.getElementById('me-ef')?.value)||0
+  const tr=parseFloat(document.getElementById('me-tr')?.value)||0
+  const el=document.getElementById('me-pago-prev')
   if(!el)return
-  if(!rows.length){el.textContent='';return}
-  el.textContent='Total: '+total+'%'
-  el.style.color=total===100?'var(--green)':'var(--amber)'
+  if(ef>0&&tr>0)el.innerHTML='<span style="color:var(--text2)">💵 Efectivo: <strong>'+fmt(ef)+'</strong> + 🏦 Transferencia: <strong>'+fmt(tr)+'</strong></span>'
+  else if(ef>0)el.innerHTML='<span style="color:var(--text2)">💵 Solo efectivo: <strong>'+fmt(ef)+'</strong></span>'
+  else if(tr>0)el.innerHTML='<span style="color:var(--text2)">🏦 Solo transferencia: <strong>'+fmt(tr)+'</strong></span>'
+  else el.textContent=''
 }
-
+function prevEditTipo(){
+  const m=parseInt(gv('me-monto')),el=document.getElementById('me-prev')
+  if(!m||isNaN(m)){hi('me-prev');return}sh('me-prev')
+  const c=categ(m)
+  el.innerHTML=`Categoria: <strong style="color:var(--${c.cls.includes('completa')?'green':c.cls.includes('bonificada')?'blue':'amber'})">${c.label}</strong>` + (c.isVenta?` - Comision est.: <span class="ag">${fmt(calcC(m))}</span>`:'')
+}
 async function guardarEdit(){
   hi('me-err')
   const me_ap=(document.getElementById('me-apellido')?.value||'').trim().toUpperCase()
@@ -2089,7 +2466,7 @@ async function showAs(){
     {id:'hor',label:'Mi horario',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',fn:"aTab('hor',document.getElementById('sbitem-hor'))"}
   ],'o',CU.nombre,rolLabel,tieneExtra)
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
-  aOps=data||[];rAStats();rAOps();aTab('o',document.getElementById('sbitem-o'))
+  aOps=data||[];rAStats();rAOps()
   // Si es asesor_pozo, preseleccionar Pozo en el formulario
   if(esPozo){
     setTimeout(function(){
@@ -2298,7 +2675,7 @@ async function showJV(){
     {id:'hor',label:'Horarios',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',fn:"jvTab('hor',document.getElementById('sbitem-hor'))"}
   ],'cp',CU.nombre,rolLabel,false)
   const{data}=await db.from('operaciones').select('*').eq('plan',pl).order('fecha',{ascending:false})
-  jvOps=(data||[]).filter(x=>categ(x.monto).isVenta);rJVStats();rJVCarp();jvTab('cp',document.getElementById('sbitem-cp'))
+  jvOps=(data||[]).filter(x=>categ(x.monto).isVenta);rJVStats();rJVCarp()
 }
 function rJVStats(){
   const acp=jvOps.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
@@ -2409,258 +2786,6 @@ function jvTab(t,btn){
   if(t==='hor')loadHorarioEnJV()
   closeSbMobile()
 }
-
-
-// ── HORARIOS PANEL ASESOR ──
-async function loadHorarioEnSA(){
-  var cont=document.getElementById('a-hor-body')
-  if(!cont)return
-  cont.innerHTML='<div class="es">Cargando horario...</div>'
-  var hoy=new Date().toISOString().slice(0,10)
-  var desde=null
-  if(typeof todasSemanasRef!=='undefined'&&todasSemanasRef.length){
-    var sem=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
-    if(sem)desde=sem.semana_desde
-  }
-  if(!desde){
-    var rSem=await db.from('semanas_referencia').select('semana_desde,semana_hasta').lte('semana_desde',hoy).gte('semana_hasta',hoy).maybeSingle()
-    if(rSem.data)desde=rSem.data.semana_desde
-  }
-  if(!desde){
-    var r2=await db.from('horarios').select('semana_desde').eq('empleado_nombre',CU.nombre).order('semana_desde',{ascending:false}).limit(1)
-    if(r2.data&&r2.data.length)desde=r2.data[0].semana_desde
-  }
-  if(!desde){cont.innerHTML='<div class="es">Sin horario asignado</div>';return}
-  window._saHorDesde=desde
-  var dDesde=new Date(desde+'T00:00:00')
-  var dHasta=new Date(dDesde);dHasta.setDate(dDesde.getDate()+6)
-  var fmtF=function(d){return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()}
-  var r=CU.role||CU.rol
-  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador'}
-  var puesto=rolAPuesto[r]||r
-  var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puesto).order('empleado_nombre')
-  var equipo=rEq.data||[]
-  var rCam=await db.from('horarios_cambios').select('*').eq('solicitante_nombre',CU.nombre).eq('semana_desde',desde).order('created_at',{ascending:false})
-  var misSolicitudes=rCam.data||[]
-  var out=''
-  out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">'
-  out+='<div><div style="font-size:15px;font-weight:600">Horario del equipo</div>'
-  out+='<div style="font-size:12px;color:var(--text3);margin-top:2px">Semana '+fmtF(dDesde)+' al '+fmtF(dHasta)+'</div></div>'
-  out+='<button onclick="openSolicitarCambioSA()" style="font-size:12px;padding:7px 14px">+ Pedir cambio de turno</button>'
-  out+='</div>'
-  out+='<div class="card" style="margin-bottom:16px"><div style="overflow-x:auto">'
-  out+='<table><thead><tr>'
-  out+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3);font-weight:500">Nombre</th>'
-  DIAS_LABEL.forEach(function(d){out+='<th style="text-align:center;min-width:80px;font-size:12px;color:var(--text3)">'+d+'</th>'})
-  out+='</tr></thead><tbody>'
-  if(!equipo.length){
-    out+='<tr><td colspan="8" style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Sin horarios cargados para esta semana</td></tr>'
-  } else {
-    equipo.forEach(function(emp){
-      var esMio=emp.empleado_nombre===CU.nombre
-      out+='<tr style="'+(esMio?'background:rgba(212,168,67,0.08)':'')+'">'
-      out+='<td style="padding:8px 12px;font-size:13px;font-weight:'+(esMio?'600':'400')+';color:var(--text)">'+emp.empleado_nombre+(esMio?' ★':'')+'</td>'
-      DIAS.forEach(function(dia){
-        var val=emp[dia]||'—'
-        out+='<td style="text-align:center;padding:8px 6px;font-size:12px;font-weight:500;'+horColor(val)+'">'+val+'</td>'
-      })
-      out+='</tr>'
-    })
-  }
-  out+='</tbody></table></div></div>'
-  out+='<div class="card"><div style="font-size:14px;font-weight:600;margin-bottom:12px">Mis solicitudes</div>'
-  if(!misSolicitudes.length){
-    out+='<div class="es">Sin solicitudes para esta semana</div>'
-  } else {
-    misSolicitudes.forEach(function(s){
-      var estadoCol=s.estado==='pendiente'?'var(--amber)':s.estado==='aprobada'?'var(--green)':'var(--red)'
-      var estadoLabel=s.estado==='pendiente'?'Pendiente':s.estado==='aprobada'?'Aprobada':'Rechazada'
-      out+='<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">'
-      out+='<div>'
-      if(s.tipo==='intercambio')out+='<div style="font-size:13px">Cambio con '+s.receptor_nombre+' — '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
-      else out+='<div style="font-size:13px">'+s.tipo.replace('_',' ')+' — '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
-      if(s.motivo)out+='<div style="font-size:11px;color:var(--text3)">'+s.motivo+'</div>'
-      out+='</div>'
-      out+='<span style="font-size:11px;font-weight:600;color:'+estadoCol+'">'+estadoLabel+'</span>'
-      out+='</div>'
-    })
-  }
-  out+='</div>'
-  cont.innerHTML=out
-}
-async function openSolicitarCambioSA(){
-  var desde=window._saHorDesde
-  if(!desde){alert('No hay semana cargada');return}
-  var r=CU.role||CU.rol
-  var rolAPuesto={asesor:'asesor',asesor_pozo:'asesor_pozo',presentador:'presentador',on_boarding:'on_boarding',promotor:'promotor',recepcion:'recepcion',pretester:'pretester',host:'host',detector_pozo:'detector_pozo',enrutador:'enrutador'}
-  var puesto=rolAPuesto[r]||r
-  var res=await db.from('horarios').select('empleado_nombre').eq('semana_desde',desde).eq('puesto',puesto)
-  var companeros=(res.data||[]).filter(function(x){return x.empleado_nombre!==CU.nombre})
-  var sel=document.getElementById('hcam-receptor')
-  sel.innerHTML=companeros.map(function(x){return '<option value="'+x.empleado_nombre+'">'+x.empleado_nombre+'</option>'}).join('')
-  document.getElementById('hcam-motivo').value=''
-  hi('hcam-err')
-  window._cambioDesdePanel='SA'
-  sh('modal-hor-cambio')
-}
-
-// ── HORARIOS PANEL JEFE VENTAS (SJV) y JEFE PRESENTACIONES (SJP) ──
-function poblarSelectSemanas(selectId){
-  if(!todasSemanasRef||!todasSemanasRef.length)return
-  var sel=document.getElementById(selectId)
-  if(!sel)return
-  var hoy=new Date().toISOString().slice(0,10)
-  sel.innerHTML=todasSemanasRef.map(function(s){return '<option value="'+s.semana_desde+'">'+s.semana_label+'</option>'}).join('')
-  var semActual=todasSemanasRef.find(function(s){return s.semana_desde<=hoy&&s.semana_hasta>=hoy})
-  if(semActual)sel.value=semActual.semana_desde
-  else if(todasSemanasRef.length)sel.value=todasSemanasRef[0].semana_desde
-}
-function jvhTab(t,btn){
-  hi('jvh-tsemana');hi('jvh-tsolicitudes')
-  sh(t==='semana'?'jvh-tsemana':'jvh-tsolicitudes')
-  document.querySelectorAll('#jv-thor button[id^="jvh-btn"]').forEach(b=>b.classList.remove('active'))
-  if(btn)btn.classList.add('active')
-  if(t==='solicitudes')loadJVHorarioSolicitudes()
-}
-function jphTab(t,btn){
-  hi('jph-tsemana');hi('jph-tsolicitudes')
-  sh(t==='semana'?'jph-tsemana':'jph-tsolicitudes')
-  document.querySelectorAll('#jp-thor button[id^="jph-btn"]').forEach(b=>b.classList.remove('active'))
-  if(btn)btn.classList.add('active')
-  if(t==='solicitudes')loadJPHorarioSolicitudes()
-}
-async function loadHorarioEnJV(){
-  var r=CU.role||CU.rol
-  if(!todasSemanasRef||!todasSemanasRef.length)await loadSemanasRef()
-  poblarSelectSemanas('jvh-semana')
-  await loadJVHorario()
-}
-async function loadJVHorario(){
-  var desde=document.getElementById('jvh-semana')?.value
-  if(!desde)return
-  var r=CU.role||CU.rol
-  var puestos={jefe_ahorro:['asesor','jefe_ahorro'],jefe_pozo:['asesor_pozo','jefe_pozo']}[r]||[r]
-  await renderHorarioJefeGrilla('jvh-mi-horario',null,desde,puestos)
-  var res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
-  horDatos=(res.data||[]).filter(function(h){return puestos.includes(h.puesto)})
-  if(!horDatos.length)horDatos=generarFilasVacias(desde,puestos)
-  rHorGrilla('jvh-grilla-body',desde,true)
-}
-async function loadJVHorarioSolicitudes(){
-  var desde=document.getElementById('jvh-semana')?.value
-  if(!desde)return
-  var r=CU.role||CU.rol
-  var puestos={jefe_ahorro:['asesor','jefe_ahorro'],jefe_pozo:['asesor_pozo','jefe_pozo']}[r]||[r]
-  await renderHorarioJefeSolicitudes('jvh-solicitudes',desde,puestos,'JV')
-}
-async function loadHorarioEnJP(){
-  if(!todasSemanasRef||!todasSemanasRef.length)await loadSemanasRef()
-  poblarSelectSemanas('jph-semana')
-  await loadJPHorario()
-}
-async function loadJPHorario(){
-  var desde=document.getElementById('jph-semana')?.value
-  if(!desde)return
-  var puestos=['presentador','enrutador','jefe_presentaciones']
-  await renderHorarioJefeGrilla('jph-mi-horario',null,desde,puestos)
-  var res=await db.from('horarios').select('*').eq('semana_desde',desde).order('puesto').order('empleado_nombre')
-  horDatos=(res.data||[]).filter(function(h){return puestos.includes(h.puesto)})
-  if(!horDatos.length)horDatos=generarFilasVacias(desde,puestos)
-  rHorGrilla('jph-grilla-body',desde,true)
-}
-async function loadJPHorarioSolicitudes(){
-  var desde=document.getElementById('jph-semana')?.value
-  if(!desde)return
-  await renderHorarioJefeSolicitudes('jph-solicitudes',desde,['presentador','enrutador','jefe_presentaciones'],'JP')
-}
-async function renderHorarioJefeGrilla(miHorId,equipoId,desde,puestos){
-  html(miHorId,'<div class="es">Cargando...</div>')
-  if(equipoId)html(equipoId,'<div class="es">Cargando...</div>')
-  var resMio=await db.from('horarios').select('*').eq('semana_desde',desde).eq('empleado_nombre',CU.nombre).maybeSingle()
-  var miHor=resMio.data
-  if(!miHor){
-    html(miHorId,'<div class="es">Sin horario asignado para esta semana</div>')
-  } else {
-    var out='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">'
-    DIAS.forEach(function(dia,i){
-      var val=miHor[dia]||'—'
-      out+='<div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">'
-      out+='<div style="font-size:11px;color:var(--text3);margin-bottom:4px">'+DIAS_LABEL[i]+'</div>'
-      out+='<div style="font-size:13px;font-weight:600;'+horColor(val)+'">'+val+'</div>'
-      out+='</div>'
-    })
-    out+='</div>'
-    html(miHorId,out)
-  }
-  var equipoTodo=[]
-  for(var pi=0;pi<puestos.length;pi++){
-    var rEq=await db.from('horarios').select('*').eq('semana_desde',desde).eq('puesto',puestos[pi]).order('empleado_nombre')
-    if(rEq.data)equipoTodo=equipoTodo.concat(rEq.data)
-  }
-  if(!equipoId)return
-  if(!equipoTodo.length){html(equipoId,'<div class="es">Sin horarios cargados para esta semana</div>');return}
-  var outE='<div style="overflow-x:auto"><table><thead><tr>'
-  outE+='<th style="text-align:left;padding:8px 12px;font-size:12px;color:var(--text3)">Persona</th>'
-  DIAS_LABEL.forEach(function(d){outE+='<th style="text-align:center;min-width:80px;font-size:12px;color:var(--text3)">'+d+'</th>'})
-  outE+='</tr></thead><tbody>'
-  equipoTodo.forEach(function(emp){
-    var esMio=emp.empleado_nombre===CU.nombre
-    outE+='<tr style="'+(esMio?'background:rgba(212,168,67,0.08)':'')+'">'
-    outE+='<td style="padding:8px 12px;color:var(--text);font-weight:'+(esMio?'600':'400')+'">'+emp.empleado_nombre+(esMio?' ★':'')+'</td>'
-    DIAS.forEach(function(dia){
-      var val=emp[dia]||'—'
-      outE+='<td style="text-align:center;padding:8px 6px;font-size:12px;'+horColor(val)+'">'+val+'</td>'
-    })
-    outE+='</tr>'
-  })
-  outE+='</tbody></table></div>'
-  html(equipoId,outE)
-}
-async function renderHorarioJefeSolicitudes(contId,desde,puestos,panel){
-  html(contId,'<div class="es">Cargando...</div>')
-  var rCam=await db.from('horarios_cambios').select('*').in('solicitante_puesto',puestos).eq('semana_desde',desde).order('created_at',{ascending:false})
-  var solicitudes=rCam.data||[]
-  if(!solicitudes.length){html(contId,'<div class="es">Sin solicitudes para esta semana</div>');return}
-  var out=''
-  solicitudes.forEach(function(s){
-    var estadoCol=s.estado==='pendiente'?'var(--amber)':s.estado==='aprobada'?'var(--green)':'var(--red)'
-    var estadoLabel=s.estado==='pendiente'?'Pendiente':s.estado==='aprobada'?'Aprobada':'Rechazada'
-    out+='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);gap:10px">'
-    out+='<div style="flex:1">'
-    if(s.tipo==='intercambio'){
-      out+='<div style="font-size:13px;font-weight:500;color:var(--text)"><b>'+s.solicitante_nombre+'</b> quiere cambiar con <b>'+s.receptor_nombre+'</b></div>'
-      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+' — '+s.horario_solicitante+' por '+s.horario_receptor+'</div>'
-    } else {
-      out+='<div style="font-size:13px;font-weight:500;color:var(--text)"><b>'+s.solicitante_nombre+'</b> — '+s.tipo.replace('_',' ')+' '+s.dia.charAt(0).toUpperCase()+s.dia.slice(1)+'</div>'
-      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.horario_receptor+'</div>'
-    }
-    if(s.motivo)out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">Motivo: '+s.motivo+'</div>'
-    out+='</div>'
-    out+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'
-    out+='<span style="font-size:11px;font-weight:600;color:'+estadoCol+'">'+estadoLabel+'</span>'
-    if(s.estado==='pendiente'){
-      out+='<div style="display:flex;gap:6px">'
-      out+='<button style="font-size:11px;padding:4px 10px;background:var(--green);color:#000;border:none;border-radius:6px;cursor:pointer" onclick="aprobarCambioJefe(\''+s.id+'\',\''+panel+'\')">✓ Aprobar</button>'
-      out+='<button style="font-size:11px;padding:4px 10px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer" onclick="rechazarCambioJefe(\''+s.id+'\',\''+panel+'\')">✗ Rechazar</button>'
-      out+='</div>'
-    }
-    out+='</div>'
-    out+='</div>'
-  })
-  html(contId,out)
-}
-async function aprobarCambioJefe(id,panel){
-  await db.from('horarios_cambios').update({estado:'aprobada'}).eq('id',id)
-  mostrarToastCarp('Solicitud aprobada')
-  if(panel==='JV')loadJVHorarioSolicitudes();else loadJPHorarioSolicitudes()
-}
-async function rechazarCambioJefe(id,panel){
-  await db.from('horarios_cambios').update({estado:'rechazada'}).eq('id',id)
-  mostrarToastCarp('Solicitud rechazada')
-  if(panel==='JV')loadJVHorarioSolicitudes();else loadJPHorarioSolicitudes()
-}
-// parche enviarSolicitudCambio para panel SA
-var _origEnviarSolicitudCambio=null
 
 // ═══ PRESENTADOR ═══
 let prOps=[]
@@ -2850,73 +2975,6 @@ async function showOB(){
   }catch(err){console.error('showOB error:',err);alert('Error al cargar panel OB: '+err.message)}
 }
 let obPagos=[]
-async function loadOBRetenciones(){
-  var cont=document.getElementById('ob-ret-body')
-  if(!cont)return
-  cont.innerHTML='<div class="es">Cargando...</div>'
-  var r=await db.from('ob_pagos_cuota').select('*').eq('ob_id',CU.id).order('fecha_pago',{ascending:false})
-  var pagos=r.data||[]
-  if(!pagos.length){cont.innerHTML='<div class="es">Sin pagos de cuota registrados</div>';return}
-  // Construir lista de meses disponibles
-  var meses={}
-  pagos.forEach(function(p){
-    var mes=p.fecha_pago?p.fecha_pago.slice(0,7):'sin-fecha'
-    if(!meses[mes])meses[mes]=[]
-    meses[mes].push(p)
-  })
-  var mesKeys=Object.keys(meses).sort().reverse()
-  // Selector de mes
-  var mesActual=document.getElementById('ob-ret-mes')?.value||mesKeys[0]
-  var opcionesMes=mesKeys.map(function(m){
-    var label=m==='sin-fecha'?'Sin fecha':new Date(m+'-15T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'})
-    label=label.charAt(0).toUpperCase()+label.slice(1)
-    return '<option value="'+m+'"'+(m===mesActual?' selected':'')+'>'+label+'</option>'
-  }).join('')
-  // Calcular totales por mes para el selector
-  var totalMesActual=0
-  var totalGeneral=pagos.reduce(function(a,p){return a+calcComCuota(p.numero_cuota,p.dia_del_mes)},0)
-  var psMes=meses[mesActual]||[]
-  totalMesActual=psMes.reduce(function(a,p){return a+calcComCuota(p.numero_cuota,p.dia_del_mes)},0)
-  var labelMesActual=mesActual==='sin-fecha'?'Sin fecha':new Date(mesActual+'-15T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'})
-  labelMesActual=labelMesActual.charAt(0).toUpperCase()+labelMesActual.slice(1)
-  var out=''
-  // Header con selector y totales
-  out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">'
-  out+='<select id="ob-ret-mes" onchange="loadOBRetenciones()" style="font-size:13px;width:auto">'+opcionesMes+'</select>'
-  out+='<div style="display:flex;gap:16px">'
-  out+='<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Este mes</div><div style="font-size:15px;font-weight:700;color:var(--teal)">'+fmt(totalMesActual)+'</div></div>'
-  out+='<div style="text-align:right"><div style="font-size:10px;color:var(--text3)">Total acumulado</div><div style="font-size:15px;font-weight:700;color:var(--green)">'+fmt(totalGeneral)+'</div></div>'
-  out+='</div></div>'
-  // Lista de pagos del mes seleccionado
-  out+='<div class="card">'
-  out+='<div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">'+labelMesActual+' — '+psMes.length+' pago'+(psMes.length!==1?'s':'')+'</div>'
-  if(!psMes.length){
-    out+='<div class="es">Sin pagos en este mes</div>'
-  } else {
-    out+='<div style="display:flex;flex-direction:column;gap:6px">'
-    psMes.forEach(function(p){
-      var com=calcComCuota(p.numero_cuota,p.dia_del_mes)
-      var esTemprano=p.dia_del_mes<=10
-      out+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg3);border-radius:8px;gap:8px">'
-      out+='<div style="flex:1">'
-      out+='<div style="font-size:12px;font-weight:500;color:var(--text)">M'+p.numero_cuota+' — '+fmtD(p.fecha_pago)+'</div>'
-      out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">'+(p.metodo_pago||'Sin método')+'</div>'
-      out+='</div>'
-      out+='<div style="text-align:right">'
-      out+='<div style="font-size:13px;font-weight:600;color:var(--teal)">'+fmt(com)+'</div>'
-      out+='<div style="font-size:10px;color:'+(esTemprano?'var(--green)':'var(--amber)')+';margin-top:1px">día '+p.dia_del_mes+(esTemprano?' (1-10)':' (11-30)')+'</div>'
-      out+='</div>'
-      if(p.comprobante_url){
-        out+='<a href="'+p.comprobante_url+'" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none;white-space:nowrap;margin-left:4px">📎</a>'
-      }
-      out+='</div>'
-    })
-    out+='</div>'
-  }
-  out+='</div>'
-  cont.innerHTML=out
-}
-
 async function loadOBData(){
   const[mis,disp,movs,pagos]=await Promise.all([
     db.from('operaciones').select('*').eq('ob_id',CU.id).order('fecha',{ascending:false}),
@@ -3162,7 +3220,6 @@ function openOBPagoCuota(opId,cliente,numeroCuota){
       <div>
         <label>Comprobante <span style="color:var(--text3);font-weight:400">(opcional)</span></label>
         <input id="obp-comprobante" type="file" accept="image/*,.pdf" style="font-size:12px;cursor:pointer">
-        <div id="obp-comp-preview" style="margin-top:6px;display:none"></div>
       </div>
       <div id="obp-err" style="display:none;font-size:12px;color:var(--red)"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
@@ -3218,48 +3275,6 @@ async function guardarOBPago(opId,numeroCuota){
   document.getElementById('ob-modal').remove()
   if(CU&&CU.role==='admin'){await loadAll();adminVerClientesOB()}
   else{await loadOBData();rOBStats();rOBMis()}
-}
-function cerrarModalEditComp(){var m=document.getElementById('modal-edit-comp');if(m)m.remove()}
-function editarComprobante(pagoId){
-  var modal=document.createElement('div')
-  modal.id='modal-edit-comp'
-  modal.className='modal-bg'
-  var inner='<div class="modal" style="max-width:380px">'
-  inner+='<div style="font-size:15px;font-weight:600;margin-bottom:16px">Editar comprobante</div>'
-  inner+='<div style="display:flex;flex-direction:column;gap:12px">'
-  inner+='<div><label>Nuevo comprobante</label><input id="ecomp-file" type="file" accept="image/*,.pdf" style="font-size:12px;cursor:pointer"></div>'
-  inner+='<div id="ecomp-err" class="hidden" style="font-size:12px;color:var(--red)"></div>'
-  inner+='<div style="display:flex;gap:8px;margin-top:4px">'
-  inner+='<button onclick="cerrarModalEditComp()" style="flex:1">Cancelar</button>'
-  inner+='<button class="bp" id="ecomp-btn-save" style="flex:2">Guardar</button>'
-  inner+='</div></div></div>'
-  modal.innerHTML=inner
-  document.body.appendChild(modal)
-  document.getElementById('ecomp-btn-save').onclick=function(){guardarEditComprobante(pagoId)}
-}
-async function guardarEditComprobante(pagoId){
-  var fileInput=document.getElementById('ecomp-file')
-  var errEl=document.getElementById('ecomp-err')
-  if(!fileInput||!fileInput.files||!fileInput.files[0]){
-    errEl.textContent='Selecciona un archivo';errEl.style.display='block';return
-  }
-  var file=fileInput.files[0]
-  var ext=file.name.split('.').pop().toLowerCase()
-  var fileName='comprobantes/edit_'+pagoId+'_'+Date.now()+'.'+ext
-  var btnGuardar=document.querySelector('#modal-edit-comp .bp')
-  if(btnGuardar){btnGuardar.textContent='Subiendo...';btnGuardar.disabled=true}
-  var{data:upData,error:upErr}=await db.storage.from('comprobantes').upload(fileName,file,{upsert:true})
-  if(upErr){errEl.textContent='Error al subir: '+upErr.message;errEl.style.display='block';if(btnGuardar){btnGuardar.textContent='Guardar';btnGuardar.disabled=false}return}
-  var{data:urlData}=db.storage.from('comprobantes').getPublicUrl(fileName)
-  var compUrl=urlData?.publicUrl||null
-  var{error}=await db.from('ob_pagos_cuota').update({comprobante_url:compUrl}).eq('id',pagoId)
-  if(error){errEl.textContent='Error al guardar: '+error.message;errEl.style.display='block';if(btnGuardar){btnGuardar.textContent='Guardar';btnGuardar.disabled=false}return}
-  document.getElementById('modal-edit-comp').remove()
-  mostrarToastCarp('Comprobante actualizado')
-  var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
-  if(rPag.data)allObPagos=rPag.data
-  if(CU&&CU.role==='admin'){adminVerClientesOB()}
-  else{rOBStats();rOBMis()}
 }
 async function delOBPago(pagoId){
   if(!confirm('Eliminar este pago registrado?'))return
@@ -3883,7 +3898,7 @@ function rAdmCarp(){
 
 async function setTes(id,estado){
   await db.from('operaciones').update({carpeta_tesoreria:estado,fecha_tesoreria:new Date().toISOString().slice(0,10)}).eq('id',id)
-  await loadAll();rAdmCarp();rAdmStats();rAdmTodas()
+  await loadAll();rAdmCarp();rAdmStats()
 }
 async function markLL(key){
   await db.from('carpetas_llevadas').upsert({periodo_key:key,fecha_llevada:new Date().toISOString().slice(0,10)})
@@ -4022,58 +4037,6 @@ function toggleComDet(id){
   if(arr)arr.style.transform=visible?'rotate(0deg)':'rotate(90deg)'
 }
 let admComSort={field:"total",dir:"desc"}
-function pobPer(){
-  const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
-  vn.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);byP[p.key]=p.label})
-  const ks=Object.keys(byP).sort().reverse(),sel=document.getElementById('adm-fp'),cur=sel.value
-  sel.innerHTML='<option value="">Todos los periodos</option>'+ks.map(k=>`<option value="${k}">${byP[k]}</option>`).join('')
-  if(cur)sel.value=cur
-}
-function rIncentivos(){
-  const fu=gv('inc-f-usr'),ft=gv('inc-f-tipo')
-  let items=allIncentivos.slice()
-  if(fu)items=items.filter(x=>x.usuario_id===fu)
-  if(ft)items=items.filter(x=>x.tipo===ft)
-  if(!items.length){html('inc-list','<div class="es">Sin incentivos cargados</div>');return}
-  const total=items.reduce((a,x)=>a+x.monto,0)
-  html('inc-list',`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-size:12px;color:var(--text2)">${items.length} registro${items.length!==1?'s':''}</span><span class="ag">${fmt(total)}</span></div>`+
-  `<table><thead><tr><th>Fecha</th><th>Empleado</th><th>Tipo</th><th>Monto</th><th>Descripcion</th><th></th></tr></thead>
-  <tbody>${items.map(i=>`<tr>
-    <td>${fmtD(i.fecha)}</td>
-    <td style="color:var(--text)">${i.usuario_nombre}</td>
-    <td><span class="badge ${i.tipo==='mensual'?'b-jefe_ahorro':'b-on_boarding'}">${i.tipo==='mensual'?'Mensual':'Semanal'}</span></td>
-    <td class="ag">${fmt(i.monto)}</td>
-    <td style="font-size:12px;color:var(--text3)">${i.descripcion||'-'}</td>
-    <td><button class="br" onclick="delIncentivo('${i.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button></td>
-  </tr>`).join('')}</tbody></table>`)
-}
-function rLiquidaciones(){
-  if(!allLiquidaciones.length){html('liq-list','<div class="es">Sin liquidaciones registradas</div>');return}
-  html('liq-list',`<table><thead><tr><th>Empleado</th><th>Monto</th><th>Fecha liq.</th><th>Descripcion</th><th>Estado</th><th>Accion</th></tr></thead>
-  <tbody>${allLiquidaciones.map(l=>`<tr>
-    <td style="color:var(--text)">${l.usuario_nombre}</td>
-    <td class="ag">${fmt(l.monto)}</td>
-    <td>${fmtD(l.fecha_liquidacion)}</td>
-    <td style="font-size:12px;color:var(--text3)">${l.descripcion||'-'}</td>
-    <td>${l.estado==='pagado'?`<span class="badge b-acp">Pagado RRHH</span><div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtD(l.fecha_pago)}</div>`:'<span class="badge b-pend">Pendiente</span>'}</td>
-    <td><div style="display:flex;gap:4px;flex-wrap:wrap">
-      ${l.estado!=='pagado'?`<button class="bg" onclick="pagarLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Marcar pagado</button>`:''}
-      <button class="br" onclick="delLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button>
-    </div></td>
-  </tr>`).join('')}</tbody></table>`)
-}
-async function loadIncentivos(){
-  try{const{data}=await db.from('incentivos').select('*').order('fecha',{ascending:false});allIncentivos=data||[]}catch(e){allIncentivos=[]}
-}
-async function loadLiquidaciones(){
-  try{const{data}=await db.from('liquidaciones').select('*').order('fecha_liquidacion',{ascending:false});allLiquidaciones=data||[]}catch(e){allLiquidaciones=[]}
-}
-function poblarSelUsrIncentivos(){
-  const opts='<option value="">Todos</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
-  document.getElementById('inc-f-usr').innerHTML=opts
-  document.getElementById('inc-usr').innerHTML='<option value="">Seleccionar...</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
-  document.getElementById('liq-usr').innerHTML='<option value="">Seleccionar...</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
-}
 function rAdmCom(){
   // Comisiones agrupadas igual que las carpetas (fecha_carpeta || fecha)
   const filtro=gv('adm-fp')
@@ -4225,21 +4188,6 @@ function rAdmCom(){
     </div>`
   }).join(''))
 }
-function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb','prm','hor'].forEach(function(x){hi('adm-T'+x)});sh('adm-T'+t)
-  document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('active')})
-  if(btn)btn.classList.add('active')
-  if(t==='co'){pobPer();rAdmCom()}
-  if(t==='to'){document.getElementById('adm-fa').innerHTML='<option value="">Todos los asesores</option>'+allUsers.filter(function(x){return x.rol==='asesor'}).map(function(a){return '<option value="'+a.id+'">'+a.nombre+'</option>'}).join('');rAdmTodas()}
-  if(t==='us'){rAdmUsers();rRoles();poblarRolCustomSelect()}
-  if(t==='pr')rAdmPres()
-  if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
-  if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
-  if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
-  if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
-  if(t==='prm'){initPremios()}
-  if(t==='hor'){var rCU=CU?CU.role||CU.rol:'admin';initHorarios(rCU==='admin'?'admin':'jefe')}
-}
 function rAdmTodas(){
   const fa=gv('adm-fa'),fe=gv('adm-fe')
   let ops=allOps.slice()
@@ -4312,20 +4260,496 @@ function rAdmTodas(){
     +'<th>Tesoreria</th><th>Obs</th><th>Acciones</th>'
     +'</tr></thead><tbody>'+filas+'</tbody></table>')
 }
-function toggleAdmMenu(btn){
-  var menu=btn.nextElementSibling
-  if(!menu)return
-  var isOpen=menu.style.display==='block'
-  document.querySelectorAll('.adm-menu').forEach(function(m){m.style.display='none'})
-  if(!isOpen)menu.style.display='block'
-  event.stopPropagation()
+
+
+let admTodasSort={field:'fecha',dir:'desc'}
+function sortAdmTodas(f){
+  if(admTodasSort.field===f)admTodasSort.dir=admTodasSort.dir==='asc'?'desc':'asc'
+  else{admTodasSort.field=f;admTodasSort.dir='asc'}
+  rAdmTodas()
 }
-function closeAdmMenus(){
-  document.querySelectorAll('.adm-menu').forEach(function(m){m.style.display='none'})
+function rAdmUsers(){
+  if(!allUsers.length){html('adm-usb','<div class="es">No hay usuarios aun</div>');return}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Presentaciones',on_boarding:'On Boarding'}
+  html('adm-usb',allUsers.map(u=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:500;color:var(--text)">${u.nombre}</span>
+          <span class="badge b-${u.rol}" style="font-size:10px">${rl[u.rol]||u.rol}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:var(--mono)">@${u.username}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <select onchange="cambiarRol('${u.id}',this.value)" style="width:auto;font-size:12px;padding:4px 28px 4px 8px;border-radius:6px">${getRolSelectOptions(u.rol,u.rol_custom_id)}</select>
+        <button class="bb" onclick="openPass('${u.id}','${u.nombre}')" style="font-size:12px;padding:5px 10px">Cambiar pass</button>
+        <button class="br" onclick="delUser('${u.id}')" style="font-size:12px;padding:5px 10px">Eliminar</button>
+      </div>
+    </div>`).join(''))
+}
+async function cambiarRol(id,nuevoRol){
+  let upd={}
+  if(nuevoRol.startsWith('custom_')){
+    upd={rol:'custom',rol_custom_id:nuevoRol.replace('custom_','')}
+  } else {
+    upd={rol:nuevoRol,rol_custom_id:null}
+  }
+  await db.from('usuarios').update(upd).eq('id',id)
+  await loadAll();rAdmUsers()
+  const ok=document.createElement('div')
+  ok.textContent='Rol actualizado'
+  ok.className='aok'
+  ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'
+  document.body.appendChild(ok)
+  setTimeout(()=>ok.remove(),2500)
+}
+function pobPer(){
+  const vn=allOps.filter(x=>categ(x.monto).isVenta&&x.carpeta_tesoreria==='aceptada'&&x.fecha_tesoreria),byP={}
+  vn.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);byP[p.key]=p.label})
+  const ks=Object.keys(byP).sort().reverse(),sel=document.getElementById('adm-fp'),cur=sel.value
+  sel.innerHTML='<option value="">Todos los periodos</option>'+ks.map(k=>`<option value="${k}">${byP[k]}</option>`).join('')
+  if(cur)sel.value=cur
+}
+function admTab(t,btn){
+  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','pb','prm','hor'].forEach(function(x){hi('adm-T'+x)});sh('adm-T'+t)
+  document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('active')})
+  if(btn)btn.classList.add('active')
+  if(t==='co'){pobPer();rAdmCom()}
+  if(t==='to'){document.getElementById('adm-fa').innerHTML='<option value="">Todos los asesores</option>'+allUsers.filter(function(x){return x.rol==='asesor'}).map(function(a){return '<option value="'+a.id+'">'+a.nombre+'</option>'}).join('');rAdmTodas()}
+  if(t==='us'){rAdmUsers();rRoles();poblarRolCustomSelect()}
+  if(t==='pr')rAdmPres()
+  if(t==='inc'){poblarSelUsrIncentivos();rIncentivos()}
+  if(t==='liq'){poblarSelUsrIncentivos();rLiquidaciones()}
+  if(t==='cl'){poblarFiltrosClientes();rAdmClientes()}
+  if(t==='pb'){poblarMesPB();loadPB();cargarAccesosPB()}
+  if(t==='prm'){initPremios()}
+  if(t==='hor'){var rCU=CU?CU.role||CU.rol:'admin';initHorarios(rCU==='admin'?'admin':'jefe')}
 }
 
+// ═══ CAMBIAR FECHA ═══
+let fechaEditId=null
+function openEditFecha(id,fechaActual){
+  fechaEditId=id
+  const op=allOps.find(x=>x.id===id)
+  document.getElementById('mf-info').textContent=(op?op.cliente+' — '+op.asesor_nombre:'')
+  document.getElementById('mf-fecha').value=fechaActual||''
+  const prev=document.getElementById('mf-prev')
+  const updatePrev=()=>{
+    const f=document.getElementById('mf-fecha').value
+    if(!f){prev.textContent='';return}
+    const p=getPer(f)
+    prev.innerHTML='Carpeta: <strong style="color:var(--text)">'+p.label+'</strong><br>Se lleva el viernes '+fmtD(p.vie.toISOString().slice(0,10))+' — Cobro: '+fmtD(p.cob.toISOString().slice(0,10))
+  }
+  document.getElementById('mf-fecha').oninput=updatePrev
+  updatePrev()
+  hi('mf-err');sh('modal-fecha')
+}
+function closeFecha(){hi('modal-fecha');fechaEditId=null}
+async function guardarFecha(){
+  hi('mf-err')
+  const f=document.getElementById('mf-fecha').value
+  if(!f){sh('mf-err');document.getElementById('mf-err').textContent='Selecciona una fecha.';return}
+  document.getElementById('mf-btn').textContent='Guardando...'
+  const{error}=await db.from('operaciones').update({fecha:f}).eq('id',fechaEditId)
+  document.getElementById('mf-btn').textContent='Guardar fecha'
+  if(error){sh('mf-err');document.getElementById('mf-err').textContent='Error al guardar.';return}
+  closeFecha()
+  await loadAll();rAdmCarp();rAdmStats()
+  if(!document.getElementById('adm-Tto').classList.contains('hidden'))rAdmTodas()
+}
+
+// ═══ CAMBIAR MI CONTRASEÑA (usuario propio) ═══
+async function guardarMyPass(){
+  hi('myp-err')
+  const p1=gv('myp-new'),p2=gv('myp-new2')
+  if(!p1||p1.length<4){sh('myp-err');document.getElementById('myp-err').textContent='Minimo 4 caracteres.';return}
+  if(p1!==p2){sh('myp-err');document.getElementById('myp-err').textContent='Las contrasenas no coinciden.';return}
+  document.getElementById('myp-btn').textContent='Guardando...'
+  if(CU.isHardAdmin){sh('myp-err');document.getElementById('myp-err').textContent='El admin maestro no puede cambiar contrasena desde aqui. Editala en el codigo.';document.getElementById('myp-btn').textContent='Guardar';return}
+  const{error}=await db.from('usuarios').update({password:p1,password_visible:p1}).eq('id',CU.id)
+  document.getElementById('myp-btn').textContent='Guardar'
+  if(error){sh('myp-err');document.getElementById('myp-err').textContent='Error al guardar.';return}
+  hi('modal-mypass');sv('myp-new','');sv('myp-new2','')
+  CU.password=p1
+  const ok=document.createElement('div')
+  ok.textContent='Contrasena actualizada correctamente'
+  ok.className='aok'
+  ok.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'
+  document.body.appendChild(ok)
+  setTimeout(()=>ok.remove(),3000)
+}
+
+// ═══ INCENTIVOS ═══
+let allIncentivos=[]
+async function loadIncentivos(){
+  try{const{data}=await db.from('incentivos').select('*').order('fecha',{ascending:false});allIncentivos=data||[]}catch(e){allIncentivos=[]}
+}
+function poblarSelUsrIncentivos(){
+  const opts='<option value="">Todos</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+  document.getElementById('inc-f-usr').innerHTML=opts
+  document.getElementById('inc-usr').innerHTML='<option value="">Seleccionar...</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+  document.getElementById('liq-usr').innerHTML='<option value="">Seleccionar...</option>'+allUsers.map(u=>`<option value="${u.id}">${u.nombre}</option>`).join('')
+}
+async function cargarIncentivo(){
+  hi('inc-err');hi('inc-ok')
+  const uid=gv('inc-usr'),tipo=gv('inc-tipo'),monto=parseFloat(gv('inc-monto')),fecha=gv('inc-fecha'),desc=gv('inc-desc').trim()
+  if(!uid||!monto||!fecha){sh('inc-err');document.getElementById('inc-err').textContent='Completa los campos obligatorios.';return}
+  const usr=allUsers.find(x=>x.id===uid)
+  const periodo=tipo==='mensual'?fecha.slice(0,7):getPer(fecha).key
+  const{error}=await db.from('incentivos').insert({usuario_id:uid,usuario_nombre:usr.nombre,tipo,monto,descripcion:desc,periodo,fecha})
+  if(error){sh('inc-err');document.getElementById('inc-err').textContent='Error al guardar.';return}
+  sv('inc-usr','');sv('inc-monto','');sv('inc-fecha','');sv('inc-desc','')
+  sh('inc-ok');setTimeout(()=>hi('inc-ok'),3000)
+  await loadIncentivos();rIncentivos()
+}
+function rIncentivos(){
+  const fu=gv('inc-f-usr'),ft=gv('inc-f-tipo')
+  let items=allIncentivos.slice()
+  if(fu)items=items.filter(x=>x.usuario_id===fu)
+  if(ft)items=items.filter(x=>x.tipo===ft)
+  if(!items.length){html('inc-list','<div class="es">Sin incentivos cargados</div>');return}
+  const total=items.reduce((a,x)=>a+x.monto,0)
+  html('inc-list',`<div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="font-size:12px;color:var(--text2)">${items.length} registro${items.length!==1?'s':''}</span><span class="ag">${fmt(total)}</span></div>`+
+  `<table><thead><tr><th>Fecha</th><th>Empleado</th><th>Tipo</th><th>Monto</th><th>Descripcion</th><th></th></tr></thead>
+  <tbody>${items.map(i=>`<tr>
+    <td>${fmtD(i.fecha)}</td>
+    <td style="color:var(--text)">${i.usuario_nombre}</td>
+    <td><span class="badge ${i.tipo==='mensual'?'b-jefe_ahorro':'b-on_boarding'}">${i.tipo==='mensual'?'Mensual':'Semanal'}</span></td>
+    <td class="ag">${fmt(i.monto)}</td>
+    <td style="font-size:12px;color:var(--text3)">${i.descripcion||'-'}</td>
+    <td><button class="br" onclick="delIncentivo('${i.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function delIncentivo(id){
+  if(!confirm('Eliminar este incentivo?'))return
+  await db.from('incentivos').delete().eq('id',id)
+  await loadIncentivos();rIncentivos()
+}
+
+// ═══ LIQUIDACIONES ═══
+let allLiquidaciones=[]
+async function loadLiquidaciones(){
+  try{const{data}=await db.from('liquidaciones').select('*').order('fecha_liquidacion',{ascending:false});allLiquidaciones=data||[]}catch(e){allLiquidaciones=[]}
+}
+async function cargarLiquidacion(){
+  hi('liq-err');hi('liq-ok')
+  const uid=gv('liq-usr'),monto=parseFloat(gv('liq-monto')),fecha=gv('liq-fecha'),desc=gv('liq-desc').trim()
+  if(!uid||!monto||!fecha){sh('liq-err');document.getElementById('liq-err').textContent='Completa los campos obligatorios.';return}
+  const usr=allUsers.find(x=>x.id===uid)
+  const{error}=await db.from('liquidaciones').insert({usuario_id:uid,usuario_nombre:usr.nombre,monto,descripcion:desc,fecha_liquidacion:fecha,estado:'pendiente'})
+  if(error){sh('liq-err');document.getElementById('liq-err').textContent='Error al guardar.';return}
+  sv('liq-usr','');sv('liq-monto','');sv('liq-fecha','');sv('liq-desc','')
+  sh('liq-ok');setTimeout(()=>hi('liq-ok'),3000)
+  await loadLiquidaciones();rLiquidaciones()
+}
+function rLiquidaciones(){
+  if(!allLiquidaciones.length){html('liq-list','<div class="es">Sin liquidaciones registradas</div>');return}
+  html('liq-list',`<table><thead><tr><th>Empleado</th><th>Monto</th><th>Fecha liq.</th><th>Descripcion</th><th>Estado</th><th>Accion</th></tr></thead>
+  <tbody>${allLiquidaciones.map(l=>`<tr>
+    <td style="color:var(--text)">${l.usuario_nombre}</td>
+    <td class="ag">${fmt(l.monto)}</td>
+    <td>${fmtD(l.fecha_liquidacion)}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.descripcion||'-'}</td>
+    <td>${l.estado==='pagado'?`<span class="badge b-acp">Pagado RRHH</span><div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtD(l.fecha_pago)}</div>`:'<span class="badge b-pend">Pendiente</span>'}</td>
+    <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+      ${l.estado!=='pagado'?`<button class="bg" onclick="pagarLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Marcar pagado</button>`:''}
+      <button class="br" onclick="delLiq('${l.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button>
+    </div></td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function pagarLiq(id){
+  const fecha=prompt('Fecha de pago por RRHH (AAAA-MM-DD):',new Date().toISOString().slice(0,10))
+  if(!fecha)return
+  await db.from('liquidaciones').update({estado:'pagado',fecha_pago:fecha}).eq('id',id)
+  await loadLiquidaciones();rLiquidaciones()
+}
+async function delLiq(id){
+  if(!confirm('Eliminar esta liquidacion?'))return
+  await db.from('liquidaciones').delete().eq('id',id)
+  await loadLiquidaciones();rLiquidaciones()
+}
+
+// ═══ ROLES PERSONALIZADOS ═══
+let allRolesCustom=[]
+async function loadRolesCustom(){
+  try{const{data}=await db.from('roles_custom').select('*').order('nombre');allRolesCustom=data||[]}catch(e){allRolesCustom=[]}
+}
+const PERMISOS_LABELS={
+  // Ventas
+  ops:'Ver sus operaciones y comisiones',
+  cargar:'Cargar ventas/reservas',
+  carp:'Ver carpetas (tesoreria)',
+  comtodo:'Ver comisiones de todo el equipo',
+  todasops:'Ver todas las operaciones',
+  // Presentaciones y OB
+  pres:'Ver/gestionar presentaciones',
+  ob:'Ver/gestionar On Boarding',
+  retenciones:'Ver retenciones OB',
+  // Plan de batalla
+  pb_ver:'Ver Plan de batalla',
+  pb_editar:'Editar datos del Plan de batalla',
+  // Premios
+  prm_ver:'Ver premios semanales',
+  prm_cargar:'Cargar leads/datos de premios',
+  prm_aprobar:'Aprobar premios y cargar incentivos',
+  // Horarios
+  hor_ver:'Ver horarios',
+  hor_editar:'Editar horarios del equipo',
+  hor_aprobar:'Aprobar solicitudes de cambio de horario',
+  // Admin
+  incentivos:'Gestionar incentivos y liquidaciones',
+  usrs:'Gestionar usuarios'
+}
+async function crearRol(){
+  hi('rol-err');hi('rol-ok')
+  const nom=gv('rol-nom').trim()
+  if(!nom){sh('rol-err');document.getElementById('rol-err').textContent='Ingresa un nombre para el rol.';return}
+  const permisos={}
+  Object.keys(PERMISOS_LABELS).forEach(k=>{
+    const el=document.getElementById('p-'+k)
+    permisos[k]=el?el.checked:false
+  })
+  if(!Object.values(permisos).some(Boolean)){sh('rol-err');document.getElementById('rol-err').textContent='Selecciona al menos un permiso.';return}
+  const{error}=await db.from('roles_custom').insert({nombre:nom,permisos})
+  if(error){sh('rol-err');document.getElementById('rol-err').textContent='Error al guardar.';return}
+  sv('rol-nom','')
+  Object.keys(PERMISOS_LABELS).forEach(k=>{const el=document.getElementById('p-'+k);if(el)el.checked=false})
+  sh('rol-ok');setTimeout(()=>hi('rol-ok'),3000)
+  await loadRolesCustom();rRoles()
+  poblarRolCustomSelect()
+  rAdmUsers()
+}
+function rRoles(){
+  if(!allRolesCustom.length){html('roles-list','<div class="es">Sin roles personalizados aun</div>');return}
+  html('roles-list',allRolesCustom.map(r=>{
+    const perms=Object.entries(r.permisos||{}).filter(([k,v])=>v).map(([k])=>PERMISOS_LABELS[k]||k)
+    return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-weight:500;color:var(--text)">${r.nombre}</div>
+        <button class="br" onclick="delRol('${r.id}')" style="font-size:11px;padding:3px 8px">Eliminar</button>
+      </div>
+      <div style="font-size:12px;color:var(--text3)">${perms.join(' · ')||'Sin permisos'}</div>
+    </div>`
+  }).join(''))
+}
+function onRolChange(){
+  // nothing extra needed now - custom roles are in the main select
+}
+async function delRol(id){
+  if(!confirm('Eliminar este rol?'))return
+  await db.from('roles_custom').delete().eq('id',id)
+  await loadRolesCustom();rRoles();poblarRolCustomSelect();rAdmUsers()
+}
+
+
+// ═══ INCENTIVOS/LIQ EN PANEL EMPLEADO ═══
+async function rMisIncentivos(containerId,userId){
+  const{data}=await db.from('incentivos').select('*').eq('usuario_id',userId).order('fecha',{ascending:false})
+  const items=data||[]
+  if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin incentivos asignados</div>');return}
+  const total=items.reduce((a,x)=>a+x.monto,0)
+  html(containerId,`<div style="margin-bottom:10px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--text2)">${items.length} incentivo${items.length!==1?'s':''}</span><span class="ag">${fmt(total)}</span></div>`+
+  `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Descripcion</th></tr></thead>
+  <tbody>${items.map(i=>`<tr>
+    <td>${fmtD(i.fecha)}</td>
+    <td><span class="badge ${i.tipo==='mensual'?'b-jefe_ahorro':'b-on_boarding'}">${i.tipo==='mensual'?'Mensual':'Semanal'}</span></td>
+    <td class="ag">${fmt(i.monto)}</td>
+    <td style="font-size:12px;color:var(--text3)">${i.descripcion||'-'}</td>
+  </tr>`).join('')}</tbody></table>`)
+}
+async function rMisLiquidaciones(containerId,userId){
+  const{data}=await db.from('liquidaciones').select('*').eq('usuario_id',userId).order('fecha_liquidacion',{ascending:false})
+  const items=data||[]
+  if(!items.length){html(containerId,'<div class="es" style="padding:1rem">Sin liquidaciones registradas</div>');return}
+  html(containerId,`<table><thead><tr><th>Fecha</th><th>Monto</th><th>Descripcion</th><th>Estado</th></tr></thead>
+  <tbody>${items.map(l=>`<tr>
+    <td>${fmtD(l.fecha_liquidacion)}</td>
+    <td class="ag">${fmt(l.monto)}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.descripcion||'-'}</td>
+    <td>${l.estado==='pagado'?`<span class="badge b-acp">Pagado</span><div style="font-size:11px;color:var(--text3)">${fmtD(l.fecha_pago)}</div>`:'<span class="badge b-pend">Pendiente</span>'}</td>
+  </tr>`).join('')}</tbody></table>`)
+}
+
+// ─── patch showAdm to load new data ───
+const _origShowAdm=showAdm
+showAdm=async function(){
+  await _origShowAdm()
+  await Promise.all([loadIncentivos(),loadLiquidaciones(),loadRolesCustom()])
+  poblarRolCustomSelect()
+}
+
+// ─── patch admTab to handle new tabs ───
+const _origAdmTab=admTab
+admTab=function(t,btn){
+  // hide new panels
+  hi('adm-Tinc');hi('adm-Tliq')
+  if(t==='inc'){
+    ['cp','pr','co','to','us'].forEach(x=>hi('adm-T'+x))
+    sh('adm-Tinc')
+    document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
+    if(btn)btn.classList.add('active')
+    poblarSelUsrIncentivos();rIncentivos()
+    return
+  }
+  if(t==='liq'){
+    ['cp','pr','co','to','us'].forEach(x=>hi('adm-T'+x))
+    sh('adm-Tliq')
+    document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
+    if(btn)btn.classList.add('active')
+    poblarSelUsrIncentivos();rLiquidaciones()
+    return
+  }
+  if(t==='ob'){
+    ['cp','pr','co','to','us','inc','liq','ret'].forEach(x=>hi('adm-T'+x))
+    sh('adm-Tob')
+    document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
+    if(btn)btn.classList.add('active')
+    adminVerClientesOB()
+    return
+  }
+  if(t==='ret'){
+    ['cp','pr','co','to','us','inc','liq','ob'].forEach(x=>hi('adm-T'+x))
+    sh('adm-Tret')
+    document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'))
+    if(btn)btn.classList.add('active')
+    poblarFiltrosRet();rRetenciones()
+    return
+  }
+  _origAdmTab(t,btn)
+  if(t==='us'){rRoles();poblarRolCustomSelect();rAdmUsers()}
+}
+
+// ─── patch addUsuario to handle custom rol ───
+const _origAddUsuario=addUsuario
+addUsuario=async function(){
+  // If custom rol selected, use rol_custom_id
+  const rolVal=gv('u-rol')
+  if(rolVal.startsWith('custom_')){
+    hi('adm-uerr');hi('adm-uok')
+    const nom=gv('u-nom').trim(),usr=gv('u-usr').trim(),pas=gv('u-pas')
+    const crid=rolVal.replace('custom_','')
+    if(!nom||!usr||!pas){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Completa todos los campos.';return}
+    if(allUsers.find(x=>x.username===usr)){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Ese usuario ya existe.';return}
+    const{error}=await db.from('usuarios').insert({nombre:nom,username:usr,password:pas,password_visible:pas,rol:'custom',rol_custom_id:crid})
+    if(error){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Error al guardar.';return}
+    sv('u-nom','');sv('u-usr','');sv('u-pas','');sv('u-rol','')
+    sh('adm-uok');setTimeout(()=>hi('adm-uok'),3000)
+    await loadAll();rAdmUsers();rAdmStats()
+    return
+  }
+  await _origAddUsuario()
+}
+
+// ─── patch addUsuario password_visible ───
+const _origAddUsuario2=addUsuario
+// already handled above via insert
+
+// ─── patch rAdmUsers to show password and custom roles ───
+const _origRAdmUsers=rAdmUsers
+rAdmUsers=function(){
+  if(!allUsers.length){html('adm-usb','<div class="es">No hay usuarios aun</div>');return}
+  const rl={asesor:'Asesor',jefe_ahorro:'Jefe Ahorro',jefe_pozo:'Jefe Pozo',presentador:'Presentador',jefe_presentaciones:'Jefe Pres.',on_boarding:'On Boarding',custom:'Personalizado'}
+  html('adm-usb',allUsers.map(u=>{
+    const rolNom=u.rol==='custom'?(allRolesCustom.find(x=>x.id===u.rol_custom_id)?.nombre||'Personalizado'):rl[u.rol]||u.rol
+    const pass=u.password_visible||u.password||'—'
+    return`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:14px;font-weight:500;color:var(--text)">${u.nombre}</span>
+            <span class="badge b-${u.rol}" style="font-size:10px">${rolNom}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:var(--mono)">@${u.username}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <div style="font-size:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-family:var(--mono);color:var(--text2)" title="Contrasena">🔑 ${pass}</div>
+          <select onchange="cambiarRol(\'${u.id}\',this.value)" style="width:auto;font-size:12px;padding:4px 28px 4px 8px;border-radius:6px">${getRolSelectOptions(u.rol,u.rol_custom_id)}</select>
+          <button class="bb" onclick="openPass('${u.id}','${u.nombre}')" style="font-size:12px;padding:5px 10px">Cambiar pass</button>
+          <button class="br" onclick="delUser('${u.id}')" style="font-size:12px;padding:5px 10px">Eliminar</button>
+        </div>
+      </div>
+    </div>`
+  }).join(''))
+}
+async function addUsuario(){
+  hi('adm-uerr');hi('adm-uok')
+  const nom=gv('u-nom').trim(),usr=gv('u-usr').trim(),pas=gv('u-pas'),rolVal=gv('u-rol')
+  if(!nom||!usr||!pas||!rolVal){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Completa todos los campos.';return}
+  if(allUsers.find(x=>x.username===usr)){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Ese usuario ya existe.';return}
+  let insertData={nombre:nom,username:usr,password:pas,password_visible:pas}
+  if(rolVal.startsWith('custom_')){
+    insertData.rol='custom'
+    insertData.rol_custom_id=rolVal.replace('custom_','')
+  } else {
+    insertData.rol=rolVal
+  }
+  const{error}=await db.from('usuarios').insert(insertData)
+  if(error){sh('adm-uerr');document.getElementById('adm-uerr').textContent='Error al guardar.';return}
+  sv('u-nom','');sv('u-usr','');sv('u-pas','');sv('u-rol','')
+  sh('adm-uok');setTimeout(()=>hi('adm-uok'),3000)
+  await loadAll();rAdmUsers();rAdmStats()
+}
+async function delUser(id){
+  if(!confirm('Eliminar este usuario?'))return
+  await db.from('usuarios').delete().eq('id',id)
+  await loadAll();rAdmUsers();rAdmStats()
+}
+
+function poblarRolCustomSelect(){
+  const grp=document.getElementById('u-rol-custom-group')
+  if(grp){grp.innerHTML=allRolesCustom.map(r=>`<option value="custom_${r.id}">${r.nombre}</option>`).join('')}
+}
+function getRolSelectOptions(currentRol,currentCustomId){
+  const base=[
+    {v:'asesor',l:'Asesor'},{v:'jefe_ahorro',l:'Jefe Ahorro'},{v:'jefe_pozo',l:'Jefe Pozo'},
+    {v:'presentador',l:'Presentador'},{v:'jefe_presentaciones',l:'Jefe Pres.'},
+    {v:'on_boarding',l:'On Boarding'},{v:'admin',l:'Administrador'},
+    {v:'jefe_promotores',l:'Jefe Promotores'},{v:'jefe_captacion',l:'Jefe Captacion'},
+    {v:'coordinadora_promotores',l:'Coordinadora Promotores'},
+    {v:'promotor',l:'Promotor'},{v:'recepcion',l:'Recepcion'},
+    {v:'pretester',l:'Pretester'},{v:'host',l:'Host'},
+    {v:'detector_pozo',l:'Detector de Pozo'},{v:'enrutador',l:'Enrutador'},
+    {v:'asesor_pozo',l:'Asesor Pozo'}
+  ]
+  const baseOpts=base.map(o=>'<option value="'+o.v+'"'+(currentRol===o.v?' selected':'')+'>'+o.l+'</option>').join('')
+  const customOpts=allRolesCustom.map(r=>'<option value="custom_'+r.id+'"'+(currentRol==='custom'&&currentCustomId===r.id?' selected':'')+'>'+r.nombre+'</option>').join('')
+  const customGroup=allRolesCustom.length?'<optgroup label="Personalizados">'+customOpts+'</optgroup>':''
+  return baseOpts+customGroup
+}
+
+// ═══ DROPDOWN MENU ═══
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ddmenu'))
+    document.querySelectorAll('.ddmenu-list.open').forEach(m=>m.classList.remove('open'))
+})
+function toggleDD(id,btnEl){
+  var wasOpen=false
+  document.querySelectorAll('.ddmenu-list.open').forEach(function(m){
+    if(m.id===id)wasOpen=true
+    m.classList.remove('open')
+  })
+  if(wasOpen)return
+  var el=document.getElementById(id)
+  if(!el)return
+  var btn=btnEl||(event&&event.target&&event.target.closest&&event.target.closest('.ddmenu-btn'))
+  if(btn){
+    var rect=btn.getBoundingClientRect()
+    el.style.top=(rect.bottom+4)+'px'
+    el.style.right=(window.innerWidth-rect.right)+'px'
+    el.style.left='auto'
+    el.style.minWidth='160px'
+  }
+  el.classList.add('open')
+}
+function ddMenu(id,items){
+  var btns=items.map(function(i){
+    if(i.sep)return '<div class="dd-sep"></div>'
+    var cls=i.danger?'dd-danger':''
+    return '<button class="'+cls+'" onclick="event.stopPropagation();ddExec('+JSON.stringify(id)+','+JSON.stringify(i.action)+')">'+i.label+'</button>'
+  }).join('')
+  return '<div class="ddmenu"><button class="ddmenu-btn" onclick="event.stopPropagation();toggleDD('+JSON.stringify(id)+',this)">&#x22EF;</button><div class="ddmenu-list" id="'+id+'">'+btns+'</div></div>'
+}
 function ddExec(el){closeAdmMenus();var a=el.getAttribute('data-action');try{eval(a)}catch(e){console.error(e)}}
-
 async function deleteOp(id,source){
   var op=(source==='asesor'?aOps:allOps).find(function(x){return x.id===id})
   if(!op)return
@@ -5634,9 +6058,9 @@ function rPrmEmpleadosLista(){
   const lista=document.getElementById('prme-lista')
   if(!lista)return
   const grupos={}
-  allUsers.filter(u=>u.rol&&u.rol!=='admin').forEach(u=>{
-    if(!grupos[u.rol])grupos[u.rol]=[]
-    grupos[u.rol].push({id:u.id,nombre:u.nombre,puesto:u.rol})
+  prmEmpleados.forEach(e=>{
+    if(!grupos[e.puesto])grupos[e.puesto]=[]
+    grupos[e.puesto].push(e)
   })
   lista.innerHTML=Object.entries(grupos).map(([p,emps])=>{
     const cfg=PUESTOS_CONFIG[p]||{icon:'',label:p}
@@ -5708,9 +6132,9 @@ const HOR_COLOR={
 
 // Puestos que puede editar cada jefe
 const JEFE_PUESTOS={
-  'jefe_promotores':    ['promotor','coordinadora_promotores','jefe_promotores'],
+  'jefe_promotores':    ['promotor','coordinadora_promotores'],
   'coordinadora_promotores': ['promotor'],
-  'jefe_captacion':     ['recepcion','pretester','host','detector_pozo','jefe_captacion'],
+  'jefe_captacion':     ['recepcion','pretester','host','detector_pozo'],
   'jefe_ahorro':        ['asesor','jefe_ahorro'],
   'jefe_pozo':          ['asesor_pozo','jefe_pozo'],
   'jefe_presentaciones':['presentador','enrutador','jefe_presentaciones'],
@@ -5997,7 +6421,11 @@ async function guardarNuevaSemana(){
   allUsers.forEach(function(u){
     if(u.rol&&u.rol!=='admin')empleados.push({nombre:u.nombre,puesto:u.rol})
   })
-  // todos los empleados ya están en allUsers
+  // Empleados de premios (promotores, recepcion, etc)
+  prmEmpleados.forEach(function(e){
+    if(!empleados.find(function(x){return x.nombre===e.nombre}))
+      empleados.push({nombre:e.nombre,puesto:e.puesto})
+  })
 
   if(!empleados.length){sh('hors-err');document.getElementById('hors-err').textContent='No hay empleados cargados';return}
 
@@ -6040,23 +6468,6 @@ async function importarExcelHorario(file){
 }
 
 // ── JEFE: panel propio ──
-function generarFilasVacias(desde,puestos){
-  var filas=[]
-  var hoy=desde
-  // Obtener semana_hasta (6 días después)
-  var dD=new Date(desde+'T00:00:00')
-  var dH=new Date(dD);dH.setDate(dD.getDate()+6)
-  var hasta=dH.toISOString().slice(0,10)
-  var label='Semana '+String(dD.getDate()).padStart(2,'0')+'/'+String(dD.getMonth()+1).padStart(2,'0')+' al '+String(dH.getDate()).padStart(2,'0')+'/'+String(dH.getMonth()+1).padStart(2,'0')
-  allUsers.forEach(function(u){
-    if(u.rol&&puestos.includes(u.rol)){
-      filas.push({id:'nuevo_'+u.id,semana_desde:desde,semana_hasta:hasta,semana_label:label,empleado_nombre:u.nombre,puesto:u.rol,lunes:'',martes:'',miercoles:'',jueves:'',viernes:'',sabado:'',domingo:''})
-    }
-  })
-
-  filas.sort(function(a,b){return a.empleado_nombre.localeCompare(b.empleado_nombre)})
-  return filas
-}
 async function loadHorariosJefe(){
   var desde=document.getElementById('jhr-semana')?.value
   if(!desde)return
@@ -6234,8 +6645,7 @@ async function enviarSolicitudCambio(){
   var tipo=document.getElementById('hcam-tipo').value
   var dia=document.getElementById('hcam-dia').value
   var motivo=document.getElementById('hcam-motivo').value.trim()
-  var _pan=window._cambioDesdePanel;window._cambioDesdePanel=null
-  var desde=(_pan==='SA'?window._saHorDesde:null)||document.getElementById('hr-semana')?.value
+  var desde=document.getElementById('hr-semana')?.value
   if(!desde)return
 
   // Buscar horarios actuales

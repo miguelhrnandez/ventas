@@ -3433,6 +3433,11 @@ function toggleTema(){
     document.body.classList.add('light')
   }
 })()
+// Intentar restaurar sesion guardada
+;(async function(){
+  var restaurado=await restaurarSesion()
+  if(!restaurado)showOnly('SL')
+})()
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('SL').classList.contains('hidden'))doLogin()})
 
@@ -3462,6 +3467,7 @@ async function elegirRol(rol){
   // NO pisamos CU.rol para mantener el rol original en DB
   // Guardamos el rol activo por separado
   CU.rolActivo=rol
+  guardarSesion()
   await enterPanel(rol)
 }
 async function enterPanel(r){
@@ -3485,6 +3491,7 @@ async function doLogin(){
   document.getElementById('lb').textContent='Ingresar'
   if(error||!data){sh('le');document.getElementById('le').textContent='Usuario o contrasena incorrectos';return}
   CU={...data,role:data.rol,rolOriginal:data.rol,rolActivo:data.rol}
+  guardarSesion()
   // Verificar si tiene roles extra
   const rolesExtra=data.roles_extra||[]
   const todosRoles=[data.rol,...rolesExtra].filter(Boolean)
@@ -3494,7 +3501,37 @@ async function doLogin(){
     await enterPanel(data.rol)
   }
 }
-function logout(){CU=null;document.body.classList.remove('light');showOnly('SL');sv('lu','');sv('lp','');document.getElementById('lb').textContent='Ingresar'}
+function guardarSesion(){
+  try{
+    if(CU&&CU.isHardAdmin){
+      localStorage.setItem('sesion',JSON.stringify({hardAdmin:true}))
+    } else if(CU&&CU.id){
+      localStorage.setItem('sesion',JSON.stringify({userId:CU.id,rolActivo:CU.rolActivo||CU.role}))
+    }
+  }catch(e){}
+}
+function borrarSesion(){
+  try{localStorage.removeItem('sesion')}catch(e){}
+}
+async function restaurarSesion(){
+  var raw=null
+  try{raw=localStorage.getItem('sesion')}catch(e){}
+  if(!raw)return false
+  var ses
+  try{ses=JSON.parse(raw)}catch(e){return false}
+  if(ses.hardAdmin){
+    CU={role:'admin',nombre:'Administrador',isHardAdmin:true}
+    await showAdm()
+    return true
+  }
+  if(!ses.userId)return false
+  var{data,error}=await db.from('usuarios').select('*').eq('id',ses.userId).single()
+  if(error||!data){borrarSesion();return false}
+  CU={...data,role:data.rol,rolOriginal:data.rol,rolActivo:ses.rolActivo||data.rol}
+  await enterPanel(CU.rolActivo)
+  return true
+}
+function logout(){CU=null;borrarSesion();document.body.classList.remove('light');showOnly('SL');sv('lu','');sv('lp','');document.getElementById('lb').textContent='Ingresar'}
 
 let allObMovs=[],allObPagos=[]
 async function loadAll(){

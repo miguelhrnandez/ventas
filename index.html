@@ -597,1308 +597,6 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
   </div>
 </div>
 
-<div id="SA" class="hidden sb-layout">
-  <div id="SA-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
-
-  <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
-  <div id="a-thor" class="hidden"><div id="a-hor-body"></div></div>
-  <div id="a-tn" class="hidden">
-    <div class="card" style="max-width:520px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
-      <div id="a-nok" class="hidden aok">Operacion guardada</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="g2">
-          <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
-          <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
-        </div>
-        <div class="g2">
-          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
-          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
-        </div>
-        <div>
-          <label>Fecha de la venta / reserva</label>
-          <input id="nfecha" type="date" onchange="const hoy=new Date().toISOString().slice(0,10);document.getElementById('nfecha-warn').style.display=(this.value&&this.value!==hoy?'block':'none')">
-          <div id="nfecha-warn" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">⚠ Fecha distinta a hoy — asegurate que sea correcta</div>
-        </div>
-        <div class="g2">
-          <div><label>ID reserva</label><input id="nu" placeholder="Ej: FC-00001"></div>
-          <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
-        </div>
-        <div>
-          <label>Forma de pago</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-              <input id="n-ef" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-              <input id="n-tr" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-          </div>
-          <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-        </div>
-        <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
-        <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
-        <div id="nerr" class="hidden em"></div>
-        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
-      </div>
-    </div>
-  </div>
-  <div id="a-tc" class="hidden"><div id="a-cb"></div></div>
-  </div>
-</div>
-
-<!-- JEFE VENTAS -->
-<div id="SJV" class="hidden sb-layout">
-  <div id="SJV-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jv-stats"></div>
-
-  <div id="jv-tcp"><div id="jv-cpb"></div></div>
-  <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
-  <div id="jv-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jvh-btn-sem" onclick="jvhTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jvh-btn-sol" onclick="jvhTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jvh-semana" onchange="loadJVHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jvh-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jvh-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jvh-equipo"><table><tbody id="jvh-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jvh-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jvh-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- PRESENTADOR -->
-<div id="SPR" class="hidden sb-layout">
-  <div id="SPR-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="pr-stats"></div>
-  <div class="card ox"><div id="pr-ob"></div></div>
-  </div>
-</div>
-
-<!-- JEFE PRESENTACIONES -->
-<div id="SJP" class="hidden sb-layout">
-  <div id="SJP-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jp-stats"></div>
-
-  <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
-  <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
-  <div id="jp-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jph-btn-sem" onclick="jphTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jph-btn-sol" onclick="jphTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jph-semana" onchange="loadJPHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jph-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jph-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jph-equipo"><table><tbody id="jph-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jph-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jph-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- ON BOARDING -->
-<div id="SOB" class="hidden sb-layout">
-  <div id="SOB-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
-
-  <div id="ob-tmis">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-mis-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBMis()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-mis-orden" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="cuotas-asc">Menos cuotas pagas</option>
-          <option value="cuotas-desc">Más cuotas pagas</option>
-        </select>
-        <select id="ob-mis-filtro" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos</option>
-          <option value="activos">Activos</option>
-          <option value="baja">Dados de baja</option>
-          <option value="completos">Seguimiento completo</option>
-          <option value="pendientes">Con cuotas pendientes</option>
-        </select>
-      </div>
-    </div>
-    <div id="ob-misb"></div>
-  </div>
-  <div id="ob-tdisp" class="hidden">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-disp-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBDisp()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-disp-orden" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="monto-desc">Mayor monto</option>
-          <option value="monto-asc">Menor monto</option>
-        </select>
-        <select id="ob-disp-plan" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos los planes</option>
-          <option value="Ahorro">Plan Ahorro</option>
-          <option value="Pozo">Plan Pozo</option>
-        </select>
-      </div>
-    </div>
-    <div class="card ox"><div id="ob-dispb"></div></div>
-  </div>
-  <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
-  <div id="ob-tret" class="hidden"><div id="ob-ret-body"></div></div>
-  </div>
-</div>
-
-<div id="SA" class="hidden sb-layout">
-  <div id="SA-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
-
-  <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
-  <div id="a-thor" class="hidden"><div id="a-hor-body"></div></div>
-  <div id="a-tn" class="hidden">
-    <div class="card" style="max-width:520px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
-      <div id="a-nok" class="hidden aok">Operacion guardada</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="g2">
-          <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
-          <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
-        </div>
-        <div class="g2">
-          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
-          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
-        </div>
-        <div>
-          <label>Fecha de la venta / reserva</label>
-          <input id="nfecha" type="date" onchange="const hoy=new Date().toISOString().slice(0,10);document.getElementById('nfecha-warn').style.display=(this.value&&this.value!==hoy?'block':'none')">
-          <div id="nfecha-warn" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">⚠ Fecha distinta a hoy — asegurate que sea correcta</div>
-        </div>
-        <div class="g2">
-          <div><label>ID reserva</label><input id="nu" placeholder="Ej: FC-00001"></div>
-          <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
-        </div>
-        <div>
-          <label>Forma de pago</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-              <input id="n-ef" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-              <input id="n-tr" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-          </div>
-          <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-        </div>
-        <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
-        <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
-        <div id="nerr" class="hidden em"></div>
-        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
-      </div>
-    </div>
-  </div>
-  <div id="a-tc" class="hidden"><div id="a-cb"></div></div>
-  </div>
-</div>
-
-<!-- JEFE VENTAS -->
-<div id="SJV" class="hidden sb-layout">
-  <div id="SJV-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jv-stats"></div>
-
-  <div id="jv-tcp"><div id="jv-cpb"></div></div>
-  <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
-  <div id="jv-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jvh-btn-sem" onclick="jvhTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jvh-btn-sol" onclick="jvhTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jvh-semana" onchange="loadJVHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jvh-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jvh-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jvh-equipo"><table><tbody id="jvh-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jvh-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jvh-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- PRESENTADOR -->
-<div id="SPR" class="hidden sb-layout">
-  <div id="SPR-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="pr-stats"></div>
-  <div class="card ox"><div id="pr-ob"></div></div>
-  </div>
-</div>
-
-<!-- JEFE PRESENTACIONES -->
-<div id="SJP" class="hidden sb-layout">
-  <div id="SJP-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jp-stats"></div>
-
-  <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
-  <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
-  <div id="jp-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jph-btn-sem" onclick="jphTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jph-btn-sol" onclick="jphTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jph-semana" onchange="loadJPHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jph-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jph-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jph-equipo"><table><tbody id="jph-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jph-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jph-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- ON BOARDING -->
-<div id="SOB" class="hidden sb-layout">
-  <div id="SOB-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
-
-  <div id="ob-tmis">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-mis-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBMis()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-mis-orden" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="cuotas-asc">Menos cuotas pagas</option>
-          <option value="cuotas-desc">Más cuotas pagas</option>
-        </select>
-        <select id="ob-mis-filtro" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos</option>
-          <option value="activos">Activos</option>
-          <option value="baja">Dados de baja</option>
-          <option value="completos">Seguimiento completo</option>
-          <option value="pendientes">Con cuotas pendientes</option>
-        </select>
-      </div>
-    </div>
-    <div id="ob-misb"></div>
-  </div>
-  <div id="ob-tdisp" class="hidden">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-disp-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBDisp()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-disp-orden" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="monto-desc">Mayor monto</option>
-          <option value="monto-asc">Menor monto</option>
-        </select>
-        <select id="ob-disp-plan" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos los planes</option>
-          <option value="Ahorro">Plan Ahorro</option>
-          <option value="Pozo">Plan Pozo</option>
-        </select>
-      </div>
-    </div>
-    <div class="card ox"><div id="ob-dispb"></div></div>
-  </div>
-  <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
-  <div id="ob-tret" class="hidden"><div id="ob-ret-body"></div></div>
-  </div>
-</div>
-
-<div id="SA" class="hidden sb-layout">
-  <div id="SA-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
-
-  <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
-  <div id="a-thor" class="hidden"><div id="a-hor-body"></div></div>
-  <div id="a-tn" class="hidden">
-    <div class="card" style="max-width:520px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
-      <div id="a-nok" class="hidden aok">Operacion guardada</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="g2">
-          <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
-          <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
-        </div>
-        <div class="g2">
-          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
-          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
-        </div>
-        <div>
-          <label>Fecha de la venta / reserva</label>
-          <input id="nfecha" type="date" onchange="const hoy=new Date().toISOString().slice(0,10);document.getElementById('nfecha-warn').style.display=(this.value&&this.value!==hoy?'block':'none')">
-          <div id="nfecha-warn" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">⚠ Fecha distinta a hoy — asegurate que sea correcta</div>
-        </div>
-        <div class="g2">
-          <div><label>ID reserva</label><input id="nu" placeholder="Ej: FC-00001"></div>
-          <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
-        </div>
-        <div>
-          <label>Forma de pago</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-              <input id="n-ef" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-              <input id="n-tr" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-          </div>
-          <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-        </div>
-        <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
-        <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
-        <div id="nerr" class="hidden em"></div>
-        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
-      </div>
-    </div>
-  </div>
-  <div id="a-tc" class="hidden"><div id="a-cb"></div></div>
-  </div>
-</div>
-
-<!-- JEFE VENTAS -->
-<div id="SJV" class="hidden sb-layout">
-  <div id="SJV-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jv-stats"></div>
-
-  <div id="jv-tcp"><div id="jv-cpb"></div></div>
-  <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
-  <div id="jv-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jvh-btn-sem" onclick="jvhTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jvh-btn-sol" onclick="jvhTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jvh-semana" onchange="loadJVHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jvh-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jvh-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jvh-equipo"><table><tbody id="jvh-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jvh-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jvh-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- PRESENTADOR -->
-<div id="SPR" class="hidden sb-layout">
-  <div id="SPR-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="pr-stats"></div>
-  <div class="card ox"><div id="pr-ob"></div></div>
-  </div>
-</div>
-
-<!-- JEFE PRESENTACIONES -->
-<div id="SJP" class="hidden sb-layout">
-  <div id="SJP-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jp-stats"></div>
-
-  <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
-  <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
-  <div id="jp-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jph-btn-sem" onclick="jphTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jph-btn-sol" onclick="jphTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jph-semana" onchange="loadJPHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jph-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jph-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jph-equipo"><table><tbody id="jph-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jph-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jph-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- ON BOARDING -->
-<div id="SOB" class="hidden sb-layout">
-  <div id="SOB-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
-
-  <div id="ob-tmis">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-mis-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBMis()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-mis-orden" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="cuotas-asc">Menos cuotas pagas</option>
-          <option value="cuotas-desc">Más cuotas pagas</option>
-        </select>
-        <select id="ob-mis-filtro" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos</option>
-          <option value="activos">Activos</option>
-          <option value="baja">Dados de baja</option>
-          <option value="completos">Seguimiento completo</option>
-          <option value="pendientes">Con cuotas pendientes</option>
-        </select>
-      </div>
-    </div>
-    <div id="ob-misb"></div>
-  </div>
-  <div id="ob-tdisp" class="hidden">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-disp-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBDisp()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-disp-orden" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="monto-desc">Mayor monto</option>
-          <option value="monto-asc">Menor monto</option>
-        </select>
-        <select id="ob-disp-plan" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos los planes</option>
-          <option value="Ahorro">Plan Ahorro</option>
-          <option value="Pozo">Plan Pozo</option>
-        </select>
-      </div>
-    </div>
-    <div class="card ox"><div id="ob-dispb"></div></div>
-  </div>
-  <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
-  <div id="ob-tret" class="hidden"><div id="ob-ret-body"></div></div>
-  </div>
-</div>
-
-<div id="SA" class="hidden sb-layout">
-  <div id="SA-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
-
-  <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
-  <div id="a-thor" class="hidden"><div id="a-hor-body"></div></div>
-  <div id="a-tn" class="hidden">
-    <div class="card" style="max-width:520px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
-      <div id="a-nok" class="hidden aok">Operacion guardada</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="g2">
-          <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
-          <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
-        </div>
-        <div class="g2">
-          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
-          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
-        </div>
-        <div>
-          <label>Fecha de la venta / reserva</label>
-          <input id="nfecha" type="date" onchange="const hoy=new Date().toISOString().slice(0,10);document.getElementById('nfecha-warn').style.display=(this.value&&this.value!==hoy?'block':'none')">
-          <div id="nfecha-warn" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">⚠ Fecha distinta a hoy — asegurate que sea correcta</div>
-        </div>
-        <div class="g2">
-          <div><label>ID reserva</label><input id="nu" placeholder="Ej: FC-00001"></div>
-          <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
-        </div>
-        <div>
-          <label>Forma de pago</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-              <input id="n-ef" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-              <input id="n-tr" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-          </div>
-          <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-        </div>
-        <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
-        <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
-        <div id="nerr" class="hidden em"></div>
-        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
-      </div>
-    </div>
-  </div>
-  <div id="a-tc" class="hidden"><div id="a-cb"></div></div>
-  </div>
-</div>
-
-<!-- JEFE VENTAS -->
-<div id="SJV" class="hidden sb-layout">
-  <div id="SJV-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jv-stats"></div>
-
-  <div id="jv-tcp"><div id="jv-cpb"></div></div>
-  <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
-  <div id="jv-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jvh-btn-sem" onclick="jvhTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jvh-btn-sol" onclick="jvhTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jvh-semana" onchange="loadJVHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jvh-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jvh-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jvh-equipo"><table><tbody id="jvh-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jvh-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jvh-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- PRESENTADOR -->
-<div id="SPR" class="hidden sb-layout">
-  <div id="SPR-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="pr-stats"></div>
-  <div class="card ox"><div id="pr-ob"></div></div>
-  </div>
-</div>
-
-<!-- JEFE PRESENTACIONES -->
-<div id="SJP" class="hidden sb-layout">
-  <div id="SJP-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jp-stats"></div>
-
-  <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
-  <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
-  <div id="jp-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jph-btn-sem" onclick="jphTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jph-btn-sol" onclick="jphTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jph-semana" onchange="loadJPHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jph-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jph-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jph-equipo"><table><tbody id="jph-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jph-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jph-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- ON BOARDING -->
-<div id="SOB" class="hidden sb-layout">
-  <div id="SOB-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
-
-  <div id="ob-tmis">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-mis-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBMis()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-mis-orden" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="cuotas-asc">Menos cuotas pagas</option>
-          <option value="cuotas-desc">Más cuotas pagas</option>
-        </select>
-        <select id="ob-mis-filtro" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos</option>
-          <option value="activos">Activos</option>
-          <option value="baja">Dados de baja</option>
-          <option value="completos">Seguimiento completo</option>
-          <option value="pendientes">Con cuotas pendientes</option>
-        </select>
-      </div>
-    </div>
-    <div id="ob-misb"></div>
-  </div>
-  <div id="ob-tdisp" class="hidden">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-disp-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBDisp()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-disp-orden" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="monto-desc">Mayor monto</option>
-          <option value="monto-asc">Menor monto</option>
-        </select>
-        <select id="ob-disp-plan" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos los planes</option>
-          <option value="Ahorro">Plan Ahorro</option>
-          <option value="Pozo">Plan Pozo</option>
-        </select>
-      </div>
-    </div>
-    <div class="card ox"><div id="ob-dispb"></div></div>
-  </div>
-  <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
-  <div id="ob-tret" class="hidden"><div id="ob-ret-body"></div></div>
-  </div>
-</div>
-
-<div id="SA" class="hidden sb-layout">
-  <div id="SA-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
-
-  <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
-  <div id="a-thor" class="hidden"><div id="a-hor-body"></div></div>
-  <div id="a-tn" class="hidden">
-    <div class="card" style="max-width:520px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
-      <div id="a-nok" class="hidden aok">Operacion guardada</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="g2">
-          <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
-          <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
-        </div>
-        <div class="g2">
-          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
-          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
-        </div>
-        <div>
-          <label>Fecha de la venta / reserva</label>
-          <input id="nfecha" type="date" onchange="const hoy=new Date().toISOString().slice(0,10);document.getElementById('nfecha-warn').style.display=(this.value&&this.value!==hoy?'block':'none')">
-          <div id="nfecha-warn" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">⚠ Fecha distinta a hoy — asegurate que sea correcta</div>
-        </div>
-        <div class="g2">
-          <div><label>ID reserva</label><input id="nu" placeholder="Ej: FC-00001"></div>
-          <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
-        </div>
-        <div>
-          <label>Forma de pago</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-              <input id="n-ef" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-              <input id="n-tr" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-          </div>
-          <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-        </div>
-        <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
-        <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
-        <div id="nerr" class="hidden em"></div>
-        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
-      </div>
-    </div>
-  </div>
-  <div id="a-tc" class="hidden"><div id="a-cb"></div></div>
-  </div>
-</div>
-
-<!-- JEFE VENTAS -->
-<div id="SJV" class="hidden sb-layout">
-  <div id="SJV-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jv-stats"></div>
-
-  <div id="jv-tcp"><div id="jv-cpb"></div></div>
-  <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
-  <div id="jv-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jvh-btn-sem" onclick="jvhTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jvh-btn-sol" onclick="jvhTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jvh-semana" onchange="loadJVHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jvh-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jvh-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jvh-equipo"><table><tbody id="jvh-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jvh-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jvh-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- PRESENTADOR -->
-<div id="SPR" class="hidden sb-layout">
-  <div id="SPR-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="pr-stats"></div>
-  <div class="card ox"><div id="pr-ob"></div></div>
-  </div>
-</div>
-
-<!-- JEFE PRESENTACIONES -->
-<div id="SJP" class="hidden sb-layout">
-  <div id="SJP-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jp-stats"></div>
-
-  <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
-  <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
-  <div id="jp-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jph-btn-sem" onclick="jphTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jph-btn-sol" onclick="jphTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jph-semana" onchange="loadJPHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jph-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jph-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jph-equipo"><table><tbody id="jph-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jph-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jph-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- ON BOARDING -->
-<div id="SOB" class="hidden sb-layout">
-  <div id="SOB-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
-
-  <div id="ob-tmis">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-mis-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBMis()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-mis-orden" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="cuotas-asc">Menos cuotas pagas</option>
-          <option value="cuotas-desc">Más cuotas pagas</option>
-        </select>
-        <select id="ob-mis-filtro" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos</option>
-          <option value="activos">Activos</option>
-          <option value="baja">Dados de baja</option>
-          <option value="completos">Seguimiento completo</option>
-          <option value="pendientes">Con cuotas pendientes</option>
-        </select>
-      </div>
-    </div>
-    <div id="ob-misb"></div>
-  </div>
-  <div id="ob-tdisp" class="hidden">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-disp-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBDisp()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-disp-orden" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="monto-desc">Mayor monto</option>
-          <option value="monto-asc">Menor monto</option>
-        </select>
-        <select id="ob-disp-plan" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos los planes</option>
-          <option value="Ahorro">Plan Ahorro</option>
-          <option value="Pozo">Plan Pozo</option>
-        </select>
-      </div>
-    </div>
-    <div class="card ox"><div id="ob-dispb"></div></div>
-  </div>
-  <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
-  <div id="ob-tret" class="hidden"><div id="ob-ret-body"></div></div>
-  </div>
-</div>
-
-<div id="SA" class="hidden sb-layout">
-  <div id="SA-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
-
-  <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
-  <div id="a-thor" class="hidden"><div id="a-hor-body"></div></div>
-  <div id="a-tn" class="hidden">
-    <div class="card" style="max-width:520px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
-      <div id="a-nok" class="hidden aok">Operacion guardada</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="g2">
-          <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
-          <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
-        </div>
-        <div class="g2">
-          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
-          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
-        </div>
-        <div>
-          <label>Fecha de la venta / reserva</label>
-          <input id="nfecha" type="date" onchange="const hoy=new Date().toISOString().slice(0,10);document.getElementById('nfecha-warn').style.display=(this.value&&this.value!==hoy?'block':'none')">
-          <div id="nfecha-warn" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">⚠ Fecha distinta a hoy — asegurate que sea correcta</div>
-        </div>
-        <div class="g2">
-          <div><label>ID reserva</label><input id="nu" placeholder="Ej: FC-00001"></div>
-          <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
-        </div>
-        <div>
-          <label>Forma de pago</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-              <input id="n-ef" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-              <input id="n-tr" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-          </div>
-          <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-        </div>
-        <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
-        <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
-        <div id="nerr" class="hidden em"></div>
-        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
-      </div>
-    </div>
-  </div>
-  <div id="a-tc" class="hidden"><div id="a-cb"></div></div>
-  </div>
-</div>
-
-<!-- JEFE VENTAS -->
-<div id="SJV" class="hidden sb-layout">
-  <div id="SJV-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jv-stats"></div>
-
-  <div id="jv-tcp"><div id="jv-cpb"></div></div>
-  <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
-  <div id="jv-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jvh-btn-sem" onclick="jvhTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jvh-btn-sol" onclick="jvhTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jvh-semana" onchange="loadJVHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jvh-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jvh-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jvh-equipo"><table><tbody id="jvh-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jvh-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jvh-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- PRESENTADOR -->
-<div id="SPR" class="hidden sb-layout">
-  <div id="SPR-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="pr-stats"></div>
-  <div class="card ox"><div id="pr-ob"></div></div>
-  </div>
-</div>
-
-<!-- JEFE PRESENTACIONES -->
-<div id="SJP" class="hidden sb-layout">
-  <div id="SJP-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jp-stats"></div>
-
-  <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
-  <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
-  <div id="jp-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jph-btn-sem" onclick="jphTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jph-btn-sol" onclick="jphTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jph-semana" onchange="loadJPHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jph-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jph-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jph-equipo"><table><tbody id="jph-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jph-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jph-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- ON BOARDING -->
-<div id="SOB" class="hidden sb-layout">
-  <div id="SOB-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
-
-  <div id="ob-tmis">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-mis-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBMis()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-mis-orden" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="cuotas-asc">Menos cuotas pagas</option>
-          <option value="cuotas-desc">Más cuotas pagas</option>
-        </select>
-        <select id="ob-mis-filtro" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos</option>
-          <option value="activos">Activos</option>
-          <option value="baja">Dados de baja</option>
-          <option value="completos">Seguimiento completo</option>
-          <option value="pendientes">Con cuotas pendientes</option>
-        </select>
-      </div>
-    </div>
-    <div id="ob-misb"></div>
-  </div>
-  <div id="ob-tdisp" class="hidden">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-disp-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBDisp()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-disp-orden" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="monto-desc">Mayor monto</option>
-          <option value="monto-asc">Menor monto</option>
-        </select>
-        <select id="ob-disp-plan" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos los planes</option>
-          <option value="Ahorro">Plan Ahorro</option>
-          <option value="Pozo">Plan Pozo</option>
-        </select>
-      </div>
-    </div>
-    <div class="card ox"><div id="ob-dispb"></div></div>
-  </div>
-  <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
-  <div id="ob-tret" class="hidden"><div id="ob-ret-body"></div></div>
-  </div>
-</div>
-
-<div id="SA" class="hidden sb-layout">
-  <div id="SA-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="a-stats"></div>
-
-  <div id="a-to"><div class="card ox"><div id="a-ob"></div></div></div>
-  <div id="a-thor" class="hidden"><div id="a-hor-body"></div></div>
-  <div id="a-tn" class="hidden">
-    <div class="card" style="max-width:520px">
-      <div style="font-size:15px;font-weight:600;margin-bottom:18px">Cargar operacion</div>
-      <div id="a-nok" class="hidden aok">Operacion guardada</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="g2">
-          <div><label>Apellido(s)</label><input id="nc-apellido" placeholder="Ej: GARCIA LOPEZ"></div>
-          <div><label>Nombre(s)</label><input id="nc-nombre" placeholder="Ej: JUAN CARLOS"></div>
-        </div>
-        <div class="g2">
-          <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
-          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
-        </div>
-        <div>
-          <label>Fecha de la venta / reserva</label>
-          <input id="nfecha" type="date" onchange="const hoy=new Date().toISOString().slice(0,10);document.getElementById('nfecha-warn').style.display=(this.value&&this.value!==hoy?'block':'none')">
-          <div id="nfecha-warn" style="display:none;font-size:11px;color:var(--amber);margin-top:4px">⚠ Fecha distinta a hoy — asegurate que sea correcta</div>
-        </div>
-        <div class="g2">
-          <div><label>ID reserva</label><input id="nu" placeholder="Ej: FC-00001"></div>
-          <div><label>Celular del cliente</label><input id="ncel" type="tel" placeholder="Ej: 11 1234-5678"></div>
-        </div>
-        <div>
-          <label>Forma de pago</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-              <input id="n-ef" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-              <input id="n-tr" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-          </div>
-          <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-        </div>
-        <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
-        <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
-        <div id="nerr" class="hidden em"></div>
-        <button class="bp" onclick="cargarVenta()" id="nbtn" style="padding:11px">Guardar operacion</button>
-      </div>
-    </div>
-  </div>
-  <div id="a-tc" class="hidden"><div id="a-cb"></div></div>
-  </div>
-</div>
-
-<!-- JEFE VENTAS -->
-<div id="SJV" class="hidden sb-layout">
-  <div id="SJV-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jv-stats"></div>
-
-  <div id="jv-tcp"><div id="jv-cpb"></div></div>
-  <div id="jv-tco" class="hidden"><div id="jv-cob"></div></div>
-  <div id="jv-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jvh-btn-sem" onclick="jvhTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jvh-btn-sol" onclick="jvhTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jvh-semana" onchange="loadJVHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jvh-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jvh-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jvh-equipo"><table><tbody id="jvh-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jvh-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jvh-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- PRESENTADOR -->
-<div id="SPR" class="hidden sb-layout">
-  <div id="SPR-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="pr-stats"></div>
-  <div class="card ox"><div id="pr-ob"></div></div>
-  </div>
-</div>
-
-<!-- JEFE PRESENTACIONES -->
-<div id="SJP" class="hidden sb-layout">
-  <div id="SJP-sb"></div>
-  <div class="sb-content">
-  <div class="g3" style="margin-bottom:24px" id="jp-stats"></div>
-
-  <div id="jp-top"><div class="card ox"><div id="jp-ob"></div></div></div>
-  <div id="jp-tco" class="hidden"><div id="jp-cob"></div></div>
-  <div id="jp-thor" class="hidden">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <button class="active" id="jph-btn-sem" onclick="jphTab('semana',this)" style="font-size:12px;padding:6px 14px">Mi horario</button>
-      <button id="jph-btn-sol" onclick="jphTab('solicitudes',this)" style="font-size:12px;padding:6px 14px">Solicitudes del equipo</button>
-      <select id="jph-semana" onchange="loadJPHorario()" style="width:auto;font-size:13px;margin-left:auto"></select>
-    </div>
-    <div id="jph-tsemana">
-      <div class="card" style="margin-bottom:14px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Mi horario de la semana</div>
-        <div id="jph-mi-horario"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Horario del equipo</div>
-        <div id="jph-equipo"><table><tbody id="jph-grilla-body"></tbody></table></div>
-      </div>
-    </div>
-    <div id="jph-tsolicitudes" class="hidden">
-      <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Solicitudes de cambio del equipo</div>
-        <div id="jph-solicitudes"></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- ON BOARDING -->
-<div id="SOB" class="hidden sb-layout">
-  <div id="SOB-sb"></div>
-  <div class="sb-content">
-  <div class="g4" style="margin-bottom:24px" id="ob-stats"></div>
-
-  <div id="ob-tmis">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-mis-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBMis()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-mis-orden" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="cuotas-asc">Menos cuotas pagas</option>
-          <option value="cuotas-desc">Más cuotas pagas</option>
-        </select>
-        <select id="ob-mis-filtro" onchange="rOBMis()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos</option>
-          <option value="activos">Activos</option>
-          <option value="baja">Dados de baja</option>
-          <option value="completos">Seguimiento completo</option>
-          <option value="pendientes">Con cuotas pendientes</option>
-        </select>
-      </div>
-    </div>
-    <div id="ob-misb"></div>
-  </div>
-  <div id="ob-tdisp" class="hidden">
-    <div class="card" style="margin-bottom:14px;padding:14px 16px">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input id="ob-disp-search" type="text" placeholder="Buscar cliente, asesor..." oninput="rOBDisp()" style="flex:1;min-width:180px;font-size:13px;padding:8px 12px">
-        <select id="ob-disp-orden" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="fecha-desc">Más recientes primero</option>
-          <option value="fecha-asc">Más antiguos primero</option>
-          <option value="nombre-asc">A → Z (cliente)</option>
-          <option value="nombre-desc">Z → A (cliente)</option>
-          <option value="monto-desc">Mayor monto</option>
-          <option value="monto-asc">Menor monto</option>
-        </select>
-        <select id="ob-disp-plan" onchange="rOBDisp()" style="width:auto;font-size:13px;padding:8px 12px">
-          <option value="">Todos los planes</option>
-          <option value="Ahorro">Plan Ahorro</option>
-          <option value="Pozo">Plan Pozo</option>
-        </select>
-      </div>
-    </div>
-    <div class="card ox"><div id="ob-dispb"></div></div>
-  </div>
-  <div id="ob-tco" class="hidden"><div id="ob-cob"></div></div>
-  <div id="ob-tret" class="hidden"><div id="ob-ret-body"></div></div>
-  </div>
-</div>
-
 <div id="SL" style="min-height:100vh;position:relative;overflow:hidden;display:flex;flex-direction:column">
   <div style="position:fixed;inset:0;background:#ffffff;z-index:0"></div>
 
@@ -2015,27 +713,6 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
       </div>
     </div>
   </div>
-</div>
-
-<!-- SELECTOR DE ROL -->
-<div id="SRS" class="hidden" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem">
-<div style="width:100%;max-width:400px">
-  <div style="text-align:center;margin-bottom:32px">
-    <div style="margin-bottom:20px">
-      <svg viewBox="0 0 200 60" width="160" height="48" xmlns="http://www.w3.org/2000/svg">
-        <rect width="200" height="60" rx="8" fill="#e8192c"/>
-        <path d="M18 38 L18 27 L28 19 L38 27 L38 38 Z" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M23 38 L23 32 L33 32 L33 38" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M14 29 L28 18 L42 29" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="52" y="37" font-family="DM Sans, Arial, sans-serif" font-size="18" font-weight="700" fill="white">MásDueños</text>
-      </svg>
-    </div>
-    <div style="font-size:16px;font-weight:600;color:var(--text)" id="srs-nombre"></div>
-    <div style="font-size:13px;color:var(--text2);margin-top:4px">¿Con qué rol querés ingresar?</div>
-  </div>
-  <div id="srs-opciones" style="display:flex;flex-direction:column;gap:10px"></div>
-  <button onclick="logout()" style="width:100%;margin-top:16px;color:var(--text2)">Cancelar</button>
-</div>
 </div>
 
 <!-- MODAL EDITAR OPERACION -->
@@ -3090,7 +1767,8 @@ async function loadOBRetenciones(){
   if(!cont)return
   cont.innerHTML='<div class="es">Cargando...</div>'
   var r=await db.from('ob_pagos_cuota').select('*').eq('ob_id',CU.id).order('fecha_pago',{ascending:false})
-  var pagos=r.data||[]
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
+  var pagos=esAdmin?(r.data||[]):(r.data||[]).filter(function(p){return (p.fecha_pago||'')>=FECHA_CORTE_COMISIONES})
   if(!pagos.length){cont.innerHTML='<div class="es">Sin pagos de cuota registrados</div>';return}
   // Construir lista de meses disponibles
   var meses={}
@@ -3309,6 +1987,7 @@ async function openSolicitarCambioSA(){
 const SURL='https://mwblnzzesjajzxmpuqbe.supabase.co'
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Ymxuenplc2phanp4bXB1cWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMjI1ODAsImV4cCI6MjA5MTc5ODU4MH0.ahMEabDGeVR9Yj4RiMUeX3eY_N4FnIfSZvMCK0vIwaw'
 const ADMU='admin',ADMP='miguel041002'
+const FECHA_CORTE_COMISIONES='2026-07-01' // las comisiones anteriores a esta fecha no se muestran a roles no-admin
 const{createClient}=supabase
 const db=createClient(SURL,SKEY)
 let CU=null,allOps=[],allUsers=[],allLl=[],allLlData=[]
@@ -3973,10 +2652,12 @@ async function showAs(){
 function rAStats(){
   const vc=aOps.filter(x=>x.estado==='venta'||x.monto>=100000)
   const vcompl=aOps.filter(x=>x.monto>=200000),vbon=aOps.filter(x=>x.monto>=100000&&x.monto<200000),res=aOps.filter(x=>x.monto<100000)
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
+  var opsParaCom=esAdmin?aOps:aOps.filter(x=>(x.fecha||'')>=FECHA_CORTE_COMISIONES)
   html('a-stats',`<div class="sc"><div class="sv">${vcompl.length}</div><div class="sl">Ventas completas</div></div>
     <div class="sc"><div class="sv">${vbon.length}</div><div class="sl">Ventas bonificadas</div></div>
     <div class="sc"><div class="sv">${res.length}</div><div class="sl">Reservas</div></div>
-    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(aOps.filter(x=>x.carpeta_tesoreria==='aceptada').reduce(function(a,x){var base=calcC(x.monto,!!x.ob_id);if(x.co_asesores&&x.co_asesores.length){var sp=x.co_asesores.filter(function(s){return s.asesor_id&&s.porcentaje>0});var mi=sp.find(function(s){return s.asesor_id===CU.id});if(mi)return a+Math.round(base*(mi.porcentaje/100));if(x.asesor_id===CU.id){var pct=sp.reduce(function(a,s){return a+s.porcentaje},0);return a+Math.round(base*((100-pct)/100))}return a}return a+base},0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
+    <div class="sc"><div class="sv ag" style="font-size:14px">${fmt(opsParaCom.filter(x=>x.carpeta_tesoreria==='aceptada').reduce(function(a,x){var base=calcC(x.monto,!!x.ob_id);if(x.co_asesores&&x.co_asesores.length){var sp=x.co_asesores.filter(function(s){return s.asesor_id&&s.porcentaje>0});var mi=sp.find(function(s){return s.asesor_id===CU.id});if(mi)return a+Math.round(base*(mi.porcentaje/100));if(x.asesor_id===CU.id){var pct=sp.reduce(function(a,s){return a+s.porcentaje},0);return a+Math.round(base*((100-pct)/100))}return a}return a+base},0))}</div><div class="sl">Comisiones confirmadas</div></div>`)
 }
 function rAOps(){
   if(!aOps.length){html('a-ob','<div class="es">Todavia no cargaste operaciones</div>');return}
@@ -4081,6 +2762,7 @@ function rACom(){
     return op.co_asesores.some(function(r){return r.asesor_id===CU.id&&r.porcentaje>0})
   })
   let ops=aOps.concat(opsExtra).filter(x=>categ(x.monto).isVenta)
+  if(!CU.isHardAdmin&&CU.role!=='admin')ops=ops.filter(x=>(x.fecha||'')>=FECHA_CORTE_COMISIONES)
   if(desde)ops=ops.filter(x=>x.fecha_tesoreria>=desde)
   if(hasta)ops=ops.filter(x=>x.fecha_tesoreria<=hasta)
   const byP={}
@@ -4204,7 +2886,9 @@ async function showJV(){
   jvOps=(data||[]).filter(x=>categ(x.monto).isVenta);rJVStats();rJVCarp()
 }
 function rJVStats(){
-  const acp=jvOps.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
+  var opsParaCom=esAdmin?jvOps:jvOps.filter(x=>(x.fecha||'')>=FECHA_CORTE_COMISIONES)
+  const acp=opsParaCom.filter(x=>x.carpeta_tesoreria==='aceptada'),tot=acp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
   html('jv-stats',`<div class="sc"><div class="sv">${jvOps.length}</div><div class="sl">Ventas de mi plan</div></div>
     <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Carpetas aceptadas</div></div>
     <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(tot)}</div><div class="sl">Mis cobros</div></div>`)
@@ -4214,22 +2898,26 @@ function rJVCarp(){
   jvOps.forEach(op=>{const p=getPer(op.fecha_carpeta||op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
   if(!ks.length){html('jv-cpb','<div class="card"><div class="es">Sin carpetas aun</div></div>');return}
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
   let out=''
   ks.forEach(k=>{
     const p=byP[k]
-    const acp=p.ops.filter(x=>x.carpeta_tesoreria==='aceptada')
+    const opsParaCom=esAdmin?p.ops:p.ops.filter(x=>(x.fecha||'')>=FECHA_CORTE_COMISIONES)
+    const acp=opsParaCom.filter(x=>x.carpeta_tesoreria==='aceptada')
     const tot=acp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
-    const pend=p.ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
+    const pend=opsParaCom.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
     let filas=''
     p.ops.forEach(op=>{
       const c=categ(op.monto)
+      var esVieja=!esAdmin&&(op.fecha||'')<FECHA_CORTE_COMISIONES
+      var comCell=esVieja?'<span style="color:var(--text3)">—</span>':(op.carpeta_tesoreria==='aceptada'?fmt((op.es_ob_venta?0:calcJV(op.monto,!!op.ob_id))):'pendiente')
       filas+='<tr>'
         +'<td style="color:var(--text)">'+op.asesor_nombre+'</td>'
         +'<td>'+op.cliente+'</td>'
         +'<td>'+(op.unidad||'-')+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt((op.es_ob_venta?0:calcJV(op.monto,!!op.ob_id))):'pendiente')+'</td>'
+        +'<td class="ag">'+comCell+'</td>'
         +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
         +'</tr>'
     })
@@ -4324,7 +3012,9 @@ async function showPr(){
   prOps=data||[];rPrStats();rPrOps()
 }
 function rPrStats(){
-  const acp=prOps.filter(x=>x.pago_presentador==='aceptado')
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
+  var opsParaCom=esAdmin?prOps:prOps.filter(x=>(x.fecha||'')>=FECHA_CORTE_COMISIONES)
+  const acp=opsParaCom.filter(x=>x.pago_presentador==='aceptado')
   html('pr-stats',`<div class="sc"><div class="sv">${prOps.length}</div><div class="sl">Ventas de mis charlas</div></div>
     <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Pagos aceptados</div></div>
     <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(acp.length*66000)}</div><div class="sl">Total a cobrar</div></div>`)
@@ -4332,7 +3022,8 @@ function rPrStats(){
 function rPrOps(){
   const desde=document.getElementById('pr-desde')?.value||''
   const hasta=document.getElementById('pr-hasta')?.value||''
-  let ops=[...prOps]
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
+  let ops=esAdmin?[...prOps]:prOps.filter(x=>(x.fecha||'')>=FECHA_CORTE_COMISIONES)
   if(desde)ops=ops.filter(x=>x.fecha>=desde)
   if(hasta)ops=ops.filter(x=>x.fecha<=hasta)
   const byP={}
@@ -4397,23 +3088,29 @@ async function showJP(){
   jpOps=data||[];rJPStats();rJPOps()
 }
 function rJPStats(){
-  const acp=jpOps.filter(x=>x.pago_presentador==='aceptado')
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
+  var opsParaCom=esAdmin?jpOps:jpOps.filter(x=>(x.fecha||'')>=FECHA_CORTE_COMISIONES)
+  const acp=opsParaCom.filter(x=>x.pago_presentador==='aceptado')
   html('jp-stats',`<div class="sc"><div class="sv">${jpOps.length}</div><div class="sl">Ventas del equipo</div></div>
     <div class="sc"><div class="sv">${acp.length}</div><div class="sl">Pagos aceptados</div></div>
     <div class="sc"><div class="sv ag" style="font-size:15px">${fmt(acp.length*35000)}</div><div class="sl">Mis cobros</div></div>`)
 }
 function rJPOps(){
   if(!jpOps.length){html('jp-ob','<div class="es">Sin operaciones del equipo</div>');return}
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
   let filas=''
   jpOps.forEach(op=>{
+    var esVieja=!esAdmin&&(op.fecha||'')<FECHA_CORTE_COMISIONES
+    var pagoPresCell=esVieja?'<span style="color:var(--text3)">—</span>':(op.pago_presentador==='aceptado'?fmt(66000):'pendiente')
+    var miCobroCell=esVieja?'<span style="color:var(--text3)">—</span>':(op.pago_presentador==='aceptado'?fmt(35000):'pendiente')
     filas+='<tr>'
       +'<td>'+fmtD(op.fecha)+'</td>'
       +'<td style="color:var(--text)">'+(op.presentador_nombre||'-')+'</td>'
       +'<td>'+op.asesor_nombre+'</td>'
       +'<td>'+op.cliente+'</td>'
       +'<td>'+op.plan+'</td>'
-      +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(66000):'pendiente')+'</td>'
-      +'<td class="ag">'+(op.pago_presentador==='aceptado'?fmt(35000):'pendiente')+'</td>'
+      +'<td class="ag">'+pagoPresCell+'</td>'
+      +'<td class="ag">'+miCobroCell+'</td>'
       +'<td>'+badgeE(op.pago_presentador||'pendiente')+'</td>'
       +'</tr>'
   })
@@ -4519,12 +3216,15 @@ function calcComOBMovs(movs){
   },0)
 }
 function rOBStats(){
-  const totInc=obMovs.filter(x=>x.tipo==='incremento'&&x.antes_72hrs!==null).reduce((a,m)=>a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275)),0)
-  const totAh=obMovs.filter(x=>x.tipo==='ahorro').reduce((a,m)=>a+Math.round(m.monto*0.10),0)
-  const totCuotas=(obPagos||[]).reduce((a,p)=>a+calcComCuota(p.numero_cuota,p.dia_del_mes),0)
+  var esAdmin=CU.isHardAdmin||CU.role==='admin'
+  var movsParaCom=esAdmin?obMovs:obMovs.filter(x=>(x.fecha||'')>=FECHA_CORTE_COMISIONES)
+  var pagosParaCom=esAdmin?(obPagos||[]):(obPagos||[]).filter(function(p){return (p.fecha_pago||'')>=FECHA_CORTE_COMISIONES})
+  const totInc=movsParaCom.filter(x=>x.tipo==='incremento'&&x.antes_72hrs!==null).reduce((a,m)=>a+Math.round(m.monto*(m.antes_72hrs?0.55:0.275)),0)
+  const totAh=movsParaCom.filter(x=>x.tipo==='ahorro').reduce((a,m)=>a+Math.round(m.monto*0.10),0)
+  const totCuotas=pagosParaCom.reduce((a,p)=>a+calcComCuota(p.numero_cuota,p.dia_del_mes),0)
   const totGral=totInc+totAh+totCuotas
   html('ob-stats',`<div class="sc"><div class="sv">${obOps.length}</div><div class="sl">Mis clientes</div></div>
-    <div class="sc"><div class="sv">${obPagos.length}</div><div class="sl">Pagos de cuota</div></div>
+    <div class="sc"><div class="sv">${pagosParaCom.length}</div><div class="sl">Pagos de cuota</div></div>
     <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totCuotas)}</div><div class="sl">Com. cuotas</div></div>
     <div class="sc"><div class="sv at" style="font-size:14px">${fmt(totGral)}</div><div class="sl">Total comisiones</div></div>`)
 }
@@ -4582,8 +3282,10 @@ function rOBMis(isAdmin=false){
   ops.forEach(op=>{
     const movs=getMovsOp(op.id)
     const pagos=getPagosCuota(op.id)
-    const totComMovs=calcComOBMovs(movs)
-    const totComCuotas=pagos.reduce((a,p)=>a+calcComCuota(p.numero_cuota,p.dia_del_mes),0)
+    var pagosParaTot=isAdmin?pagos:pagos.filter(function(p){return (p.fecha_pago||'')>=FECHA_CORTE_COMISIONES})
+    var movsParaTot=isAdmin?movs:movs.filter(function(m){return (m.fecha||'')>=FECHA_CORTE_COMISIONES})
+    const totComMovs=calcComOBMovs(movsParaTot)
+    const totComCuotas=pagosParaTot.reduce((a,p)=>a+calcComCuota(p.numero_cuota,p.dia_del_mes),0)
     const totCom=totComMovs+totComCuotas
     const abierto=obClienteAbierto===op.id
     const pagosOrdenados=[...pagos].sort((a,b)=>a.numero_cuota-b.numero_cuota)
@@ -4630,12 +3332,13 @@ function rOBMis(isAdmin=false){
         const t=OB_CUOTAS[n]||{antes:0,despues:0}
         if(pago){
           const com=calcComCuota(n,pago.dia_del_mes)
+          var comOculta=!isAdmin&&(pago.fecha_pago||'')<FECHA_CORTE_COMISIONES
           var compLink=pago.comprobante_url?'<a href="'+pago.comprobante_url+'" target="_blank" style="font-size:9px;color:var(--teal);display:block;margin-top:3px">📎 ver</a>':''
           cuotasGrid+='<div style="background:var(--green-bg);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:10px;text-align:center">'
             +'<div style="font-size:10px;color:var(--text3);margin-bottom:4px">M'+n+'</div>'
             +'<div style="font-size:12px;color:var(--green);font-weight:600">'+fmtD(pago.fecha_pago)+'</div>'
             +'<div style="font-size:11px;color:var(--text2);margin-top:1px">'+(pago.metodo_pago||'')+'</div>'
-            +'<div style="font-size:10px;color:var(--teal);margin-top:1px">Com: '+fmt(com)+'</div>'
+            +(comOculta?'':'<div style="font-size:10px;color:var(--teal);margin-top:1px">Com: '+fmt(com)+'</div>')
             +((isAdmin||pago.ob_id===CU.id)?'<div style="display:flex;gap:3px;justify-content:center;margin-top:4px"><button onclick="event.stopPropagation();delOBPago(\''+pago.id+'\')" style="font-size:9px;padding:1px 5px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:4px;cursor:pointer">✕</button><button onclick="event.stopPropagation();editarComprobante(\''+pago.id+'\')" style="font-size:9px;padding:1px 5px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:4px;cursor:pointer">✏️</button></div>':'')
             +(pago.comprobante_url?'<a href="'+pago.comprobante_url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--teal);display:block;margin-top:3px">📎 comprobante</a>':'')
           +'</div>'

@@ -377,6 +377,26 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
   </div>
 </div>
 
+<!-- MODAL MOVER EFECTIVO (admin) -->
+<div id="modal-mover-efectivo" class="modal-bg hidden">
+  <div class="modal" style="max-width:440px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Mover efectivo a otra semana</div>
+    <div id="mmef-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label>Nueva fecha</label>
+        <input id="mmef-fecha" type="date">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">La semana se calculará automáticamente según esta fecha</div>
+      </div>
+      <div id="mmef-err" class="hidden em"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="hi('modal-mover-efectivo')" style="flex:1">Cancelar</button>
+        <button class="bp" onclick="guardarMoverEfectivo()" id="mmef-btn" style="flex:2">Mover</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EDITAR FECHA -->
 <div id="modal-fecha" class="modal-bg hidden">
   <div class="modal">
@@ -851,29 +871,7 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
 </div>
 
 <!-- MODAL MOVER CARPETA -->
-<div id="modal-mover" class="modal-bg hidden">
-  <div class="modal" style="max-width:500px">
-    <div style="font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)">Mover a otra carpeta</div>
-    <div id="mmov-info" style="font-size:13px;color:var(--text2);margin-bottom:18px"></div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div><label>Seleccionar carpeta destino</label>
-        <select id="mmov-sel" style="width:100%" onchange="onMoverSelChange()"></select>
-      </div>
-      <!-- Fecha personalizada (solo si elige "nueva carpeta") -->
-      <div id="mmov-fecha-custom" class="hidden">
-        <label>Fecha de la operacion en la nueva carpeta</label>
-        <input id="mmov-fecha" type="date" oninput="onMoverFechaChange()">
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">La carpeta se calculará automáticamente según la semana de esa fecha</div>
-      </div>
-      <div id="mmov-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)"></div>
-      <div id="mmov-err" class="hidden em"></div>
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <button onclick="hi('modal-mover')" style="flex:1">Cancelar</button>
-        <button class="bp" onclick="guardarMover()" id="mmov-btn" style="flex:2">Mover operacion</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- MODAL EDITAR FECHA -->
 <div id="modal-fecha" class="modal-bg hidden">
@@ -976,6 +974,10 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
       <button class="sb-item" onclick="admTab('cfgcom',this)" id="sb-cfgcom">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         Comisiones (config)
+      </button>
+      <button class="sb-item" onclick="admTab('efrec',this)" id="sb-efrec">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Efectivo recibido
       </button>
       <button class="sb-item" onclick="admTab('cl',this)" id="sb-cl">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -1246,6 +1248,9 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
       <div id="cfgcom-err" class="hidden em" style="margin-bottom:12px"></div>
       <button class="bp" onclick="guardarCfgComForm()" style="padding:11px 24px">Guardar cambios</button>
     </div>
+  </div>
+  <div id="adm-Tefrec" class="hidden">
+    <div id="adm-efb"></div>
   </div>
   <div id="adm-Tcl" class="hidden">
     <div class="card" style="margin-bottom:14px;padding:14px 16px">
@@ -1841,7 +1846,7 @@ async function rtRecargar(tabla){
     if(pv==='SPR'){rPrStats();rPrOps()}
     if(pv==='SJP'){rJPStats();rJPOps()}
     if(pv==='SOB'){rOBStats();rOBMis()}
-    if(pv==='SADM'){await loadAll();rAdmCarp();rAdmStats();rAdmTodas()}
+    if(pv==='SADM'){await loadAll();rAdmCarp();rAdmStats();rAdmTodas();var efAdm=document.getElementById('adm-efb');if(efAdm&&!document.getElementById('adm-Tefrec').classList.contains('hidden'))rEfectivoOB(true)}
     if(pv==='SCUSTOM'){var efob=document.getElementById('cust-efob');if(efob)rEfectivoOB()}
   }
 }
@@ -2437,8 +2442,9 @@ function custTab(t,btn){
 
 
 // ═══ TESORERÍA: EFECTIVO RECIBIDO ═══
-async function rEfectivoOB(){
-  var cont=document.getElementById('cust-efob')
+async function rEfectivoOB(isAdmin){
+  isAdmin=isAdmin||false
+  var cont=document.getElementById(isAdmin?'adm-efb':'cust-efob')
   if(!cont)return
   cont.innerHTML='<div class="es">Cargando...</div>'
   // Combinar cuotas OB + ventas + ahorros, todo en efectivo, agrupado por semana de operación
@@ -2449,10 +2455,10 @@ async function rEfectivoOB(){
     items.push({
       origen:'cuota',label:'M'+p.numero_cuota,
       cliente:op?op.cliente:'(cliente no encontrado)',
-      responsable:p.ob_nombre,fecha:op?(op.fecha_carpeta||op.fecha):p.fecha_pago,
+      responsable:p.ob_nombre,fecha:p.efectivo_fecha_custom||(op?(op.fecha_carpeta||op.fecha):p.fecha_pago),
       ef:p.monto_efectivo||0,
       tesEstado:p.tesoreria_estado||'pendiente',
-      id:p.id,tabla:'ob_pagos_cuota',campoEstado:'tesoreria_estado',campoFecha:'tesoreria_fecha'
+      id:p.id,tabla:'ob_pagos_cuota',campoEstado:'tesoreria_estado',campoFecha:'tesoreria_fecha',campoFechaCustom:'efectivo_fecha_custom'
     })
   })
   allOps.forEach(function(op){
@@ -2460,20 +2466,20 @@ async function rEfectivoOB(){
       items.push({
         origen:'venta',label:'Venta',
         cliente:op.cliente,
-        responsable:op.asesor_nombre,fecha:op.fecha_carpeta||op.fecha,
+        responsable:op.asesor_nombre,fecha:op.efectivo_fecha_custom||op.fecha_carpeta||op.fecha,
         ef:op.monto_efectivo,
         tesEstado:op.efectivo_tesoreria_estado||'pendiente',
-        id:op.id,tabla:'operaciones',campoEstado:'efectivo_tesoreria_estado',campoFecha:'efectivo_tesoreria_fecha'
+        id:op.id,tabla:'operaciones',campoEstado:'efectivo_tesoreria_estado',campoFecha:'efectivo_tesoreria_fecha',campoFechaCustom:'efectivo_fecha_custom'
       })
     }
     if(op.ahorro_efectivo>0){
       items.push({
         origen:'ahorro',label:'Ahorro',
         cliente:op.cliente,
-        responsable:op.asesor_nombre,fecha:op.fecha_carpeta||op.fecha,
+        responsable:op.asesor_nombre,fecha:op.ahorro_efectivo_fecha_custom||op.fecha_carpeta||op.fecha,
         ef:op.ahorro_efectivo,
         tesEstado:op.ahorro_efectivo_tesoreria_estado||'pendiente',
-        id:op.id,tabla:'operaciones',campoEstado:'ahorro_efectivo_tesoreria_estado',campoFecha:'ahorro_efectivo_tesoreria_fecha'
+        id:op.id,tabla:'operaciones',campoEstado:'ahorro_efectivo_tesoreria_estado',campoFecha:'ahorro_efectivo_tesoreria_fecha',campoFechaCustom:'ahorro_efectivo_fecha_custom'
       })
     }
   })
@@ -2487,6 +2493,7 @@ async function rEfectivoOB(){
     grupos[p.key].items.push(it)
   })
   var keys=Object.keys(grupos).sort().reverse()
+  window._efectivoItemsFlat=items
   var out=''
   keys.forEach(function(k){
     var g=grupos[k]
@@ -2504,19 +2511,26 @@ async function rEfectivoOB(){
     out+='<th>Fecha</th><th>Responsable</th><th>Cliente</th><th>Origen</th><th>Efectivo</th><th>Estado</th><th>Acciones</th>'
     out+='</tr></thead><tbody>'
     g.items.sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'')})
-    g.items.forEach(function(it){
+    g.items.forEach(function(it,idx){
+      var globalIdx=items.indexOf(it)
       var estadoBadge=it.tesEstado==='aceptado'?'<span class="badge b-acp">Aceptado</span>':
         it.tesEstado==='denegado'?'<span class="badge b-den">Denegado</span>':
         '<span class="badge b-pend">Pendiente</span>'
       var origenBadge=it.origen==='cuota'?'<span class="badge" style="background:rgba(96,165,250,0.12);color:var(--blue)">'+it.label+'</span>':
         it.origen==='venta'?'<span class="badge" style="background:rgba(74,222,128,0.12);color:var(--green)">Venta</span>':
         '<span class="badge" style="background:rgba(45,212,191,0.12);color:var(--teal)">Ahorro</span>'
-      var acciones=it.tesEstado==='pendiente'
-        ?'<div style="display:flex;gap:4px">'
+      var acciones=''
+      if(!isAdmin&&it.tesEstado==='pendiente'){
+        acciones='<div style="display:flex;gap:4px">'
           +'<button onclick="setEfectivoEstado(\''+it.tabla+'\',\''+it.id+'\',\''+it.campoEstado+'\',\''+it.campoFecha+'\',\'aceptado\')" style="font-size:11px;padding:3px 8px;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:6px;cursor:pointer">✓ Aceptar</button>'
           +'<button onclick="setEfectivoEstado(\''+it.tabla+'\',\''+it.id+'\',\''+it.campoEstado+'\',\''+it.campoFecha+'\',\'denegado\')" style="font-size:11px;padding:3px 8px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:6px;cursor:pointer">✗ Denegar</button>'
         +'</div>'
-        :'<span style="font-size:11px;color:var(--text3)">—</span>'
+      } else if(!isAdmin){
+        acciones='<span style="font-size:11px;color:var(--text3)">—</span>'
+      }
+      if(isAdmin){
+        acciones+='<button onclick="openMoverEfectivo('+globalIdx+')" style="font-size:11px;padding:3px 8px;background:var(--purple-bg);color:var(--purple);border:1px solid rgba(168,85,247,0.2);border-radius:6px;cursor:pointer;margin-left:4px">↗ Mover</button>'
+      }
       out+='<tr>'
       out+='<td style="font-size:12px">'+fmtD(it.fecha)+'</td>'
       out+='<td>'+(it.responsable||'-')+'</td>'
@@ -2531,6 +2545,35 @@ async function rEfectivoOB(){
   })
   cont.innerHTML=out
 }
+function openMoverEfectivo(globalIdx){
+  var it=(window._efectivoItemsFlat||[])[globalIdx]
+  if(!it)return
+  window._efectivoMoverItem=it
+  document.getElementById('mmef-info').textContent=it.cliente+' — '+(it.origen==='cuota'?it.label:it.origen==='venta'?'Venta':'Ahorro')+' — '+fmt(it.ef)
+  document.getElementById('mmef-fecha').value=it.fecha
+  hi('mmef-err')
+  sh('modal-mover-efectivo')
+}
+async function guardarMoverEfectivo(){
+  var it=window._efectivoMoverItem
+  if(!it)return
+  var f=document.getElementById('mmef-fecha').value
+  var errEl=document.getElementById('mmef-err')
+  if(!f){sh('mmef-err');errEl.textContent='Selecciona una fecha.';return}
+  document.getElementById('mmef-btn').textContent='Moviendo...'
+  var upd={}
+  upd[it.campoFechaCustom]=f
+  var res=await db.from(it.tabla).update(upd).eq('id',it.id)
+  document.getElementById('mmef-btn').textContent='Mover'
+  if(res.error){sh('mmef-err');errEl.textContent='Error al guardar.';return}
+  hi('modal-mover-efectivo')
+  window._efectivoMoverItem=null
+  await loadAll()
+  var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
+  if(rPag.data)allObPagos=rPag.data
+  rEfectivoOB(true)
+}
+
 async function setEfectivoEstado(tabla,id,campoEstado,campoFecha,estado){
   var hoy=new Date().toISOString().slice(0,10)
   var upd={}
@@ -5075,10 +5118,11 @@ function pobPer(){
   if(cur)sel.value=cur
 }
 function admTab(t,btn){
-  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','cfgcom'].forEach(function(x){hi('adm-T'+x)});sh('adm-T'+t)
+  ['cp','pr','co','to','us','inc','liq','ob','ret','cl','cfgcom','efrec'].forEach(function(x){hi('adm-T'+x)});sh('adm-T'+t)
   document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('active')})
   if(btn)btn.classList.add('active')
   if(t==='cfgcom')rCfgComForm()
+  if(t==='efrec')rEfectivoOB(true)
   if(t==='co'){pobPer();rAdmCom()}
   if(t==='to'){document.getElementById('adm-fa').innerHTML='<option value="">Todos los asesores</option>'+allUsers.filter(function(x){return x.rol==='asesor'}).map(function(a){return '<option value="'+a.id+'">'+a.nombre+'</option>'}).join('');rAdmTodas()}
   if(t==='us'){rAdmUsers();rRoles();poblarRolCustomSelect()}

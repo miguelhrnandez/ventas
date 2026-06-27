@@ -3265,15 +3265,15 @@ function rOBMis(isAdmin=false){
   const orden=document.getElementById('ob-mis-orden')?.value||'fecha-desc'
   const filtro=document.getElementById('ob-mis-filtro')?.value||''
   let ops=[...obOps]
-  if(busq)ops=ops.filter(x=>x.cliente.toLowerCase().includes(busq)||(x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq)))
+  if(busq)ops=ops.filter(x=>(x.cliente||'').toLowerCase().includes(busq)||(x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq)))
   if(filtro==='activos')ops=ops.filter(x=>!x.ob_baja)
   else if(filtro==='baja')ops=ops.filter(x=>x.ob_baja)
   else if(filtro==='completos')ops=ops.filter(x=>getPagosCuota(x.id).length>=6)
   else if(filtro==='pendientes')ops=ops.filter(x=>!x.ob_baja&&getPagosCuota(x.id).length<6)
   if(orden==='fecha-desc')ops.sort((a,b)=>b.fecha.localeCompare(a.fecha))
   else if(orden==='fecha-asc')ops.sort((a,b)=>a.fecha.localeCompare(b.fecha))
-  else if(orden==='nombre-asc')ops.sort((a,b)=>a.cliente.localeCompare(b.cliente))
-  else if(orden==='nombre-desc')ops.sort((a,b)=>b.cliente.localeCompare(a.cliente))
+  else if(orden==='nombre-asc')ops.sort((a,b)=>(a.cliente||'').localeCompare(b.cliente||''))
+  else if(orden==='nombre-desc')ops.sort((a,b)=>(b.cliente||'').localeCompare(a.cliente||''))
   else if(orden==='cuotas-asc')ops.sort((a,b)=>getPagosCuota(a.id).length-getPagosCuota(b.id).length)
   else if(orden==='cuotas-desc')ops.sort((a,b)=>getPagosCuota(b.id).length-getPagosCuota(a.id).length)
   if(!ops.length){html('ob-misb','<div class="card"><div class="es">Sin resultados'+(busq?' para "'+busq+'"':'')+' </div></div>');return}
@@ -3289,7 +3289,7 @@ function rOBMis(isAdmin=false){
     const totCom=totComMovs+totComCuotas
     const abierto=obClienteAbierto===op.id
     const pagosOrdenados=[...pagos].sort((a,b)=>a.numero_cuota-b.numero_cuota)
-    const clienteEsc=op.cliente.replace(/'/g,"\\'")
+    const clienteEsc=(op.cliente||'').replace(/'/g,"\\'")
 
     // Header del cliente
     let cuotasBadge='<div style="text-align:center"><div style="font-size:10px;color:var(--text3)">CUOTAS</div>'
@@ -3604,12 +3604,12 @@ function rOBDisp(){
   const orden=document.getElementById('ob-disp-orden')?.value||'fecha-desc'
   const plan=document.getElementById('ob-disp-plan')?.value||''
   let ops=[...obDisp]
-  if(busq)ops=ops.filter(x=>x.cliente.toLowerCase().includes(busq)||(x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq)))
+  if(busq)ops=ops.filter(x=>(x.cliente||'').toLowerCase().includes(busq)||(x.asesor_nombre&&x.asesor_nombre.toLowerCase().includes(busq)))
   if(plan)ops=ops.filter(x=>x.plan===plan)
   if(orden==='fecha-desc')ops.sort((a,b)=>b.fecha.localeCompare(a.fecha))
   else if(orden==='fecha-asc')ops.sort((a,b)=>a.fecha.localeCompare(b.fecha))
-  else if(orden==='nombre-asc')ops.sort((a,b)=>a.cliente.localeCompare(b.cliente))
-  else if(orden==='nombre-desc')ops.sort((a,b)=>b.cliente.localeCompare(a.cliente))
+  else if(orden==='nombre-asc')ops.sort((a,b)=>(a.cliente||'').localeCompare(b.cliente||''))
+  else if(orden==='nombre-desc')ops.sort((a,b)=>(b.cliente||'').localeCompare(a.cliente||''))
   else if(orden==='monto-desc')ops.sort((a,b)=>b.monto-a.monto)
   else if(orden==='monto-asc')ops.sort((a,b)=>a.monto-b.monto)
   if(!ops.length){html('ob-dispb',`<div class="es">Sin resultados${busq?' para "'+busq+'"':''}</div>`);return}
@@ -5413,7 +5413,7 @@ function rAdmClientes(){
   else if(ob==='con')ops=ops.filter(x=>x.ob_id)
   if(orden==='fecha-desc')ops.sort((a,b)=>b.fecha.localeCompare(a.fecha))
   else if(orden==='fecha-asc')ops.sort((a,b)=>a.fecha.localeCompare(b.fecha))
-  else if(orden==='nombre-asc')ops.sort((a,b)=>a.cliente.localeCompare(b.cliente))
+  else if(orden==='nombre-asc')ops.sort((a,b)=>(a.cliente||'').localeCompare(b.cliente||''))
   else if(orden==='monto-desc')ops.sort((a,b)=>b.monto-a.monto)
   else if(orden==='monto-asc')ops.sort((a,b)=>a.monto-b.monto)
   var countEl=document.getElementById('cl-count')

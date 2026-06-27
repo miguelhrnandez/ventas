@@ -2699,6 +2699,14 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
   </div>
 </div>
 
+<!-- ROL PERSONALIZADO -->
+<div id="SCUSTOM" class="hidden sb-layout">
+  <div id="SCUSTOM-sb"></div>
+  <div class="sb-content">
+  <div id="cust-body"></div>
+  </div>
+</div>
+
 <!-- ADMIN -->
 <div id="SADM" class="hidden sb-layout">
   <!-- SIDEBAR -->
@@ -3317,7 +3325,7 @@ const sv=(id,val)=>{document.getElementById(id).value=val}
 const sh=id=>document.getElementById(id).classList.remove('hidden')
 const hi=id=>document.getElementById(id).classList.add('hidden')
 const html=(id,h)=>{document.getElementById(id).innerHTML=h}
-const screens=['SL','SA','SJV','SPR','SJP','SOB','SADM','SRS']
+const screens=['SL','SA','SJV','SPR','SJP','SOB','SADM','SRS','SCUSTOM']
 
 function categ(m){
   if(m<100000)return{label:'Reserva',cls:'b-reserva',isVenta:false}
@@ -3470,6 +3478,7 @@ async function enterPanel(r){
   else if(r==='jefe_promotores'||r==='jefe_captacion'||r==='coordinadora_promotores')await showAdm()
   else if(r==='promotor'||r==='recepcion'||r==='pretester'||r==='host'||r==='detector_pozo'||r==='enrutador')await showAdm()
   else if(r==='asesor_pozo')await showAsesorPozo()
+  else if(r==='custom')await showCustomRole()
   initRealtime()
 }
 async function doLogin(){
@@ -3501,6 +3510,62 @@ async function loadAll(){
     db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
   ])
   allOps=o.data||[];allUsers=u.data||[];allLl=(l.data||[]).map(x=>x.periodo_key);allLlData=l.data||[];allObMovs=om.data||[];allObPagos=op.data||[]
+}
+
+
+// ═══ PANEL ROL PERSONALIZADO ═══
+async function showCustomRole(){
+  showOnly('SCUSTOM')
+  await loadAll()
+  // Obtener permisos del rol custom
+  var rc=allRolesCustom.find(function(r){return r.id===CU.rol_custom_id})
+  var permisos=rc?rc.permisos||{}:{}
+  window._custPermisos=permisos
+  var nombreRol=rc?rc.nombre:'Personalizado'
+  var items=[]
+  if(permisos.ops)items.push({id:'ops',label:'Mis operaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'})
+  if(permisos.cargar)items.push({id:'cargar',label:'Cargar nueva',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'})
+  if(permisos.carp||permisos.todasops)items.push({id:'carp',label:'Carpetas',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v11a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-7l-2-2H5a2 2 0 00-2 2z"/></svg>'})
+  if(permisos.comtodo)items.push({id:'com',label:'Comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'})
+  if(permisos.pres)items.push({id:'pres',label:'Presentaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'})
+  if(permisos.ob)items.push({id:'ob',label:'On Boarding',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a6 6 0 0112 0v2"/></svg>'})
+  if(permisos.retenciones)items.push({id:'ret',label:'Retenciones OB',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>'})
+  if(permisos.incentivos)items.push({id:'inc',label:'Incentivos',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8 12 2"/></svg>'})
+  if(permisos.usrs)items.push({id:'usrs',label:'Usuarios',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'})
+  if(!items.length){
+    document.getElementById('SCUSTOM-sb').innerHTML=''
+    html('cust-body','<div class="card"><div class="es">Tu rol no tiene permisos asignados. Contacta al administrador.</div></div>')
+    return
+  }
+  document.getElementById('SCUSTOM-sb').innerHTML=mkSidebar(items,items[0].id,CU.nombre,nombreRol)
+  custTab(items[0].id,null)
+}
+function custTab(t,btn){
+  document.querySelectorAll('#SCUSTOM .sb-item').forEach(function(b){b.classList.remove('active')})
+  if(btn)btn.classList.add('active')
+  else{var sbItem=document.getElementById('sbitem-'+t);if(sbItem)sbItem.classList.add('active')}
+  if(t==='ops'){
+    aOps=allOps.filter(function(x){return x.asesor_id===CU.id})
+    html('cust-body','<div class="g4" style="margin-bottom:24px" id="a-stats"></div><div class="card ox"><div id="a-ob"></div></div>')
+    rAStats();rAOps()
+  } else if(t==='carp'){
+    html('cust-body','<div class="card ox"><div id="adm-cpb"></div></div>')
+    rAdmCarp()
+  } else if(t==='com'){
+    html('cust-body','<div id="adm-cob"></div>')
+    rAdmCom()
+  } else if(t==='pres'){
+    html('cust-body','<div class="card ox"><div id="adm-prb"></div></div>')
+    rAdmPres()
+  } else if(t==='inc'){
+    html('cust-body','<div class="g2"><div><label>Filtrar por usuario</label><select id="inc-f-usr" onchange="rIncentivos()" style="width:100%"></select></div><div><label>Filtrar por tipo</label><select id="inc-f-tipo" onchange="rIncentivos()" style="width:100%"><option value="">Todos</option><option value="premio">Premio</option><option value="descuento">Descuento</option></select></div></div><div class="card" style="margin-top:14px"><div id="inc-list"></div></div>')
+    poblarSelUsrIncentivos();rIncentivos()
+  } else if(t==='usrs'){
+    html('cust-body','<div id="adm-usb"></div>')
+    rAdmUsers()
+  } else {
+    html('cust-body','<div class="card"><div class="es">Sección no disponible para este rol todavia.</div></div>')
+  }
 }
 
 // ═══ MODAL EDITAR ═══

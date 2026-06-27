@@ -3517,6 +3517,7 @@ async function loadAll(){
 async function showCustomRole(){
   showOnly('SCUSTOM')
   await loadAll()
+  await loadRolesCustom()
   // Obtener permisos del rol custom
   var rc=allRolesCustom.find(function(r){return r.id===CU.rol_custom_id})
   var permisos=rc?rc.permisos||{}:{}

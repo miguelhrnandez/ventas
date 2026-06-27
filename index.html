@@ -3270,8 +3270,8 @@ function rOBMis(isAdmin=false){
   else if(filtro==='baja')ops=ops.filter(x=>x.ob_baja)
   else if(filtro==='completos')ops=ops.filter(x=>getPagosCuota(x.id).length>=6)
   else if(filtro==='pendientes')ops=ops.filter(x=>!x.ob_baja&&getPagosCuota(x.id).length<6)
-  if(orden==='fecha-desc')ops.sort((a,b)=>b.fecha.localeCompare(a.fecha))
-  else if(orden==='fecha-asc')ops.sort((a,b)=>a.fecha.localeCompare(b.fecha))
+  if(orden==='fecha-desc')ops.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''))
+  else if(orden==='fecha-asc')ops.sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''))
   else if(orden==='nombre-asc')ops.sort((a,b)=>(a.cliente||'').localeCompare(b.cliente||''))
   else if(orden==='nombre-desc')ops.sort((a,b)=>(b.cliente||'').localeCompare(a.cliente||''))
   else if(orden==='cuotas-asc')ops.sort((a,b)=>getPagosCuota(a.id).length-getPagosCuota(b.id).length)
@@ -3280,6 +3280,7 @@ function rOBMis(isAdmin=false){
 
   let out=''
   ops.forEach(op=>{
+   try{
     const movs=getMovsOp(op.id)
     const pagos=getPagosCuota(op.id)
     var pagosParaTot=isAdmin?pagos:pagos.filter(function(p){return (p.fecha_pago||'')>=FECHA_CORTE_COMISIONES})
@@ -3416,6 +3417,10 @@ function rOBMis(isAdmin=false){
     }
 
     out+='</div>'
+   }catch(e){
+     console.error('Error renderizando cliente OB',op&&op.id,e)
+     out+='<div class="card" style="margin-bottom:10px"><div class="es">Error al mostrar este cliente ('+(op&&op.cliente||op&&op.id||'desconocido')+'). Contacta al administrador.</div></div>'
+   }
   })
   html('ob-misb',out)
 }

@@ -2660,7 +2660,10 @@ async function guardarEdit(){
   else if(meef>0)mepago='Efectivo'
   else if(metr>0)mepago='Transferencia'
   if(!cl||!pl||!mo||isNaN(mo)||mo<=0){sh('me-err');document.getElementById('me-err').textContent='Completa apellido, plan y monto.';return}
-  if((meef>0||metr>0)&&Math.round(meef+metr)!==Math.round(mo)){
+  if(meef<=0&&metr<=0){
+    sh('me-err');document.getElementById('me-err').textContent='Indica el monto en Efectivo y/o Transferencia.';return
+  }
+  if(Math.round(meef+metr)!==Math.round(mo)){
     sh('me-err');document.getElementById('me-err').textContent='Efectivo + Transferencia ('+fmt(meef+metr)+') no coincide con el monto ('+fmt(mo)+').';return
   }
   const opActual=allOps.find(x=>x.id===editId)||aOps.find(x=>x.id===editId)
@@ -2889,7 +2892,10 @@ async function cargarVenta(){
   if(!cl){sh('nerr');document.getElementById('nerr').textContent='Ingresa al menos el apellido del cliente.';return}
   if(!pl){sh('nerr');document.getElementById('nerr').textContent='Selecciona el tipo de plan.';return}
   if(!mo||isNaN(mo)||mo<=0){sh('nerr');document.getElementById('nerr').textContent='Ingresa un monto valido.';return}
-  if((nef>0||ntr>0)&&Math.round(nef+ntr)!==Math.round(mo)){
+  if(nef<=0&&ntr<=0){
+    sh('nerr');document.getElementById('nerr').textContent='Indica el monto en Efectivo y/o Transferencia.';return
+  }
+  if(Math.round(nef+ntr)!==Math.round(mo)){
     sh('nerr');document.getElementById('nerr').textContent='Efectivo + Transferencia ('+fmt(nef+ntr)+') no coincide con el monto de la venta ('+fmt(mo)+').';return
   }
   // Ahorro adicional opcional
@@ -2899,7 +2905,10 @@ async function cargarVenta(){
     var ahMonto=parseFloat(document.getElementById('n-ahorro-monto')?.value)||0
     var ahEf=parseFloat(document.getElementById('n-ahorro-ef')?.value)||0
     var ahTr=parseFloat(document.getElementById('n-ahorro-tr')?.value)||0
-    if(ahMonto>0&&(ahEf>0||ahTr>0)&&Math.round(ahEf+ahTr)!==Math.round(ahMonto)){
+    if(ahMonto>0&&ahEf<=0&&ahTr<=0){
+      sh('nerr');document.getElementById('nerr').textContent='Ahorro: indica el monto en Efectivo y/o Transferencia.';return
+    }
+    if(ahMonto>0&&Math.round(ahEf+ahTr)!==Math.round(ahMonto)){
       sh('nerr');document.getElementById('nerr').textContent='Ahorro: Efectivo + Transferencia ('+fmt(ahEf+ahTr)+') no coincide con el monto del ahorro ('+fmt(ahMonto)+').';return
     }
     if(ahMonto>0){
@@ -3773,6 +3782,10 @@ async function guardarOBPago(opId,numeroCuota){
   const com=calcComCuota(numeroCuota,dia)
   const obpEf=parseFloat(document.getElementById('obp-ef')?.value)||0
   const obpTr=parseFloat(document.getElementById('obp-tr')?.value)||0
+  if(obpEf<=0&&obpTr<=0){
+    if(errEl){errEl.textContent='Indica el monto en Efectivo y/o Transferencia.';errEl.style.display='block'}
+    return
+  }
   let obpPago=''
   if(obpEf>0&&obpTr>0)obpPago='Efectivo '+fmt(obpEf)+' + Transf. '+fmt(obpTr)
   else if(obpEf>0)obpPago='Efectivo'
@@ -4011,7 +4024,11 @@ async function guardarOBMov(){
   if(!m||!f){if(errEl){errEl.textContent='Completa todos los campos.';errEl.style.display='block'}return}
   const obmEfCheck=parseFloat(document.getElementById('obm-ef')?.value)||0
   const obmTrCheck=parseFloat(document.getElementById('obm-tr')?.value)||0
-  if((obmEfCheck>0||obmTrCheck>0)&&Math.round(obmEfCheck+obmTrCheck)!==Math.round(m)){
+  if(obmEfCheck<=0&&obmTrCheck<=0){
+    if(errEl){errEl.textContent='Indica el monto en Efectivo y/o Transferencia.';errEl.style.display='block'}
+    return
+  }
+  if(Math.round(obmEfCheck+obmTrCheck)!==Math.round(m)){
     if(errEl){errEl.textContent='Efectivo + Transferencia ('+fmt(obmEfCheck+obmTrCheck)+') no coincide con el monto ('+fmt(m)+').';errEl.style.display='block'}
     return
   }

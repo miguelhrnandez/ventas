@@ -2968,23 +2968,13 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ops" style="width:auto"> Ver sus operaciones y comisiones</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-cargar" style="width:auto"> Cargar ventas/reservas</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-carp" style="width:auto"> Ver carpetas (tesoreria)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-efectivo_ob" style="width:auto"> Ver y aceptar cuotas/incrementos OB (CUOTAS METROTERRA PLUS)</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-comtodo" style="width:auto"> Ver comisiones de todo el equipo</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-todasops" style="width:auto"> Ver todas las operaciones</label>
               <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Presentaciones y OB</div>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pres" style="width:auto"> Ver/gestionar presentaciones</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ob" style="width:auto"> Ver/gestionar On Boarding</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-retenciones" style="width:auto"> Ver retenciones OB</label>
-              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Plan de batalla</div>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pb_ver" style="width:auto"> Ver Plan de batalla</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-pb_editar" style="width:auto"> Editar datos del Plan de batalla</label>
-              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Premios</div>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-prm_ver" style="width:auto"> Ver premios semanales</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-prm_cargar" style="width:auto"> Cargar leads/datos de premios</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-prm_aprobar" style="width:auto"> Aprobar premios y cargar incentivos</label>
-              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Horarios</div>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-hor_ver" style="width:auto"> Ver horarios</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-hor_editar" style="width:auto"> Editar horarios del equipo</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-hor_aprobar" style="width:auto"> Aprobar solicitudes de cambio</label>
               <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Administracion</div>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-incentivos" style="width:auto"> Gestionar incentivos y liquidaciones</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-usrs" style="width:auto"> Gestionar usuarios</label>
@@ -6091,17 +6081,6 @@ const PERMISOS_LABELS={
   pres:'Ver/gestionar presentaciones',
   ob:'Ver/gestionar On Boarding',
   retenciones:'Ver retenciones OB',
-  // Plan de batalla
-  pb_ver:'Ver Plan de batalla',
-  pb_editar:'Editar datos del Plan de batalla',
-  // Premios
-  prm_ver:'Ver premios semanales',
-  prm_cargar:'Cargar leads/datos de premios',
-  prm_aprobar:'Aprobar premios y cargar incentivos',
-  // Horarios
-  hor_ver:'Ver horarios',
-  hor_editar:'Editar horarios del equipo',
-  hor_aprobar:'Aprobar solicitudes de cambio de horario',
   // Admin
   incentivos:'Gestionar incentivos y liquidaciones',
   usrs:'Gestionar usuarios'

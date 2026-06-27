@@ -260,6 +260,7 @@ function initRealtime(){
     .on('postgres_changes',{event:'*',schema:'public',table:'horarios_cambios'},function(p){rtRecargar('horarios_cambios')})
     .on('postgres_changes',{event:'*',schema:'public',table:'horarios'},function(p){rtRecargar('horarios')})
     .on('postgres_changes',{event:'*',schema:'public',table:'ob_pagos_cuota'},function(p){rtRecargar('ob_pagos_cuota')})
+    .on('postgres_changes',{event:'*',schema:'public',table:'ob_movimientos'},function(p){rtRecargar('ob_movimientos')})
     .on('postgres_changes',{event:'*',schema:'public',table:'operaciones'},function(p){rtRecargar('operaciones')})
     .subscribe()
 }
@@ -272,17 +273,20 @@ async function rtRecargar(tabla){
     if(pv==='SHR'){loadHorarioEmpleado();var hrc=document.getElementById('hr-tcambios');if(hrc&&!hrc.classList.contains('hidden'))loadMisCambios()}
     if(pv==='SJHR'){loadHorarios();if(tabla==='horarios_cambios')loadCambiosJHR()}
   }
-  if(tabla==='ob_pagos_cuota'||tabla==='operaciones'){
+  if(tabla==='ob_pagos_cuota'||tabla==='operaciones'||tabla==='ob_movimientos'){
     var rOp=await db.from('operaciones').select('*').order('fecha',{ascending:false})
     if(rOp.data)allOps=rOp.data
     var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
     if(rPag.data)allObPagos=rPag.data
+    var rMov2=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false})
+    if(rMov2.data)allObMovs=rMov2.data
     if(pv==='SA'){rAStats();rAOps()}
     if(pv==='SJV'){rJVStats();rJVCarp()}
     if(pv==='SPR'){rPrStats();rPrOps()}
     if(pv==='SJP'){rJPStats();rJPOps()}
-    if(pv==='SOB'){var rMov=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false});if(rMov.data)allObMovs=rMov.data;rOBStats();rOBMisClientes()}
+    if(pv==='SOB'){rOBStats();rOBMisClientes()}
     if(pv==='SADM'){await loadAll();rAdmCarp();rAdmStats();rAdmTodas()}
+    if(pv==='SCUSTOM'){var efob=document.getElementById('cust-efob');if(efob)rEfectivoOB()}
   }
 }
 async function loadOBRetenciones(){
@@ -3527,6 +3531,7 @@ async function showCustomRole(){
   if(permisos.ops)items.push({id:'ops',label:'Mis operaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'})
   if(permisos.cargar)items.push({id:'cargar',label:'Cargar nueva',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'})
   if(permisos.carp||permisos.todasops)items.push({id:'carp',label:'Carpetas',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v11a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-7l-2-2H5a2 2 0 00-2 2z"/></svg>'})
+  if(permisos.efectivo_ob)items.push({id:'efob',label:'Cuotas MetroTerra Plus',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'})
   if(permisos.comtodo)items.push({id:'com',label:'Comisiones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'})
   if(permisos.pres)items.push({id:'pres',label:'Presentaciones',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'})
   if(permisos.ob)items.push({id:'ob',label:'On Boarding',icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a6 6 0 0112 0v2"/></svg>'})
@@ -3555,6 +3560,9 @@ function custTab(t,btn){
   } else if(t==='com'){
     html('cust-body','<div id="adm-cob"></div>')
     rAdmCom()
+  } else if(t==='efob'){
+    html('cust-body','<div id="cust-efob"></div>')
+    rEfectivoOB()
   } else if(t==='pres'){
     html('cust-body','<div class="card ox"><div id="adm-prb"></div></div>')
     rAdmPres()
@@ -3567,6 +3575,101 @@ function custTab(t,btn){
   } else {
     html('cust-body','<div class="card"><div class="es">Sección no disponible para este rol todavia.</div></div>')
   }
+}
+
+
+// ═══ TESORERÍA: CUOTAS METROTERRA PLUS ═══
+async function rEfectivoOB(){
+  var cont=document.getElementById('cust-efob')
+  if(!cont)return
+  cont.innerHTML='<div class="es">Cargando...</div>'
+  // Combinar cuotas y movimientos (incremento/ahorro) en una sola lista
+  var items=[]
+  allObPagos.forEach(function(p){
+    var op=allOps.find(function(o){return o.id===p.operacion_id})
+    items.push({
+      tipo:'cuota',label:'M'+p.numero_cuota,
+      cliente:op?op.cliente:'(cliente no encontrado)',
+      ob_nombre:p.ob_nombre,fecha:p.fecha_pago,
+      ef:p.monto_efectivo||0,tr:p.monto_transferencia||0,
+      metodo:p.metodo_pago||'',
+      tesEstado:p.tesoreria_estado||'pendiente',
+      id:p.id,tabla:'ob_pagos_cuota'
+    })
+  })
+  allObMovs.forEach(function(m){
+    var op=allOps.find(function(o){return o.id===m.operacion_id})
+    items.push({
+      tipo:m.tipo==='incremento'?'Incremento':'Ahorro',label:m.tipo==='incremento'?'Incremento':'Ahorro',
+      cliente:op?op.cliente:'(cliente no encontrado)',
+      ob_nombre:m.ob_nombre,fecha:m.fecha,
+      ef:m.monto_efectivo||0,tr:m.monto_transferencia||0,
+      metodo:m.metodo_pago||'',
+      tesEstado:m.tesoreria_estado||'pendiente',
+      id:m.id,tabla:'ob_movimientos'
+    })
+  })
+  if(!items.length){cont.innerHTML='<div class="card"><div class="es">Sin cuotas o incrementos registrados</div></div>';return}
+  // Agrupar por semana usando getPer
+  var grupos={}
+  items.forEach(function(it){
+    if(!it.fecha)return
+    var p=getPer(it.fecha)
+    if(!grupos[p.key])grupos[p.key]={per:p,items:[]}
+    grupos[p.key].items.push(it)
+  })
+  var keys=Object.keys(grupos).sort().reverse()
+  var out=''
+  keys.forEach(function(k){
+    var g=grupos[k]
+    var totalEf=g.items.reduce(function(a,it){return a+it.ef},0)
+    var totalTr=g.items.reduce(function(a,it){return a+it.tr},0)
+    var pendientes=g.items.filter(function(it){return it.tesEstado==='pendiente'}).length
+    out+='<div class="card" style="margin-bottom:16px">'
+    out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px">'
+    out+='<div style="font-size:14px;font-weight:600">'+g.per.label+'</div>'
+    out+='<div style="display:flex;gap:14px;align-items:center">'
+    if(pendientes>0)out+='<span style="font-size:11px;font-weight:600;color:var(--amber);background:rgba(245,158,11,0.12);padding:3px 10px;border-radius:20px">'+pendientes+' pendiente'+(pendientes!==1?'s':'')+'</span>'
+    out+='<span style="font-size:12px;color:var(--text3)">💵 '+fmt(totalEf)+' &nbsp; 🏦 '+fmt(totalTr)+'</span>'
+    out+='</div></div>'
+    out+='<div style="overflow-x:auto"><table><thead><tr>'
+    out+='<th>Fecha</th><th>OB</th><th>Cliente</th><th>Tipo</th><th>Efectivo</th><th>Transferencia</th><th>Estado</th><th>Acciones</th>'
+    out+='</tr></thead><tbody>'
+    g.items.sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'')})
+    g.items.forEach(function(it){
+      var estadoBadge=it.tesEstado==='aceptado'?'<span class="badge b-acp">Aceptado</span>':
+        it.tesEstado==='denegado'?'<span class="badge b-den">Denegado</span>':
+        '<span class="badge b-pend">Pendiente</span>'
+      var acciones=it.tesEstado==='pendiente'
+        ?'<div style="display:flex;gap:4px">'
+          +'<button onclick="setTesoreriaEfectivo(\''+it.tabla+'\',\''+it.id+'\',\'aceptado\')" style="font-size:11px;padding:3px 8px;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:6px;cursor:pointer">✓ Aceptar</button>'
+          +'<button onclick="setTesoreriaEfectivo(\''+it.tabla+'\',\''+it.id+'\',\'denegado\')" style="font-size:11px;padding:3px 8px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:6px;cursor:pointer">✗ Denegar</button>'
+        +'</div>'
+        :'<span style="font-size:11px;color:var(--text3)">—</span>'
+      out+='<tr>'
+      out+='<td style="font-size:12px">'+fmtD(it.fecha)+'</td>'
+      out+='<td>'+(it.ob_nombre||'-')+'</td>'
+      out+='<td style="color:var(--text)">'+it.cliente+'</td>'
+      out+='<td><span class="badge b-acp" style="background:rgba(96,165,250,0.12);color:var(--blue)">'+it.label+'</span></td>'
+      out+='<td class="'+(it.ef>0?'ag':'')+'">'+(it.ef>0?fmt(it.ef):'-')+'</td>'
+      out+='<td class="'+(it.tr>0?'ag':'')+'">'+(it.tr>0?fmt(it.tr):'-')+'</td>'
+      out+='<td>'+estadoBadge+'</td>'
+      out+='<td>'+acciones+'</td>'
+      out+='</tr>'
+    })
+    out+='</tbody></table></div></div>'
+  })
+  cont.innerHTML=out
+}
+async function setTesoreriaEfectivo(tabla,id,estado){
+  var hoy=new Date().toISOString().slice(0,10)
+  await db.from(tabla).update({tesoreria_estado:estado,tesoreria_fecha:hoy}).eq('id',id)
+  mostrarToastCarp(estado==='aceptado'?'Efectivo aceptado':'Efectivo denegado')
+  var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
+  if(rPag.data)allObPagos=rPag.data
+  var rMov=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false})
+  if(rMov.data)allObMovs=rMov.data
+  rEfectivoOB()
 }
 
 // ═══ MODAL EDITAR ═══
@@ -4663,6 +4766,8 @@ async function guardarOBPago(opId,numeroCuota){
     operacion_id:opId,ob_id:CU.id,ob_nombre:CU.nombre,
     numero_cuota:numeroCuota,fecha_pago:f,dia_del_mes:dia,comision:com,
     metodo_pago:obpPago||null,
+    monto_efectivo:obpEf,monto_transferencia:obpTr,
+    tesoreria_estado:'pendiente',
     comprobante_url:compUrl
   })
   if(error){if(errEl){errEl.textContent='Error: '+error.message;errEl.style.display='block'}return}
@@ -4809,7 +4914,19 @@ function openOBMov(opId,cliente,tipo){
         <div><label>Monto ($)</label><input id="obm-monto" type="number" placeholder="Ej: 50000" oninput="previewOBMov()"></div>
         <div><label>Fecha</label><input id="obm-fecha" type="date" value="${hoy}" onchange="previewOBMov()" oninput="previewOBMov()"></div>
       </div>
-
+      <div>
+        <label>Forma de pago</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+          <div>
+            <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
+            <input id="obm-ef" type="number" placeholder="0" style="font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
+            <input id="obm-tr" type="number" placeholder="0" style="font-size:13px">
+          </div>
+        </div>
+      </div>
       <div id="obm-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">
         Ingresa los datos para ver la comision estimada
       </div>
@@ -4874,9 +4991,17 @@ async function guardarOBMov(){
     auto72=hrsCalc<=72
   }
   const comFinal=obMovTipo==='incremento'&&auto72!==null?Math.round(m*(auto72?0.55:0.275)):com
+  const obmEf=parseFloat(document.getElementById('obm-ef')?.value)||0
+  const obmTr=parseFloat(document.getElementById('obm-tr')?.value)||0
+  let obmPago=''
+  if(obmEf>0&&obmTr>0)obmPago='Efectivo '+fmt(obmEf)+' + Transf. '+fmt(obmTr)
+  else if(obmEf>0)obmPago='Efectivo'
+  else if(obmTr>0)obmPago='Transferencia'
   const{error}=await db.from('ob_movimientos').insert({
     operacion_id:obMovOpId,ob_id:CU.id,ob_nombre:CU.nombre,
-    tipo:obMovTipo,monto:m,fecha:f,antes_72hrs:auto72,comision:comFinal
+    tipo:obMovTipo,monto:m,fecha:f,antes_72hrs:auto72,comision:comFinal,
+    metodo_pago:obmPago||null,monto_efectivo:obmEf,monto_transferencia:obmTr,
+    tesoreria_estado:'pendiente'
   })
   if(error){if(errEl){errEl.textContent='Error al guardar: '+error.message;errEl.style.display='block'}return}
   document.getElementById('ob-modal').remove()
@@ -5959,6 +6084,7 @@ const PERMISOS_LABELS={
   ops:'Ver sus operaciones y comisiones',
   cargar:'Cargar ventas/reservas',
   carp:'Ver carpetas (tesoreria)',
+  efectivo_ob:'Ver y aceptar cuotas/incrementos OB (CUOTAS METROTERRA PLUS)',
   comtodo:'Ver comisiones de todo el equipo',
   todasops:'Ver todas las operaciones',
   // Presentaciones y OB

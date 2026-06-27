@@ -2633,18 +2633,29 @@ function closeEdit(){hi('modal-edit');editId=null}
 function prevEditPago(){
   const ef=parseFloat(document.getElementById('me-ef')?.value)||0
   const tr=parseFloat(document.getElementById('me-tr')?.value)||0
+  const mo=parseInt(gv('me-monto'))||0
   const el=document.getElementById('me-pago-prev')
   if(!el)return
-  if(ef>0&&tr>0)el.innerHTML='<span style="color:var(--text2)">💵 Efectivo: <strong>'+fmt(ef)+'</strong> + 🏦 Transferencia: <strong>'+fmt(tr)+'</strong></span>'
-  else if(ef>0)el.innerHTML='<span style="color:var(--text2)">💵 Solo efectivo: <strong>'+fmt(ef)+'</strong></span>'
-  else if(tr>0)el.innerHTML='<span style="color:var(--text2)">🏦 Solo transferencia: <strong>'+fmt(tr)+'</strong></span>'
-  else el.textContent=''
+  if(ef<=0&&tr<=0){el.innerHTML=mo>0?'<span style="color:var(--amber)">Falta indicar '+fmt(mo)+'</span>':'';return}
+  var suma=ef+tr
+  var resumen='<span style="color:var(--text2)">'
+  if(ef>0&&tr>0)resumen+='💵 '+fmt(ef)+' + 🏦 '+fmt(tr)+' = <strong>'+fmt(suma)+'</strong></span>'
+  else if(ef>0)resumen+='💵 Efectivo: <strong>'+fmt(ef)+'</strong></span>'
+  else resumen+='🏦 Transferencia: <strong>'+fmt(tr)+'</strong></span>'
+  if(mo>0){
+    var diff=mo-suma
+    if(diff>0)resumen+=' &nbsp;·&nbsp; <span style="color:var(--amber);font-weight:600">Falta '+fmt(diff)+'</span>'
+    else if(diff<0)resumen+=' &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600">Sobra '+fmt(-diff)+'</span>'
+    else resumen+=' &nbsp;·&nbsp; <span style="color:var(--green);font-weight:600">✓ Coincide</span>'
+  }
+  el.innerHTML=resumen
 }
 function prevEditTipo(){
   const m=parseInt(gv('me-monto')),el=document.getElementById('me-prev')
-  if(!m||isNaN(m)){hi('me-prev');return}sh('me-prev')
+  if(!m||isNaN(m)){hi('me-prev');prevEditPago();return}sh('me-prev')
   const c=categ(m)
   el.innerHTML=`Categoria: <strong style="color:var(--${c.cls.includes('completa')?'green':c.cls.includes('bonificada')?'blue':'amber'})">${c.label}</strong>` + (c.isVenta?` - Comision est.: <span class="ag">${fmt(calcC(m))}</span>`:'')
+  prevEditPago()
 }
 async function guardarEdit(){
   hi('me-err')
@@ -2848,17 +2859,22 @@ function rAOps(){
 function prevPago(){
   const ef=parseFloat(document.getElementById('n-ef')?.value)||0
   const tr=parseFloat(document.getElementById('n-tr')?.value)||0
+  const mo=parseInt(gv('nm'))||0
   const el=document.getElementById('n-pago-prev')
   if(!el)return
-  if(ef>0&&tr>0){
-    el.innerHTML='<span style="color:var(--text2)">💵 Efectivo: <strong>'+fmt(ef)+'</strong> &nbsp;+&nbsp; 🏦 Transferencia: <strong>'+fmt(tr)+'</strong> &nbsp;=&nbsp; <span style="color:var(--accent)">'+fmt(ef+tr)+'</span></span>'
-  } else if(ef>0){
-    el.innerHTML='<span style="color:var(--text2)">💵 Solo efectivo: <strong>'+fmt(ef)+'</strong></span>'
-  } else if(tr>0){
-    el.innerHTML='<span style="color:var(--text2)">🏦 Solo transferencia: <strong>'+fmt(tr)+'</strong></span>'
-  } else {
-    el.textContent=''
+  const suma=ef+tr
+  if(ef<=0&&tr<=0){el.innerHTML=mo>0?'<span style="color:var(--amber)">Falta indicar '+fmt(mo)+'</span>':'';return}
+  var resumen='<span style="color:var(--text2)">'
+  if(ef>0&&tr>0)resumen+='💵 '+fmt(ef)+' + 🏦 '+fmt(tr)+' = <strong>'+fmt(suma)+'</strong></span>'
+  else if(ef>0)resumen+='💵 Efectivo: <strong>'+fmt(ef)+'</strong></span>'
+  else resumen+='🏦 Transferencia: <strong>'+fmt(tr)+'</strong></span>'
+  if(mo>0){
+    var diff=mo-suma
+    if(diff>0)resumen+=' &nbsp;·&nbsp; <span style="color:var(--amber);font-weight:600">Falta '+fmt(diff)+'</span>'
+    else if(diff<0)resumen+=' &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600">Sobra '+fmt(-diff)+'</span>'
+    else resumen+=' &nbsp;·&nbsp; <span style="color:var(--green);font-weight:600">✓ Coincide</span>'
   }
+  el.innerHTML=resumen
 }
 function prevT(){
   // Preseleccionar plan si viene de asesor_pozo
@@ -2868,10 +2884,11 @@ function prevT(){
   }
 
   const m=parseInt(gv('nm')),el=document.getElementById('nprev')
-  if(!m||isNaN(m)){hi('nprev');return}sh('nprev')
+  if(!m||isNaN(m)){hi('nprev');prevPago();return}sh('nprev')
   const c=categ(m)
   const col=m>=200000?'var(--green)':m>=100000?'var(--blue)':'var(--amber)'
   el.innerHTML=`Categoria: <strong style="color:${col}">${c.label}</strong>` + (c.isVenta?` &nbsp;·&nbsp; Comision estimada: <span class="ag">${fmt(calcC(m))}</span>`:'&nbsp;·&nbsp; <span style="color:var(--amber)">Menos de $100.000 — se guarda como reserva</span>')
+  prevPago()
 }
 async function cargarVenta(){
   hi('nerr');hi('a-nok')
@@ -2949,13 +2966,28 @@ function toggleAhorroForm(){
   if(body)body.classList.toggle('hidden',!checked)
 }
 function prevAhorroForm(){
-  var m=parseFloat(document.getElementById('n-ahorro-monto')?.value)
+  var m=parseFloat(document.getElementById('n-ahorro-monto')?.value)||0
+  var ef=parseFloat(document.getElementById('n-ahorro-ef')?.value)||0
+  var tr=parseFloat(document.getElementById('n-ahorro-tr')?.value)||0
   var el=document.getElementById('n-ahorro-prev')
   if(!el)return
-  if(!m||isNaN(m)){el.textContent='';return}
-  var pctAhorro=(CFG_COM&&CFG_COM.ob_ahorro_pct!=null)?CFG_COM.ob_ahorro_pct:0.10
-  var com=Math.round(m*pctAhorro)
-  el.innerHTML='Comisión estimada por ahorro: <span class="at">'+fmt(com)+'</span> ('+Math.round(pctAhorro*100)+'%)'
+  var partes=[]
+  if(m>0){
+    var pctAhorro=(CFG_COM&&CFG_COM.ob_ahorro_pct!=null)?CFG_COM.ob_ahorro_pct:0.10
+    var com=Math.round(m*pctAhorro)
+    partes.push('Comisión estimada: <span class="at">'+fmt(com)+'</span> ('+Math.round(pctAhorro*100)+'%)')
+  }
+  if(ef>0||tr>0){
+    var suma=ef+tr
+    var diff=m-suma
+    if(m<=0)partes.push('<span style="color:var(--amber)">Indica el monto del ahorro</span>')
+    else if(diff>0)partes.push('<span style="color:var(--amber);font-weight:600">Falta '+fmt(diff)+'</span>')
+    else if(diff<0)partes.push('<span style="color:var(--red);font-weight:600">Sobra '+fmt(-diff)+'</span>')
+    else partes.push('<span style="color:var(--green);font-weight:600">✓ Coincide</span>')
+  } else if(m>0){
+    partes.push('<span style="color:var(--amber)">Falta indicar '+fmt(m)+' en efectivo/transferencia</span>')
+  }
+  el.innerHTML=partes.join(' &nbsp;·&nbsp; ')
 }
 function agregarSplitAhorro(){
   if(!window._ahorroSplitRows)window._ahorroSplitRows=[]
@@ -3744,7 +3776,7 @@ function openOBPagoCuota(opId,cliente,numeroCuota){
           </div>
           <div>
             <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-            <input id="obp-tr" type="number" placeholder="0" style="font-size:13px">
+            <input id="obp-tr" type="number" placeholder="0" style="font-size:13px" oninput="previewOBPago(${numeroCuota})">
           </div>
         </div>
       </div>
@@ -3770,7 +3802,14 @@ function previewOBPago(numeroCuota){
   const dia=new Date(f+'T12:00:00').getDate()
   const com=calcComCuota(numeroCuota,dia)
   const color=dia<=10?'var(--teal)':'var(--amber)'
-  el.innerHTML=`Día <strong style="color:${color}">${dia}</strong> del mes — Comision: <span style="color:var(--teal);font-weight:600;font-family:var(--mono)">$${com.toLocaleString('es-AR')}</span>`
+  const ef=parseFloat(document.getElementById('obp-ef')?.value)||0
+  const tr=parseFloat(document.getElementById('obp-tr')?.value)||0
+  var pagoMsg=''
+  if(ef<=0&&tr<=0)pagoMsg=' &nbsp;·&nbsp; <span style="color:var(--amber)">Indica el monto recibido</span>'
+  else if(ef>0&&tr>0)pagoMsg=' &nbsp;·&nbsp; 💵 '+fmt(ef)+' + 🏦 '+fmt(tr)+' = <strong>'+fmt(ef+tr)+'</strong>'
+  else if(ef>0)pagoMsg=' &nbsp;·&nbsp; 💵 Efectivo: <strong>'+fmt(ef)+'</strong>'
+  else pagoMsg=' &nbsp;·&nbsp; 🏦 Transferencia: <strong>'+fmt(tr)+'</strong>'
+  el.innerHTML=`Día <strong style="color:${color}">${dia}</strong> del mes — Comision: <span style="color:var(--teal);font-weight:600;font-family:var(--mono)">$${com.toLocaleString('es-AR')}</span>`+pagoMsg
 }
 async function guardarOBPago(opId,numeroCuota){
   const f=document.getElementById('obp-fecha')?.value
@@ -3958,11 +3997,11 @@ function openOBMov(opId,cliente,tipo){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
           <div>
             <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
-            <input id="obm-ef" type="number" placeholder="0" style="font-size:13px">
+            <input id="obm-ef" type="number" placeholder="0" style="font-size:13px" oninput="previewOBMov()">
           </div>
           <div>
             <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
-            <input id="obm-tr" type="number" placeholder="0" style="font-size:13px">
+            <input id="obm-tr" type="number" placeholder="0" style="font-size:13px" oninput="previewOBMov()">
           </div>
         </div>
       </div>
@@ -3997,21 +4036,35 @@ function setOB72(v){
 function previewOBMov(){
   const m=parseFloat(document.getElementById('obm-monto')?.value)
   const f=document.getElementById('obm-fecha')?.value
+  const ef=parseFloat(document.getElementById('obm-ef')?.value)||0
+  const tr=parseFloat(document.getElementById('obm-tr')?.value)||0
   const el=document.getElementById('obm-prev')
   if(!el)return
   if(!m||isNaN(m)){el.textContent='Ingresa los datos para ver la comision estimada';return}
   let com=0,det=''
+  var cfg=CFG_COM||{}
   if(obMovTipo==='incremento'){
-    let pct=27.5,hrs=null
+    let pctTemp=(cfg.ob_incremento_pct_temprano!=null?cfg.ob_incremento_pct_temprano:0.55)*100
+    let pctTard=(cfg.ob_incremento_pct_tardio!=null?cfg.ob_incremento_pct_tardio:0.275)*100
+    let pct=pctTard,hrs=null
     if(f&&obMovOpFecha){
       hrs=Math.round((new Date(f+'T12:00:00')-new Date(obMovOpFecha+'T12:00:00'))/(1000*3600))
-      pct=hrs<=72?55:27.5
+      pct=hrs<=72?pctTemp:pctTard
     }
     com=Math.round(m*(pct/100))
     det=hrs!==null?`${hrs}hs desde la venta — Tasa: <strong style="color:var(--teal)">${pct}%</strong> (${hrs<=72?'≤72hs':'>72hs'}) — Comision: <span class="at">${fmt(com)}</span>`:`Tasa: <strong style="color:var(--teal)">${pct}%</strong> — Comision: <span class="at">${fmt(com)}</span>`
   } else {
-    com=Math.round(m*0.10)
-    det=`Tasa: 10% — Comision: <span class="at">${fmt(com)}</span>`
+    let pctAh=(cfg.ob_ahorro_pct!=null?cfg.ob_ahorro_pct:0.10)*100
+    com=Math.round(m*(pctAh/100))
+    det=`Tasa: ${pctAh}% — Comision: <span class="at">${fmt(com)}</span>`
+  }
+  if(ef>0||tr>0){
+    var suma=ef+tr,diff=m-suma
+    if(diff>0)det+=' &nbsp;·&nbsp; <span style="color:var(--amber);font-weight:600">Falta '+fmt(diff)+'</span>'
+    else if(diff<0)det+=' &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600">Sobra '+fmt(-diff)+'</span>'
+    else det+=' &nbsp;·&nbsp; <span style="color:var(--green);font-weight:600">✓ Coincide</span>'
+  } else {
+    det+=' &nbsp;·&nbsp; <span style="color:var(--amber)">Falta indicar '+fmt(m)+' en efectivo/transferencia</span>'
   }
   el.innerHTML=det
 }

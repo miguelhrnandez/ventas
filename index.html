@@ -1175,14 +1175,14 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
 
       <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Asesores</div>
       <div class="g3" style="margin-bottom:18px">
-        <div><label>% Venta normal</label><input id="cfg-asesor-pct" type="number" step="0.01"></div>
-        <div><label>% Venta OB</label><input id="cfg-asesor-pct-ob" type="number" step="0.01"></div>
+        <div><label>% Venta normal</label><input id="cfg-asesor-pct" type="number" step="1" placeholder="Ej: 50"></div>
+        <div><label>% Venta OB</label><input id="cfg-asesor-pct-ob" type="number" step="1" placeholder="Ej: 50"></div>
         <div><label>Tope máximo ($)</label><input id="cfg-asesor-tope" type="number"></div>
       </div>
 
       <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Jefe de ventas</div>
       <div class="g3" style="margin-bottom:18px">
-        <div><label>% Comisión</label><input id="cfg-jefe-pct" type="number" step="0.01"></div>
+        <div><label>% Comisión</label><input id="cfg-jefe-pct" type="number" step="1" placeholder="Ej: 50"></div>
       </div>
 
       <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Presentaciones</div>
@@ -1193,9 +1193,9 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
 
       <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">On Boarding — Incrementos y ahorros</div>
       <div class="g3" style="margin-bottom:18px">
-        <div><label>% Incremento ≤72hs</label><input id="cfg-ob-inc-temp" type="number" step="0.01"></div>
-        <div><label>% Incremento &gt;72hs</label><input id="cfg-ob-inc-tard" type="number" step="0.01"></div>
-        <div><label>% Ahorro</label><input id="cfg-ob-ahorro" type="number" step="0.01"></div>
+        <div><label>% Incremento ≤72hs</label><input id="cfg-ob-inc-temp" type="number" step="1" placeholder="Ej: 50"></div>
+        <div><label>% Incremento &gt;72hs</label><input id="cfg-ob-inc-tard" type="number" step="1" placeholder="Ej: 50"></div>
+        <div><label>% Ahorro</label><input id="cfg-ob-ahorro" type="number" step="1" placeholder="Ej: 50"></div>
       </div>
 
       <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">On Boarding — Comisión por cuota mensual</div>
@@ -2050,15 +2050,16 @@ async function loadCfgCom(){
 function rCfgComForm(){
   var cfg=CFG_COM||{}
   var setVal=function(id,val,def){var el=document.getElementById(id);if(el)el.value=val!=null?val:def}
-  setVal('cfg-asesor-pct',cfg.asesor_pct,0.5)
-  setVal('cfg-asesor-pct-ob',cfg.asesor_pct_ob,0.55)
+  var setPct=function(id,val,def){var el=document.getElementById(id);if(el)el.value=val!=null?Math.round(val*10000)/100:def}
+  setPct('cfg-asesor-pct',cfg.asesor_pct,50)
+  setPct('cfg-asesor-pct-ob',cfg.asesor_pct_ob,55)
   setVal('cfg-asesor-tope',cfg.asesor_tope,250000)
-  setVal('cfg-jefe-pct',cfg.jefe_ventas_pct,0.165)
+  setPct('cfg-jefe-pct',cfg.jefe_ventas_pct,16.5)
   setVal('cfg-pres-monto',cfg.presentador_monto,66000)
   setVal('cfg-jpres-monto',cfg.jefe_presentaciones_monto,35000)
-  setVal('cfg-ob-inc-temp',cfg.ob_incremento_pct_temprano,0.55)
-  setVal('cfg-ob-inc-tard',cfg.ob_incremento_pct_tardio,0.275)
-  setVal('cfg-ob-ahorro',cfg.ob_ahorro_pct,0.10)
+  setPct('cfg-ob-inc-temp',cfg.ob_incremento_pct_temprano,55)
+  setPct('cfg-ob-inc-tard',cfg.ob_incremento_pct_tardio,27.5)
+  setPct('cfg-ob-ahorro',cfg.ob_ahorro_pct,10)
   for(var n=1;n<=6;n++){
     setVal('cfg-cuota-m'+n+'-antes',cfg['cuota_m'+n+'_antes'],n===1?20000:n===2?15000:10000)
     setVal('cfg-cuota-m'+n+'-despues',cfg['cuota_m'+n+'_despues'],n===1?10000:n===2?7500:5000)
@@ -2068,16 +2069,17 @@ function rCfgComForm(){
 async function guardarCfgComForm(){
   hi('cfgcom-ok');hi('cfgcom-err')
   var gv2=function(id){var el=document.getElementById(id);return el?parseFloat(el.value):null}
+  var gvPct=function(id){var v=gv2(id);return v!=null?v/100:null}
   var campos={
-    asesor_pct:gv2('cfg-asesor-pct'),
-    asesor_pct_ob:gv2('cfg-asesor-pct-ob'),
+    asesor_pct:gvPct('cfg-asesor-pct'),
+    asesor_pct_ob:gvPct('cfg-asesor-pct-ob'),
     asesor_tope:gv2('cfg-asesor-tope'),
-    jefe_ventas_pct:gv2('cfg-jefe-pct'),
+    jefe_ventas_pct:gvPct('cfg-jefe-pct'),
     presentador_monto:gv2('cfg-pres-monto'),
     jefe_presentaciones_monto:gv2('cfg-jpres-monto'),
-    ob_incremento_pct_temprano:gv2('cfg-ob-inc-temp'),
-    ob_incremento_pct_tardio:gv2('cfg-ob-inc-tard'),
-    ob_ahorro_pct:gv2('cfg-ob-ahorro')
+    ob_incremento_pct_temprano:gvPct('cfg-ob-inc-temp'),
+    ob_incremento_pct_tardio:gvPct('cfg-ob-inc-tard'),
+    ob_ahorro_pct:gvPct('cfg-ob-ahorro')
   }
   for(var n=1;n<=6;n++){
     campos['cuota_m'+n+'_antes']=gv2('cfg-cuota-m'+n+'-antes')

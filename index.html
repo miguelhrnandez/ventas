@@ -1177,7 +1177,7 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-ops" style="width:auto"> Ver sus operaciones y comisiones</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-cargar" style="width:auto"> Cargar ventas/reservas</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-carp" style="width:auto"> Ver carpetas (tesoreria)</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-efectivo_ob" style="width:auto"> Ver y aceptar cuotas/incrementos OB (CUOTAS METROTERRA PLUS)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-efectivo_ob" style="width:auto"> Ver y aceptar efectivo recibido (ventas, ahorros y cuotas OB)</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-comtodo" style="width:auto"> Ver comisiones de todo el equipo</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" id="p-todasops" style="width:auto"> Ver todas las operaciones</label>
               <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;letter-spacing:0.05em">Presentaciones y OB</div>
@@ -2389,7 +2389,7 @@ async function showCustomRole(){
   if(permisos.ops)items.push({id:'ops',label:'Mis operaciones',fn:"custTab('ops',document.getElementById('sbitem-ops'))",icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'})
   if(permisos.cargar)items.push({id:'cargar',label:'Cargar nueva',fn:"custTab('cargar',document.getElementById('sbitem-cargar'))",icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'})
   if(permisos.carp||permisos.todasops)items.push({id:'carp',label:'Carpetas',fn:"custTab('carp',document.getElementById('sbitem-carp'))",icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v11a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-7l-2-2H5a2 2 0 00-2 2z"/></svg>'})
-  if(permisos.efectivo_ob)items.push({id:'efob',label:'Cuotas MetroTerra Plus',fn:"custTab('efob',document.getElementById('sbitem-efob'))",icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'})
+  if(permisos.efectivo_ob)items.push({id:'efob',label:'Efectivo recibido',fn:"custTab('efob',document.getElementById('sbitem-efob'))",icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'})
   if(permisos.comtodo)items.push({id:'com',label:'Comisiones',fn:"custTab('com',document.getElementById('sbitem-com'))",icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'})
   if(permisos.pres)items.push({id:'pres',label:'Presentaciones',fn:"custTab('pres',document.getElementById('sbitem-pres'))",icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'})
   if(permisos.ob)items.push({id:'ob',label:'On Boarding',fn:"custTab('ob',document.getElementById('sbitem-ob'))",icon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a6 6 0 0112 0v2"/></svg>'})
@@ -2436,39 +2436,49 @@ function custTab(t,btn){
 }
 
 
-// ═══ TESORERÍA: CUOTAS METROTERRA PLUS ═══
+// ═══ TESORERÍA: EFECTIVO RECIBIDO ═══
 async function rEfectivoOB(){
   var cont=document.getElementById('cust-efob')
   if(!cont)return
   cont.innerHTML='<div class="es">Cargando...</div>'
-  // Combinar cuotas y movimientos (incremento/ahorro) en una sola lista
+  // Combinar cuotas OB + ventas + ahorros, todo en efectivo, agrupado por semana de operación
   var items=[]
   allObPagos.forEach(function(p){
+    if(!(p.monto_efectivo>0))return
     var op=allOps.find(function(o){return o.id===p.operacion_id})
     items.push({
-      tipo:'cuota',label:'M'+p.numero_cuota,
+      origen:'cuota',label:'M'+p.numero_cuota,
       cliente:op?op.cliente:'(cliente no encontrado)',
-      ob_nombre:p.ob_nombre,fecha:p.fecha_pago,
-      ef:p.monto_efectivo||0,tr:p.monto_transferencia||0,
-      metodo:p.metodo_pago||'',
+      responsable:p.ob_nombre,fecha:op?(op.fecha_carpeta||op.fecha):p.fecha_pago,
+      ef:p.monto_efectivo||0,
       tesEstado:p.tesoreria_estado||'pendiente',
-      id:p.id,tabla:'ob_pagos_cuota'
+      id:p.id,tabla:'ob_pagos_cuota',campoEstado:'tesoreria_estado',campoFecha:'tesoreria_fecha'
     })
   })
-  allObMovs.forEach(function(m){
-    var op=allOps.find(function(o){return o.id===m.operacion_id})
-    items.push({
-      tipo:m.tipo==='incremento'?'Incremento':'Ahorro',label:m.tipo==='incremento'?'Incremento':'Ahorro',
-      cliente:op?op.cliente:'(cliente no encontrado)',
-      ob_nombre:m.ob_nombre,fecha:m.fecha,
-      ef:m.monto_efectivo||0,tr:m.monto_transferencia||0,
-      metodo:m.metodo_pago||'',
-      tesEstado:m.tesoreria_estado||'pendiente',
-      id:m.id,tabla:'ob_movimientos'
-    })
+  allOps.forEach(function(op){
+    if(op.monto_efectivo>0){
+      items.push({
+        origen:'venta',label:'Venta',
+        cliente:op.cliente,
+        responsable:op.asesor_nombre,fecha:op.fecha_carpeta||op.fecha,
+        ef:op.monto_efectivo,
+        tesEstado:op.efectivo_tesoreria_estado||'pendiente',
+        id:op.id,tabla:'operaciones',campoEstado:'efectivo_tesoreria_estado',campoFecha:'efectivo_tesoreria_fecha'
+      })
+    }
+    if(op.ahorro_efectivo>0){
+      items.push({
+        origen:'ahorro',label:'Ahorro',
+        cliente:op.cliente,
+        responsable:op.asesor_nombre,fecha:op.fecha_carpeta||op.fecha,
+        ef:op.ahorro_efectivo,
+        tesEstado:op.ahorro_efectivo_tesoreria_estado||'pendiente',
+        id:op.id,tabla:'operaciones',campoEstado:'ahorro_efectivo_tesoreria_estado',campoFecha:'ahorro_efectivo_tesoreria_fecha'
+      })
+    }
   })
-  if(!items.length){cont.innerHTML='<div class="card"><div class="es">Sin cuotas o incrementos registrados</div></div>';return}
-  // Agrupar por semana usando getPer
+  if(!items.length){cont.innerHTML='<div class="card"><div class="es">Sin efectivo registrado</div></div>';return}
+  // Agrupar por semana (misma agrupación que carpetas: fecha_carpeta||fecha / fecha_pago)
   var grupos={}
   items.forEach(function(it){
     if(!it.fecha)return
@@ -2481,36 +2491,38 @@ async function rEfectivoOB(){
   keys.forEach(function(k){
     var g=grupos[k]
     var totalEf=g.items.reduce(function(a,it){return a+it.ef},0)
-    var totalTr=g.items.reduce(function(a,it){return a+it.tr},0)
     var pendientes=g.items.filter(function(it){return it.tesEstado==='pendiente'}).length
     out+='<div class="card" style="margin-bottom:16px">'
     out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px">'
-    out+='<div style="font-size:14px;font-weight:600">'+g.per.label+'</div>'
+    out+='<div><div style="font-size:14px;font-weight:600">'+g.per.label+'</div>'
+    out+='<div style="font-size:11px;color:var(--text3);margin-top:2px">Cobro est.: '+fmtD(g.per.cob.toISOString().slice(0,10))+'</div></div>'
     out+='<div style="display:flex;gap:14px;align-items:center">'
     if(pendientes>0)out+='<span style="font-size:11px;font-weight:600;color:var(--amber);background:rgba(245,158,11,0.12);padding:3px 10px;border-radius:20px">'+pendientes+' pendiente'+(pendientes!==1?'s':'')+'</span>'
-    out+='<span style="font-size:12px;color:var(--text3)">💵 '+fmt(totalEf)+' &nbsp; 🏦 '+fmt(totalTr)+'</span>'
+    out+='<span style="font-size:14px;font-weight:700;color:var(--teal)">💵 '+fmt(totalEf)+'</span>'
     out+='</div></div>'
     out+='<div style="overflow-x:auto"><table><thead><tr>'
-    out+='<th>Fecha</th><th>OB</th><th>Cliente</th><th>Tipo</th><th>Efectivo</th><th>Transferencia</th><th>Estado</th><th>Acciones</th>'
+    out+='<th>Fecha</th><th>Responsable</th><th>Cliente</th><th>Origen</th><th>Efectivo</th><th>Estado</th><th>Acciones</th>'
     out+='</tr></thead><tbody>'
     g.items.sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'')})
     g.items.forEach(function(it){
       var estadoBadge=it.tesEstado==='aceptado'?'<span class="badge b-acp">Aceptado</span>':
         it.tesEstado==='denegado'?'<span class="badge b-den">Denegado</span>':
         '<span class="badge b-pend">Pendiente</span>'
+      var origenBadge=it.origen==='cuota'?'<span class="badge" style="background:rgba(96,165,250,0.12);color:var(--blue)">'+it.label+'</span>':
+        it.origen==='venta'?'<span class="badge" style="background:rgba(74,222,128,0.12);color:var(--green)">Venta</span>':
+        '<span class="badge" style="background:rgba(45,212,191,0.12);color:var(--teal)">Ahorro</span>'
       var acciones=it.tesEstado==='pendiente'
         ?'<div style="display:flex;gap:4px">'
-          +'<button onclick="setTesoreriaEfectivo(\''+it.tabla+'\',\''+it.id+'\',\'aceptado\')" style="font-size:11px;padding:3px 8px;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:6px;cursor:pointer">✓ Aceptar</button>'
-          +'<button onclick="setTesoreriaEfectivo(\''+it.tabla+'\',\''+it.id+'\',\'denegado\')" style="font-size:11px;padding:3px 8px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:6px;cursor:pointer">✗ Denegar</button>'
+          +'<button onclick="setEfectivoEstado(\''+it.tabla+'\',\''+it.id+'\',\''+it.campoEstado+'\',\''+it.campoFecha+'\',\'aceptado\')" style="font-size:11px;padding:3px 8px;background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,0.2);border-radius:6px;cursor:pointer">✓ Aceptar</button>'
+          +'<button onclick="setEfectivoEstado(\''+it.tabla+'\',\''+it.id+'\',\''+it.campoEstado+'\',\''+it.campoFecha+'\',\'denegado\')" style="font-size:11px;padding:3px 8px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:6px;cursor:pointer">✗ Denegar</button>'
         +'</div>'
         :'<span style="font-size:11px;color:var(--text3)">—</span>'
       out+='<tr>'
       out+='<td style="font-size:12px">'+fmtD(it.fecha)+'</td>'
-      out+='<td>'+(it.ob_nombre||'-')+'</td>'
+      out+='<td>'+(it.responsable||'-')+'</td>'
       out+='<td style="color:var(--text)">'+it.cliente+'</td>'
-      out+='<td><span class="badge b-acp" style="background:rgba(96,165,250,0.12);color:var(--blue)">'+it.label+'</span></td>'
-      out+='<td class="'+(it.ef>0?'ag':'')+'">'+(it.ef>0?fmt(it.ef):'-')+'</td>'
-      out+='<td class="'+(it.tr>0?'ag':'')+'">'+(it.tr>0?fmt(it.tr):'-')+'</td>'
+      out+='<td>'+origenBadge+'</td>'
+      out+='<td class="ag">'+fmt(it.ef)+'</td>'
       out+='<td>'+estadoBadge+'</td>'
       out+='<td>'+acciones+'</td>'
       out+='</tr>'
@@ -2519,14 +2531,16 @@ async function rEfectivoOB(){
   })
   cont.innerHTML=out
 }
-async function setTesoreriaEfectivo(tabla,id,estado){
+async function setEfectivoEstado(tabla,id,campoEstado,campoFecha,estado){
   var hoy=new Date().toISOString().slice(0,10)
-  await db.from(tabla).update({tesoreria_estado:estado,tesoreria_fecha:hoy}).eq('id',id)
+  var upd={}
+  upd[campoEstado]=estado
+  upd[campoFecha]=hoy
+  await db.from(tabla).update(upd).eq('id',id)
   mostrarToastCarp(estado==='aceptado'?'Efectivo aceptado':'Efectivo denegado')
+  await loadAll()
   var rPag=await db.from('ob_pagos_cuota').select('*').order('fecha_pago',{ascending:true})
   if(rPag.data)allObPagos=rPag.data
-  var rMov=await db.from('ob_movimientos').select('*').order('fecha',{ascending:false})
-  if(rMov.data)allObMovs=rMov.data
   rEfectivoOB()
 }
 
@@ -4412,13 +4426,6 @@ function rAdmCarp(){
     const totJPres=p.ops.filter(x=>x.pago_presentador==='aceptado'&&x.presentador_id).length*montoJPres()
     const grandTotal=totAcp+totAhorro+totJV+totPres+totJPres
     // Efectivo total recibido esta semana (ventas + ahorros + cuotas OB pagadas en efectivo)
-    const efVentas=opAcp.reduce((a,x)=>a+(x.monto_efectivo||0),0)
-    const efAhorros=opAcp.reduce((a,x)=>a+(x.ahorro_efectivo||0),0)
-    const efCuotasOB=(allObPagos||[]).filter(function(pg){
-      var pgPer=getPer(pg.fecha_pago)
-      return pgPer.key===k&&pg.tesoreria_estado==='aceptado'
-    }).reduce(function(a,pg){return a+(pg.monto_efectivo||0)},0)
-    const totEfectivoSemana=efVentas+efAhorros+efCuotasOB
     const counts={
       acp:p.ops.filter(x=>x.carpeta_tesoreria==='aceptada').length,
       pend:p.ops.filter(x=>!x.carpeta_tesoreria||x.carpeta_tesoreria==='pendiente').length,
@@ -4498,7 +4505,6 @@ function rAdmCarp(){
         +'<div style="text-align:right">'
           +'<div class="ag" style="font-size:15px;font-weight:700">'+fmt(grandTotal)+'</div>'
           +'<div style="font-size:10px;color:var(--text3)">total semana</div>'
-          +(totEfectivoSemana>0?'<div style="font-size:12px;font-weight:600;color:var(--teal);margin-top:4px">💵 '+fmt(totEfectivoSemana)+'</div><div style="font-size:9px;color:var(--text3)">efectivo a llevar</div>':'')
         +'</div>'
       +'</div>'
       // DETALLE siempre en DOM
@@ -5235,7 +5241,7 @@ const PERMISOS_LABELS={
   ops:'Ver sus operaciones y comisiones',
   cargar:'Cargar ventas/reservas',
   carp:'Ver carpetas (tesoreria)',
-  efectivo_ob:'Ver y aceptar cuotas/incrementos OB (CUOTAS METROTERRA PLUS)',
+  efectivo_ob:'Ver y aceptar efectivo recibido (ventas, ahorros y cuotas OB)',
   comtodo:'Ver comisiones de todo el equipo',
   todasops:'Ver todas las operaciones',
   // Presentaciones y OB

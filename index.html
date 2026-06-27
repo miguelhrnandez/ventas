@@ -454,6 +454,37 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
           </div>
           <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
         </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <input type="checkbox" id="n-ahorro-check" style="width:auto" onchange="toggleAhorroForm()">
+            <label style="margin:0;cursor:pointer" onclick="document.getElementById('n-ahorro-check').click()">El cliente deja un ahorro adicional</label>
+          </div>
+          <div id="n-ahorro-body" class="hidden">
+            <div><label>Monto del ahorro ($)</label><input id="n-ahorro-monto" type="number" placeholder="Ej: 50000" oninput="prevAhorroForm()"></div>
+            <div style="margin-top:10px">
+              <label>Forma de pago del ahorro</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+                <div>
+                  <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
+                  <input id="n-ahorro-ef" type="number" placeholder="0" oninput="prevAhorroForm()">
+                </div>
+                <div>
+                  <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
+                  <input id="n-ahorro-tr" type="number" placeholder="0" oninput="prevAhorroForm()">
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="font-size:13px;color:var(--text)">Split del ahorro <span style="font-size:11px;color:var(--text3)">(opcional)</span></div>
+                <button onclick="agregarSplitAhorro()" style="font-size:11px;padding:4px 10px">+ Agregar</button>
+              </div>
+              <div id="n-ahorro-split-rows" style="display:flex;flex-direction:column;gap:6px"></div>
+              <div id="n-ahorro-split-total" style="font-size:11px;margin-top:4px;text-align:right"></div>
+            </div>
+            <div id="n-ahorro-prev" style="font-size:12px;color:var(--text3);margin-top:10px"></div>
+          </div>
+        </div>
         <div><label>Observaciones</label><textarea id="nob" rows="2" style="resize:vertical" placeholder="Opcional"></textarea></div>
         <div id="nprev" class="hidden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2)"></div>
         <div id="nerr" class="hidden em"></div>
@@ -2855,9 +2886,29 @@ async function cargarVenta(){
   if(!cl){sh('nerr');document.getElementById('nerr').textContent='Ingresa al menos el apellido del cliente.';return}
   if(!pl){sh('nerr');document.getElementById('nerr').textContent='Selecciona el tipo de plan.';return}
   if(!mo||isNaN(mo)||mo<=0){sh('nerr');document.getElementById('nerr').textContent='Ingresa un monto valido.';return}
+  // Ahorro adicional opcional
+  var insertData={fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:categ(mo).isVenta?'venta':'reserva',celular:cel,metodo_pago:mpago,carpeta_tesoreria:'pendiente',pago_presentador:null}
+  var ahorroActivo=document.getElementById('n-ahorro-check')?.checked
+  if(ahorroActivo){
+    var ahMonto=parseFloat(document.getElementById('n-ahorro-monto')?.value)||0
+    var ahEf=parseFloat(document.getElementById('n-ahorro-ef')?.value)||0
+    var ahTr=parseFloat(document.getElementById('n-ahorro-tr')?.value)||0
+    if(ahMonto>0){
+      var ahPago=''
+      if(ahEf>0&&ahTr>0)ahPago='Efectivo $'+Math.round(ahEf)+' + Transferencia $'+Math.round(ahTr)
+      else if(ahEf>0)ahPago='Efectivo'
+      else if(ahTr>0)ahPago='Transferencia'
+      var ahSplit=(window._ahorroSplitRows||[]).filter(function(r){return r.asesor_id&&r.porcentaje>0})
+      insertData.ahorro_monto=ahMonto
+      insertData.ahorro_efectivo=ahEf
+      insertData.ahorro_transferencia=ahTr
+      insertData.ahorro_metodo_pago=ahPago||null
+      insertData.ahorro_co_asesores=ahSplit
+    }
+  }
   document.getElementById('nbtn').textContent='Guardando...'
   const c=categ(mo)
-  const{error}=await db.from('operaciones').insert({fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:c.isVenta?'venta':'reserva',celular:cel,metodo_pago:mpago,carpeta_tesoreria:'pendiente',pago_presentador:null})
+  const{error}=await db.from('operaciones').insert(insertData)
   document.getElementById('nbtn').textContent='Guardar operacion'
   if(error){sh('nerr');document.getElementById('nerr').textContent='Error: '+(error.message||error.details||JSON.stringify(error));return}
   // Auto-actualizar leads de asesor en premios semanales
@@ -2865,10 +2916,79 @@ async function cargarVenta(){
   sv('nc-apellido','');sv('nc-nombre','');sv('npl','');sv('nm','');sv('nu','');sv('ncel','');sv('nob','');hi('nprev');document.getElementById('n-ef').value='';document.getElementById('n-tr').value='';document.getElementById('n-pago-prev').textContent=''
   document.getElementById('nfecha').value=hoy
   document.getElementById('nfecha-warn').style.display='none'
+  document.getElementById('n-ahorro-check').checked=false
+  document.getElementById('n-ahorro-monto').value=''
+  document.getElementById('n-ahorro-ef').value=''
+  document.getElementById('n-ahorro-tr').value=''
+  window._ahorroSplitRows=[]
+  toggleAhorroForm()
   document.getElementById('a-nok').textContent='Operacion guardada: '+cl+' - '+fmt(mo)
   sh('a-nok');setTimeout(()=>hi('a-nok'),3000)
   const{data}=await db.from('operaciones').select('*').eq('asesor_id',CU.id).order('fecha',{ascending:false})
   aOps=data||[];rAStats();aTab('o',document.querySelector('#SA .nav button'))
+}
+function toggleAhorroForm(){
+  var checked=document.getElementById('n-ahorro-check')?.checked
+  var body=document.getElementById('n-ahorro-body')
+  if(body)body.classList.toggle('hidden',!checked)
+}
+function prevAhorroForm(){
+  var m=parseFloat(document.getElementById('n-ahorro-monto')?.value)
+  var el=document.getElementById('n-ahorro-prev')
+  if(!el)return
+  if(!m||isNaN(m)){el.textContent='';return}
+  var pctAhorro=(CFG_COM&&CFG_COM.ob_ahorro_pct!=null)?CFG_COM.ob_ahorro_pct:0.10
+  var com=Math.round(m*pctAhorro)
+  el.innerHTML='Comisión estimada por ahorro: <span class="at">'+fmt(com)+'</span> ('+Math.round(pctAhorro*100)+'%)'
+}
+function agregarSplitAhorro(){
+  if(!window._ahorroSplitRows)window._ahorroSplitRows=[]
+  window._ahorroSplitRows.push({asesor_id:'',asesor_nombre:'',porcentaje:''})
+  renderSplitAhorroRows()
+}
+function renderSplitAhorroRows(){
+  var cont=document.getElementById('n-ahorro-split-rows')
+  if(!cont)return
+  var rows=window._ahorroSplitRows||[]
+  var asesores=allUsers.filter(function(u){return u.rol==='asesor'||u.rol==='asesor_pozo'})
+  var out=''
+  rows.forEach(function(r,i){
+    var opts=asesores.map(function(u){
+      return '<option value="'+u.id+'"'+(u.id===r.asesor_id?' selected':'')+' data-nombre="'+u.nombre+'">'+u.nombre+'</option>'
+    }).join('')
+    out+='<div style="display:grid;grid-template-columns:1fr 80px 32px;gap:6px;align-items:center">'
+    out+='<select onchange="updateSplitAhorroRow('+i+',this,'+"'asesor'"+')"><option value="">Elegir asesor</option>'+opts+'</select>'
+    out+='<input type="number" placeholder="%" min="1" max="100" value="'+(r.porcentaje||'')+'" onchange="updateSplitAhorroRow('+i+',this,'+"'pct'"+')" style="text-align:center">'
+    out+='<button onclick="eliminarSplitAhorroRow('+i+')" style="padding:4px 6px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:6px">✕</button>'
+    out+='</div>'
+  })
+  cont.innerHTML=out
+  actualizarTotalSplitAhorro()
+}
+function updateSplitAhorroRow(i,el,campo){
+  if(!window._ahorroSplitRows)return
+  if(campo==='asesor'){
+    var opt=el.options[el.selectedIndex]
+    window._ahorroSplitRows[i].asesor_id=el.value
+    window._ahorroSplitRows[i].asesor_nombre=opt?opt.getAttribute('data-nombre'):''
+  } else {
+    window._ahorroSplitRows[i].porcentaje=parseFloat(el.value)||0
+  }
+  actualizarTotalSplitAhorro()
+}
+function eliminarSplitAhorroRow(i){
+  if(!window._ahorroSplitRows)return
+  window._ahorroSplitRows.splice(i,1)
+  renderSplitAhorroRows()
+}
+function actualizarTotalSplitAhorro(){
+  var rows=window._ahorroSplitRows||[]
+  var total=rows.reduce(function(a,r){return a+(parseFloat(r.porcentaje)||0)},0)
+  var el=document.getElementById('n-ahorro-split-total')
+  if(!el)return
+  if(!rows.length){el.textContent='';return}
+  el.textContent='Co-asesores: '+total+'% (el resto queda para el asesor principal)'
+  el.style.color=total<=100?'var(--text3)':'var(--amber)'
 }
 let aComFiltro={desde:'',hasta:''}
 function rACom(){
@@ -2887,21 +3007,22 @@ function rACom(){
   const byP={}
   ops.forEach(op=>{const p=getPer(op.fecha_tesoreria||op.fecha);if(!byP[p.key])byP[p.key]={...p,ops:[]};byP[p.key].ops.push(op)})
   const ks=Object.keys(byP).sort().reverse()
-  function comParaAsesor(op){
+  function comVentaParaAsesor(op){
     var base=calcC(op.monto,!!op.ob_id)
     if(!op.co_asesores||!op.co_asesores.length)return base
     var split=op.co_asesores.filter(function(r){return r.asesor_id&&r.porcentaje>0})
     if(!split.length)return base
-    // Soy co-asesor?
     var miParte=split.find(function(r){return r.asesor_id===CU.id})
     if(miParte)return Math.round(base*(miParte.porcentaje/100))
-    // Soy el principal? recibo 100% - suma co-asesores
     if(op.asesor_id===CU.id){
       var pctCoAsesores=split.reduce(function(a,r){return a+r.porcentaje},0)
       var pctPrincipal=100-pctCoAsesores
       return pctPrincipal>0?Math.round(base*(pctPrincipal/100)):0
     }
     return 0
+  }
+  function comParaAsesor(op){
+    return comVentaParaAsesor(op)+calcAhorroComParaAsesor(op,CU.id)
   }
   const totalGral=ops.filter(x=>x.carpeta_tesoreria==='aceptada').reduce((a,x)=>a+comParaAsesor(x),0)
   const totalPend=ops.filter(x=>x.carpeta_tesoreria!=='aceptada').reduce((a,x)=>a+comParaAsesor(x),0)
@@ -2948,9 +3069,21 @@ function rACom(){
         +'<td>'+op.plan+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
         +'<td><span class="badge '+c.cls+'">'+c.label+'</span></td>'
-        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(comParaAsesor(op)):'pendiente')+'</td>'
+        +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(comVentaParaAsesor(op)):'pendiente')+'</td>'
         +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
         +'</tr>'
+      var miComAhorro=calcAhorroComParaAsesor(op,CU.id)
+      if(op.ahorro_monto>0&&miComAhorro>0){
+        filas+='<tr style="background:rgba(45,212,191,0.04)">'
+          +'<td style="font-size:12px;color:var(--text3)">'+fmtD(op.fecha)+'</td>'
+          +'<td style="color:var(--text2)"><span style="font-size:10px;background:rgba(45,212,191,0.15);color:var(--teal);padding:1px 7px;border-radius:4px;font-weight:600">AHORRO</span> '+op.cliente+'</td>'
+          +'<td style="color:var(--text3);font-size:12px">'+(op.ahorro_metodo_pago||'-')+'</td>'
+          +'<td class="am">'+fmt(op.ahorro_monto)+'</td>'
+          +'<td><span class="badge" style="background:rgba(45,212,191,0.12);color:var(--teal)">Ahorro</span></td>'
+          +'<td class="ag">'+(op.carpeta_tesoreria==='aceptada'?fmt(miComAhorro):'pendiente')+'</td>'
+          +'<td>'+badgeE(op.carpeta_tesoreria||'pendiente')+'</td>'
+          +'</tr>'
+      }
     })
     out+='<div class="card" style="margin-bottom:14px">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">'
@@ -3389,6 +3522,20 @@ function getOBCuotas(){
 var OB_CUOTAS=getOBCuotas()
 function montoPres(){var cfg=CFG_COM||{};return cfg.presentador_monto!=null?cfg.presentador_monto:66000}
 function montoJPres(){var cfg=CFG_COM||{};return cfg.jefe_presentaciones_monto!=null?cfg.jefe_presentaciones_monto:35000}
+function pctAhorroAsesor(){var cfg=CFG_COM||{};return cfg.ob_ahorro_pct!=null?cfg.ob_ahorro_pct:0.10}
+function calcAhorroComParaAsesor(op,asesorId){
+  if(!op.ahorro_monto||op.ahorro_monto<=0)return 0
+  var base=Math.round(op.ahorro_monto*pctAhorroAsesor())
+  var split=(op.ahorro_co_asesores||[]).filter(function(r){return r.asesor_id&&r.porcentaje>0})
+  if(!split.length)return op.asesor_id===asesorId?base:0
+  var miParte=split.find(function(r){return r.asesor_id===asesorId})
+  if(miParte)return Math.round(base*(miParte.porcentaje/100))
+  if(op.asesor_id===asesorId){
+    var pctCo=split.reduce(function(a,r){return a+r.porcentaje},0)
+    return Math.round(base*((100-pctCo)/100))
+  }
+  return 0
+}
 function calcComCuota(nro,dia){var t=getOBCuotas()[nro];if(!t)return 0;return dia<=10?t.antes:t.despues}
 function getPagosCuota(opId){return obPagos.filter(x=>x.operacion_id===opId)}
 function rOBMis(isAdmin=false){
@@ -4218,7 +4365,7 @@ function rAdmCarp(){
         +'<button onclick="deleteOp(\''+op.id+'\',\'admin\')" style="font-size:11px;padding:3px 7px;background:var(--red-bg);border:1px solid rgba(248,113,113,0.2);border-radius:6px;color:var(--red);cursor:pointer">🗑</button>'
       filas+='<tr>'
         +'<td style="color:var(--text)">'+op.asesor_nombre+'</td>'
-        +'<td>'+op.cliente+'</td>'
+        +'<td>'+op.cliente+(op.ahorro_monto>0?' <span style="font-size:9px;background:rgba(45,212,191,0.15);color:var(--teal);padding:1px 6px;border-radius:4px;font-weight:600">+'+fmt(op.ahorro_monto)+' ahorro</span>':'')+'</td>'
         +'<td>'+op.plan+'</td>'
         +'<td>'+(op.unidad||'-')+'</td>'
         +'<td class="am">'+fmt(op.monto)+'</td>'
@@ -4466,6 +4613,30 @@ function rAdmCom(){
         if(op.carpeta_tesoreria==='aceptada')porAs[op.asesor_id].com+=comTotal
         else porAs[op.asesor_id].comPend+=comTotal
       }
+      // Ahorro adicional (independiente de la venta, puede tener su propio split)
+      if(op.ahorro_monto>0){
+        var ahBase=Math.round(op.ahorro_monto*pctAhorroAsesor())
+        var ahSplit=(op.ahorro_co_asesores||[]).filter(function(r){return r.asesor_id&&r.porcentaje>0})
+        if(ahSplit.length){
+          var ahPctCo=ahSplit.reduce(function(a,r){return a+r.porcentaje},0)
+          var ahPctPrincipal=100-ahPctCo
+          if(ahPctPrincipal>0){
+            var ahComPrincipal=Math.round(ahBase*(ahPctPrincipal/100))
+            if(op.carpeta_tesoreria==='aceptada')porAs[op.asesor_id].com+=ahComPrincipal
+            else porAs[op.asesor_id].comPend+=ahComPrincipal
+          }
+          ahSplit.forEach(function(r){
+            var aid=r.asesor_id
+            if(!porAs[aid])porAs[aid]={nombre:r.asesor_nombre||aid,aid:aid,com:0,comPend:0,ops:0}
+            var ahComParte=Math.round(ahBase*(r.porcentaje/100))
+            if(op.carpeta_tesoreria==='aceptada')porAs[aid].com+=ahComParte
+            else porAs[aid].comPend+=ahComParte
+          })
+        } else {
+          if(op.carpeta_tesoreria==='aceptada')porAs[op.asesor_id].com+=ahBase
+          else porAs[op.asesor_id].comPend+=ahBase
+        }
+      }
       porAs[op.asesor_id].ops+=1})
     const opAh=p.ops.filter(x=>x.plan==='Ahorro'),opAhAcp=opAh.filter(x=>x.carpeta_tesoreria==='aceptada'),comJA=opAhAcp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
     const opPo=p.ops.filter(x=>x.plan==='Pozo'),opPoAcp=opPo.filter(x=>x.carpeta_tesoreria==='aceptada'),comJP=opPoAcp.reduce((a,x)=>a+calcJV(x.monto,!!x.ob_id),0)
@@ -4571,6 +4742,18 @@ function rAdmCom(){
                     +com
                   +'</span>'
                 +'</div>'
+                if(op.ahorro_monto>0){
+                  var ahCom=calcAhorroComParaAsesor(op,r.aid)
+                  if(ahCom>0){
+                    var ahComStr=op.carpeta_tesoreria==='aceptada'?'<span class="ag">'+fmt(ahCom)+'</span>':'<span style="color:var(--amber)">pend.</span>'
+                    detalleHtml+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">'
+                      +'<span style="color:var(--text2)"><span style="font-size:9px;background:rgba(45,212,191,0.15);color:var(--teal);padding:1px 6px;border-radius:4px;font-weight:600">AHORRO</span> '+op.cliente+'</span>'
+                      +'<span style="display:flex;gap:12px;align-items:center">'+'<span class="am">'+fmt(op.ahorro_monto)+'</span>'
+                      +'<span class="badge" style="background:rgba(45,212,191,0.12);color:var(--teal)">'+(op.ahorro_metodo_pago||'-')+'</span>'
+                      +ahComStr
+                      +'</span></div>'
+                  }
+                }
               })
               detalleHtml+='</div></td></tr>'
             } else if((r.rolKey==='jefe_ahorro'||r.rolKey==='jefe_pozo')&&r.opsJefe){
@@ -4722,7 +4905,7 @@ function rAdmTodas(){
     filas+='<tr>'
       +'<td>'+fmtD(op.fecha)+'</td>'
       +'<td style="color:var(--text)">'+op.asesor_nombre+'</td>'
-      +'<td>'+op.cliente+'</td>'
+      +'<td>'+op.cliente+(op.ahorro_monto>0?' <span style="font-size:9px;background:rgba(45,212,191,0.15);color:var(--teal);padding:1px 6px;border-radius:4px;font-weight:600">+'+fmt(op.ahorro_monto)+' ahorro</span>':'')+'</td>'
       +'<td style="font-family:var(--mono);font-size:12px">'+(op.celular||'-')+'</td>'
       +'<td>'+op.plan+'</td>'
       +'<td>'+(op.metodo_pago||'-')+'</td>'

@@ -449,7 +449,11 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
         </div>
         <div class="g2">
           <div><label>Tipo de plan</label><select id="npl"><option value="">Seleccionar...</option><option value="Ahorro">Asesor ahorro</option><option value="Pozo">Asesor de pozo</option></select></div>
-          <div><label>Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
+          <div><label>Moneda de pago</label><select id="n-moneda" onchange="cambiarMonedaForm('n')"><option value="ARS">Pesos</option><option value="USD">Dólares (USD)</option><option value="EUR">Euros (EUR)</option></select></div>
+        </div>
+        <div class="g2">
+          <div><label id="n-monto-label">Cuota inicial ($)</label><input id="nm" type="number" placeholder="Ej: 150000" oninput="prevT()"></div>
+          <div id="n-cotiz-wrap" class="hidden"><label>Cotización del día</label><input id="n-cotiz" type="number" placeholder="Ej: 1200" oninput="prevT()"></div>
         </div>
         <div>
           <label>Fecha de la venta / reserva</label>
@@ -464,37 +468,13 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
           <label>Forma de pago</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
             <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
+              <label id="n-ef-label" style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
               <input id="n-ef" type="number" placeholder="0" oninput="prevPago()">
             </div>
             <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
+              <label id="n-tr-label" style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
               <input id="n-tr" type="number" placeholder="0" oninput="prevPago()">
             </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px">
-            <input type="checkbox" id="n-usd-check" style="width:auto" onchange="toggleMonedaExtra('n')">
-            <label style="margin:0;cursor:pointer;font-size:12px" onclick="document.getElementById('n-usd-check').click()">Parte en USD / EUR</label>
-          </div>
-          <div id="n-moneda-extra" class="hidden" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:4px">
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 USD</label>
-              <input id="n-usd" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">Cotización USD</label>
-              <input id="n-usd-cot" type="number" placeholder="Ej: 1200" oninput="prevPago()">
-            </div>
-            <div></div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💶 EUR</label>
-              <input id="n-eur" type="number" placeholder="0" oninput="prevPago()">
-            </div>
-            <div>
-              <label style="font-size:11px;color:var(--text3);margin-bottom:4px">Cotización EUR</label>
-              <input id="n-eur-cot" type="number" placeholder="Ej: 1300" oninput="prevPago()">
-            </div>
-            <div></div>
           </div>
           <div id="n-pago-prev" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
         </div>
@@ -504,30 +484,22 @@ body.light .ddmenu-list button:hover{background:#f4f4f5 !important}
             <label style="margin:0;cursor:pointer" onclick="document.getElementById('n-ahorro-check').click()">El cliente deja un ahorro adicional</label>
           </div>
           <div id="n-ahorro-body" class="hidden">
-            <div><label>Monto del ahorro ($)</label><input id="n-ahorro-monto" type="number" placeholder="Ej: 50000" oninput="prevAhorroForm()"></div>
+            <div class="g2">
+              <div><label id="nah-monto-label">Monto del ahorro ($)</label><input id="n-ahorro-monto" type="number" placeholder="Ej: 50000" oninput="prevAhorroForm()"></div>
+              <div><label>Moneda</label><select id="nah-moneda" onchange="cambiarMonedaForm('nah')"><option value="ARS">Pesos</option><option value="USD">Dólares (USD)</option><option value="EUR">Euros (EUR)</option></select></div>
+            </div>
+            <div id="nah-cotiz-wrap" class="hidden" style="margin-top:10px"><label>Cotización del día</label><input id="nah-cotiz" type="number" placeholder="Ej: 1200" oninput="prevAhorroForm()"></div>
             <div style="margin-top:10px">
               <label>Forma de pago del ahorro</label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
                 <div>
-                  <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
+                  <label id="nah-ef-label" style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
                   <input id="n-ahorro-ef" type="number" placeholder="0" oninput="prevAhorroForm()">
                 </div>
                 <div>
-                  <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
+                  <label id="nah-tr-label" style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
                   <input id="n-ahorro-tr" type="number" placeholder="0" oninput="prevAhorroForm()">
                 </div>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px">
-                <input type="checkbox" id="nah-usd-check" style="width:auto" onchange="toggleMonedaExtra('nah')">
-                <label style="margin:0;cursor:pointer;font-size:12px" onclick="document.getElementById('nah-usd-check').click()">Parte en USD / EUR</label>
-              </div>
-              <div id="nah-moneda-extra" class="hidden" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:4px">
-                <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 USD</label><input id="nah-usd" type="number" placeholder="0" oninput="prevAhorroForm()"></div>
-                <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">Cotización USD</label><input id="nah-usd-cot" type="number" placeholder="Ej: 1200" oninput="prevAhorroForm()"></div>
-                <div></div>
-                <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">💶 EUR</label><input id="nah-eur" type="number" placeholder="0" oninput="prevAhorroForm()"></div>
-                <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">Cotización EUR</label><input id="nah-eur-cot" type="number" placeholder="Ej: 1300" oninput="prevAhorroForm()"></div>
-                <div></div>
               </div>
             </div>
             <div style="margin-top:10px">
@@ -2949,54 +2921,63 @@ function rAOps(){
   html('a-ob','<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Unidad</th><th>Monto</th><th>Categoria</th><th>Tesoreria</th><th>Accion</th></tr></thead><tbody>'+filas+'</tbody></table>')
 }
 
-function toggleMonedaExtra(prefix){
-  var checked=document.getElementById(prefix+'-usd-check')?.checked
-  var body=document.getElementById(prefix+'-moneda-extra')
-  if(body)body.classList.toggle('hidden',!checked)
-  if(typeof window['prev'+prefix.charAt(0).toUpperCase()]==='function'){} // no-op, cada formulario llama su propio prev*
-  if(prefix==='n')prevPago()
-  if(prefix==='me')prevEditPago()
+// ═══ Sistema de moneda unica por operacion (Pesos / USD / EUR) ═══
+var SIMBOLO_MONEDA={ARS:'$',USD:'USD',EUR:'EUR'}
+function cambiarMonedaForm(prefix){
+  var moneda=document.getElementById(prefix+'-moneda')?.value||'ARS'
+  var cotizWrap=document.getElementById(prefix+'-cotiz-wrap')
+  var montoLabel=document.getElementById(prefix+'-monto-label')
+  var efLabel=document.getElementById(prefix+'-ef-label')
+  var trLabel=document.getElementById(prefix+'-tr-label')
+  var esExtranjera=moneda!=='ARS'
+  if(cotizWrap)cotizWrap.classList.toggle('hidden',!esExtranjera)
+  var sim=SIMBOLO_MONEDA[moneda]
+  if(montoLabel){
+    var base=montoLabel.getAttribute('data-base')||montoLabel.textContent.replace(/\(.*\)/,'').trim()
+    montoLabel.setAttribute('data-base',base)
+    montoLabel.textContent=base+' ('+sim+')'
+  }
+  if(efLabel)efLabel.textContent='💵 Efectivo ('+sim+')'
+  if(trLabel)trLabel.textContent='🏦 Transferencia ('+sim+')'
+  // Disparar el recalculo del formulario correspondiente
+  if(prefix==='n'){prevT();prevPago()}
+  if(prefix==='nah')prevAhorroForm()
+  if(prefix==='me'){prevEditTipo();prevEditPago()}
   if(prefix==='obm')previewOBMov()
   if(prefix==='obp'){var nc=window._obpNumeroCuotaActual;if(nc)previewOBPago(nc)}
 }
-function getMonedaExtra(prefix){
-  var usd=parseFloat(document.getElementById(prefix+'-usd')?.value)||0
-  var usdCot=parseFloat(document.getElementById(prefix+'-usd-cot')?.value)||0
-  var eur=parseFloat(document.getElementById(prefix+'-eur')?.value)||0
-  var eurCot=parseFloat(document.getElementById(prefix+'-eur-cot')?.value)||0
-  var usdPesos=usd*usdCot
-  var eurPesos=eur*eurCot
-  return {usd,usdCot,eur,eurCot,usdPesos,eurPesos,totalExtraPesos:usdPesos+eurPesos}
+function getMonedaInfo(prefix){
+  var moneda=document.getElementById(prefix+'-moneda')?.value||'ARS'
+  var cotiz=parseFloat(document.getElementById(prefix+'-cotiz')?.value)||0
+  return {moneda,cotiz,esExtranjera:moneda!=='ARS',simbolo:SIMBOLO_MONEDA[moneda]}
 }
-function monedaExtraTexto(me){
-  var partes=[]
-  if(me.usd>0)partes.push('USD '+me.usd+(me.usdCot>0?' (cotiz. '+fmt(me.usdCot)+' = '+fmt(me.usdPesos)+')':' (sin cotización)'))
-  if(me.eur>0)partes.push('EUR '+me.eur+(me.eurCot>0?' (cotiz. '+fmt(me.eurCot)+' = '+fmt(me.eurPesos)+')':' (sin cotización)'))
-  return partes.join(' + ')
+// Convierte un monto ingresado en la moneda del formulario a su equivalente en pesos
+function aPesos(valor,mi){
+  if(!mi.esExtranjera)return valor
+  return valor*mi.cotiz
 }
 function prevPago(){
   const ef=parseFloat(document.getElementById('n-ef')?.value)||0
   const tr=parseFloat(document.getElementById('n-tr')?.value)||0
-  const mo=parseInt(gv('nm'))||0
-  const me=getMonedaExtra('n')
+  const moRaw=parseFloat(gv('nm'))||0
+  const mi=getMonedaInfo('n')
   const el=document.getElementById('n-pago-prev')
   if(!el)return
-  const suma=ef+tr+me.totalExtraPesos
-  if(ef<=0&&tr<=0&&me.usd<=0&&me.eur<=0){el.innerHTML=mo>0?'<span style="color:var(--amber)">Falta indicar '+fmt(mo)+'</span>':'';return}
+  const sim=mi.simbolo
+  if(ef<=0&&tr<=0){el.innerHTML=moRaw>0?'<span style="color:var(--amber)">Falta indicar '+moRaw+' '+sim+'</span>':'';return}
+  if(mi.esExtranjera&&mi.cotiz<=0){el.innerHTML='<span style="color:var(--amber)">Falta indicar la cotización del día</span>';return}
   var resumen='<span style="color:var(--text2)">'
-  var partesTxt=[]
-  if(ef>0)partesTxt.push('💵 '+fmt(ef))
-  if(tr>0)partesTxt.push('🏦 '+fmt(tr))
-  var metxt=monedaExtraTexto(me)
-  if(metxt)partesTxt.push(metxt)
-  resumen+=partesTxt.join(' + ')+' = <strong>'+fmt(suma)+'</strong></span>'
-  if(mo>0){
-    var diff=mo-suma
-    if(diff>0)resumen+=' &nbsp;·&nbsp; <span style="color:var(--amber);font-weight:600">Falta '+fmt(diff)+'</span>'
-    else if(diff<0)resumen+=' &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600">Sobra '+fmt(-diff)+'</span>'
+  if(ef>0&&tr>0)resumen+='💵 '+ef+' '+sim+' + 🏦 '+tr+' '+sim+' = <strong>'+(ef+tr)+' '+sim+'</strong></span>'
+  else if(ef>0)resumen+='💵 Efectivo: <strong>'+ef+' '+sim+'</strong></span>'
+  else resumen+='🏦 Transferencia: <strong>'+tr+' '+sim+'</strong></span>'
+  const suma=ef+tr
+  if(mi.esExtranjera)resumen+=' &nbsp;·&nbsp; <span style="color:var(--text3)">≈ '+fmt(aPesos(suma,mi))+'</span>'
+  if(moRaw>0){
+    var diff=moRaw-suma
+    if(diff>0)resumen+=' &nbsp;·&nbsp; <span style="color:var(--amber);font-weight:600">Falta '+diff+' '+sim+'</span>'
+    else if(diff<0)resumen+=' &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600">Sobra '+(-diff)+' '+sim+'</span>'
     else resumen+=' &nbsp;·&nbsp; <span style="color:var(--green);font-weight:600">✓ Coincide</span>'
   }
-  if((me.usd>0&&me.usdCot<=0)||(me.eur>0&&me.eurCot<=0))resumen+=' &nbsp;·&nbsp; <span style="color:var(--amber)">Falta indicar la cotización</span>'
   el.innerHTML=resumen
 }
 function prevT(){
@@ -3006,11 +2987,14 @@ function prevT(){
     if(selPlan&&!selPlan.value)selPlan.value='Pozo'
   }
 
-  const m=parseInt(gv('nm')),el=document.getElementById('nprev')
-  if(!m||isNaN(m)){hi('nprev');prevPago();return}sh('nprev')
+  const mRaw=parseFloat(gv('nm')),el=document.getElementById('nprev')
+  const mi=getMonedaInfo('n')
+  if(!mRaw||isNaN(mRaw)){hi('nprev');prevPago();return}sh('nprev')
+  const m=aPesos(mRaw,mi)
   const c=categ(m)
   const col=m>=200000?'var(--green)':m>=100000?'var(--blue)':'var(--amber)'
-  el.innerHTML=`Categoria: <strong style="color:${col}">${c.label}</strong>` + (c.isVenta?` &nbsp;·&nbsp; Comision estimada: <span class="ag">${fmt(calcC(m))}</span>`:'&nbsp;·&nbsp; <span style="color:var(--amber)">Menos de $100.000 — se guarda como reserva</span>')
+  var equivTxt=mi.esExtranjera?` (≈ ${fmt(m)})`:''
+  el.innerHTML=`Categoria: <strong style="color:${col}">${c.label}</strong>${equivTxt}` + (c.isVenta?` &nbsp;·&nbsp; Comision estimada: <span class="ag">${fmt(calcC(m))}</span>`:'&nbsp;·&nbsp; <span style="color:var(--amber)">Menos de $100.000 — se guarda como reserva</span>')
   prevPago()
 }
 async function cargarVenta(){
@@ -3018,60 +3002,60 @@ async function cargarVenta(){
   const nc_ap=(document.getElementById('nc-apellido')?.value||'').trim().toUpperCase()
   const nc_no=(document.getElementById('nc-nombre')?.value||'').trim().toUpperCase()
   const cl=nc_ap&&nc_no?nc_ap+' '+nc_no:(nc_ap||nc_no)
-  const pl=gv('npl'),mo=parseInt(gv('nm')),un=gv('nu').trim(),cel=gv('ncel').trim(),ob=gv('nob').trim()
+  const pl=gv('npl'),moRaw=parseFloat(gv('nm')),un=gv('nu').trim(),cel=gv('ncel').trim(),ob=gv('nob').trim()
+  const mi=getMonedaInfo('n')
+  const mo=Math.round(aPesos(moRaw,mi))
   const nef=parseFloat(document.getElementById('n-ef')?.value)||0
   const ntr=parseFloat(document.getElementById('n-tr')?.value)||0
-  const nme=getMonedaExtra('n')
   let mpago=''
-  if(nef>0&&ntr>0)mpago='Efectivo $'+Math.round(nef)+' + Transferencia $'+Math.round(ntr)
+  if(nef>0&&ntr>0)mpago='Efectivo '+nef+' '+mi.simbolo+' + Transferencia '+ntr+' '+mi.simbolo
   else if(nef>0)mpago='Efectivo'
   else if(ntr>0)mpago='Transferencia'
-  if(monedaExtraTexto(nme))mpago=(mpago?mpago+' + ':'')+monedaExtraTexto(nme)
+  if(mi.esExtranjera)mpago+=' ('+mi.moneda+' cotiz. '+mi.cotiz+')'
   const hoy=new Date().toISOString().slice(0,10)
   const fechaVenta=gv('nfecha')||hoy
   if(!cl){sh('nerr');document.getElementById('nerr').textContent='Ingresa al menos el apellido del cliente.';return}
   if(!pl){sh('nerr');document.getElementById('nerr').textContent='Selecciona el tipo de plan.';return}
-  if(!mo||isNaN(mo)||mo<=0){sh('nerr');document.getElementById('nerr').textContent='Ingresa un monto valido.';return}
-  if(nef<=0&&ntr<=0&&nme.usd<=0&&nme.eur<=0){
+  if(!moRaw||isNaN(moRaw)||moRaw<=0){sh('nerr');document.getElementById('nerr').textContent='Ingresa un monto valido.';return}
+  if(mi.esExtranjera&&mi.cotiz<=0){sh('nerr');document.getElementById('nerr').textContent='Indica la cotización del día.';return}
+  if(nef<=0&&ntr<=0){
     sh('nerr');document.getElementById('nerr').textContent='Indica el monto en Efectivo y/o Transferencia.';return
   }
-  if((nme.usd>0&&nme.usdCot<=0)||(nme.eur>0&&nme.eurCot<=0)){
-    sh('nerr');document.getElementById('nerr').textContent='Indica la cotización del día para USD/EUR.';return
-  }
-  if(Math.round(nef+ntr+nme.totalExtraPesos)!==Math.round(mo)){
-    sh('nerr');document.getElementById('nerr').textContent='Efectivo + Transferencia + USD/EUR ('+fmt(nef+ntr+nme.totalExtraPesos)+') no coincide con el monto de la venta ('+fmt(mo)+').';return
+  if(Math.round(nef+ntr)!==Math.round(moRaw)){
+    sh('nerr');document.getElementById('nerr').textContent='Efectivo + Transferencia ('+(nef+ntr)+' '+mi.simbolo+') no coincide con la cuota inicial ('+moRaw+' '+mi.simbolo+').';return
   }
   // Ahorro adicional opcional
-  var insertData={fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:categ(mo).isVenta?'venta':'reserva',celular:cel,metodo_pago:mpago,monto_efectivo:nef,monto_transferencia:ntr,monto_usd:nme.usd,cotizacion_usd:nme.usdCot||null,monto_eur:nme.eur,cotizacion_eur:nme.eurCot||null,carpeta_tesoreria:'pendiente',pago_presentador:null}
+  var insertData={fecha:fechaVenta,fecha_carga:hoy,asesor_id:CU.id,asesor_nombre:CU.nombre,cliente:cl,plan:pl,monto:mo,unidad:un,obs:ob,estado:categ(mo).isVenta?'venta':'reserva',celular:cel,metodo_pago:mpago,monto_efectivo:mi.esExtranjera?0:nef,monto_transferencia:mi.esExtranjera?0:ntr,monto_usd:mi.moneda==='USD'?nef+ntr:0,cotizacion_usd:mi.moneda==='USD'?mi.cotiz:null,monto_eur:mi.moneda==='EUR'?nef+ntr:0,cotizacion_eur:mi.moneda==='EUR'?mi.cotiz:null,carpeta_tesoreria:'pendiente',pago_presentador:null}
   var ahorroActivo=document.getElementById('n-ahorro-check')?.checked
   if(ahorroActivo){
-    var ahMonto=parseFloat(document.getElementById('n-ahorro-monto')?.value)||0
+    var ahMontoRaw=parseFloat(document.getElementById('n-ahorro-monto')?.value)||0
+    var ahMi=getMonedaInfo('nah')
+    var ahMonto=Math.round(aPesos(ahMontoRaw,ahMi))
     var ahEf=parseFloat(document.getElementById('n-ahorro-ef')?.value)||0
     var ahTr=parseFloat(document.getElementById('n-ahorro-tr')?.value)||0
-    var ahMe=getMonedaExtra('nah')
-    if(ahMonto>0&&ahEf<=0&&ahTr<=0&&ahMe.usd<=0&&ahMe.eur<=0){
+    if(ahMontoRaw>0&&ahEf<=0&&ahTr<=0){
       sh('nerr');document.getElementById('nerr').textContent='Ahorro: indica el monto en Efectivo y/o Transferencia.';return
     }
-    if(ahMonto>0&&((ahMe.usd>0&&ahMe.usdCot<=0)||(ahMe.eur>0&&ahMe.eurCot<=0))){
-      sh('nerr');document.getElementById('nerr').textContent='Ahorro: indica la cotización del día para USD/EUR.';return
+    if(ahMontoRaw>0&&ahMi.esExtranjera&&ahMi.cotiz<=0){
+      sh('nerr');document.getElementById('nerr').textContent='Ahorro: indica la cotización del día.';return
     }
-    if(ahMonto>0&&Math.round(ahEf+ahTr+ahMe.totalExtraPesos)!==Math.round(ahMonto)){
-      sh('nerr');document.getElementById('nerr').textContent='Ahorro: Efectivo + Transferencia + USD/EUR ('+fmt(ahEf+ahTr+ahMe.totalExtraPesos)+') no coincide con el monto del ahorro ('+fmt(ahMonto)+').';return
+    if(ahMontoRaw>0&&Math.round(ahEf+ahTr)!==Math.round(ahMontoRaw)){
+      sh('nerr');document.getElementById('nerr').textContent='Ahorro: Efectivo + Transferencia ('+(ahEf+ahTr)+' '+ahMi.simbolo+') no coincide con el monto del ahorro ('+ahMontoRaw+' '+ahMi.simbolo+').';return
     }
-    if(ahMonto>0){
+    if(ahMontoRaw>0){
       var ahPago=''
-      if(ahEf>0&&ahTr>0)ahPago='Efectivo $'+Math.round(ahEf)+' + Transferencia $'+Math.round(ahTr)
+      if(ahEf>0&&ahTr>0)ahPago='Efectivo '+ahEf+' '+ahMi.simbolo+' + Transferencia '+ahTr+' '+ahMi.simbolo
       else if(ahEf>0)ahPago='Efectivo'
       else if(ahTr>0)ahPago='Transferencia'
-      if(monedaExtraTexto(ahMe))ahPago=(ahPago?ahPago+' + ':'')+monedaExtraTexto(ahMe)
+      if(ahMi.esExtranjera)ahPago+=' ('+ahMi.moneda+' cotiz. '+ahMi.cotiz+')'
       var ahSplit=(window._ahorroSplitRows||[]).filter(function(r){return r.asesor_id&&r.porcentaje>0})
       insertData.ahorro_monto=ahMonto
-      insertData.ahorro_efectivo=ahEf
-      insertData.ahorro_transferencia=ahTr
-      insertData.ahorro_usd=ahMe.usd
-      insertData.ahorro_cotizacion_usd=ahMe.usdCot||null
-      insertData.ahorro_eur=ahMe.eur
-      insertData.ahorro_cotizacion_eur=ahMe.eurCot||null
+      insertData.ahorro_efectivo=ahMi.esExtranjera?0:ahEf
+      insertData.ahorro_transferencia=ahMi.esExtranjera?0:ahTr
+      insertData.ahorro_usd=ahMi.moneda==='USD'?ahEf+ahTr:0
+      insertData.ahorro_cotizacion_usd=ahMi.moneda==='USD'?ahMi.cotiz:null
+      insertData.ahorro_eur=ahMi.moneda==='EUR'?ahEf+ahTr:0
+      insertData.ahorro_cotizacion_eur=ahMi.moneda==='EUR'?ahMi.cotiz:null
       insertData.ahorro_metodo_pago=ahPago||null
       insertData.ahorro_co_asesores=ahSplit
     }
@@ -3103,28 +3087,29 @@ function toggleAhorroForm(){
   if(body)body.classList.toggle('hidden',!checked)
 }
 function prevAhorroForm(){
-  var m=parseFloat(document.getElementById('n-ahorro-monto')?.value)||0
+  var mRaw=parseFloat(document.getElementById('n-ahorro-monto')?.value)||0
   var ef=parseFloat(document.getElementById('n-ahorro-ef')?.value)||0
   var tr=parseFloat(document.getElementById('n-ahorro-tr')?.value)||0
-  var me=getMonedaExtra('nah')
+  var mi=getMonedaInfo('nah')
   var el=document.getElementById('n-ahorro-prev')
   if(!el)return
   var partes=[]
-  if(m>0){
+  var m=aPesos(mRaw,mi)
+  if(mRaw>0){
     var pctAhorro=(CFG_COM&&CFG_COM.ob_ahorro_pct!=null)?CFG_COM.ob_ahorro_pct:0.10
     var com=Math.round(m*pctAhorro)
     partes.push('Comisión estimada: <span class="at">'+fmt(com)+'</span> ('+Math.round(pctAhorro*100)+'%)')
   }
-  if(ef>0||tr>0||me.usd>0||me.eur>0){
-    var suma=ef+tr+me.totalExtraPesos
-    var diff=m-suma
-    if(m<=0)partes.push('<span style="color:var(--amber)">Indica el monto del ahorro</span>')
-    else if(diff>0)partes.push('<span style="color:var(--amber);font-weight:600">Falta '+fmt(diff)+'</span>')
-    else if(diff<0)partes.push('<span style="color:var(--red);font-weight:600">Sobra '+fmt(-diff)+'</span>')
+  if(ef>0||tr>0){
+    var suma=ef+tr
+    var diff=mRaw-suma
+    if(mi.esExtranjera&&mi.cotiz<=0)partes.push('<span style="color:var(--amber)">Falta la cotización</span>')
+    else if(mRaw<=0)partes.push('<span style="color:var(--amber)">Indica el monto del ahorro</span>')
+    else if(diff>0)partes.push('<span style="color:var(--amber);font-weight:600">Falta '+diff+' '+mi.simbolo+'</span>')
+    else if(diff<0)partes.push('<span style="color:var(--red);font-weight:600">Sobra '+(-diff)+' '+mi.simbolo+'</span>')
     else partes.push('<span style="color:var(--green);font-weight:600">✓ Coincide</span>')
-    if((me.usd>0&&me.usdCot<=0)||(me.eur>0&&me.eurCot<=0))partes.push('<span style="color:var(--amber)">Falta la cotización</span>')
-  } else if(m>0){
-    partes.push('<span style="color:var(--amber)">Falta indicar '+fmt(m)+' en efectivo/transferencia</span>')
+  } else if(mRaw>0){
+    partes.push('<span style="color:var(--amber)">Falta indicar '+mRaw+' '+mi.simbolo+' en efectivo/transferencia</span>')
   }
   el.innerHTML=partes.join(' &nbsp;·&nbsp; ')
 }
@@ -3908,27 +3893,19 @@ function openOBPagoCuota(opId,cliente,numeroCuota){
       <div><label>Fecha de pago</label><input id="obp-fecha" type="date" value="${new Date().toISOString().slice(0,10)}" onchange="previewOBPago(${numeroCuota})"></div>
       <div>
         <label>Forma de pago</label>
+        <div class="g2" style="margin-bottom:8px">
+          <div><label>Moneda</label><select id="obp-moneda" onchange="cambiarMonedaForm('obp')"><option value="ARS">Pesos</option><option value="USD">Dólares (USD)</option><option value="EUR">Euros (EUR)</option></select></div>
+          <div id="obp-cotiz-wrap" class="hidden"><label>Cotización del día</label><input id="obp-cotiz" type="number" placeholder="Ej: 1200" oninput="previewOBPago(${numeroCuota})"></div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
           <div>
-            <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
+            <label id="obp-ef-label" style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
             <input id="obp-ef" type="number" placeholder="0" style="font-size:13px" oninput="previewOBPago(${numeroCuota})">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
+            <label id="obp-tr-label" style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
             <input id="obp-tr" type="number" placeholder="0" style="font-size:13px" oninput="previewOBPago(${numeroCuota})">
           </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px">
-          <input type="checkbox" id="obp-usd-check" style="width:auto" onchange="window._obpNumeroCuotaActual=${numeroCuota};toggleMonedaExtra('obp')">
-          <label style="margin:0;cursor:pointer;font-size:12px" onclick="document.getElementById('obp-usd-check').click()">Parte en USD / EUR</label>
-        </div>
-        <div id="obp-moneda-extra" class="hidden" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:4px">
-          <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 USD</label><input id="obp-usd" type="number" placeholder="0" style="font-size:13px" oninput="previewOBPago(${numeroCuota})"></div>
-          <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">Cotización USD</label><input id="obp-usd-cot" type="number" placeholder="Ej: 1200" style="font-size:13px" oninput="previewOBPago(${numeroCuota})"></div>
-          <div></div>
-          <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">💶 EUR</label><input id="obp-eur" type="number" placeholder="0" style="font-size:13px" oninput="previewOBPago(${numeroCuota})"></div>
-          <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">Cotización EUR</label><input id="obp-eur-cot" type="number" placeholder="Ej: 1300" style="font-size:13px" oninput="previewOBPago(${numeroCuota})"></div>
-          <div></div>
         </div>
       </div>
       <div id="obp-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">Selecciona la fecha para ver la comision</div>
@@ -3956,17 +3933,16 @@ function previewOBPago(numeroCuota){
   const color=dia<=10?'var(--teal)':'var(--amber)'
   const ef=parseFloat(document.getElementById('obp-ef')?.value)||0
   const tr=parseFloat(document.getElementById('obp-tr')?.value)||0
-  const me=getMonedaExtra('obp')
+  const mi=getMonedaInfo('obp')
   var pagoMsg=''
-  if(ef<=0&&tr<=0&&me.usd<=0&&me.eur<=0)pagoMsg=' &nbsp;·&nbsp; <span style="color:var(--amber)">Indica el monto recibido</span>'
+  if(ef<=0&&tr<=0)pagoMsg=' &nbsp;·&nbsp; <span style="color:var(--amber)">Indica el monto recibido</span>'
+  else if(mi.esExtranjera&&mi.cotiz<=0)pagoMsg=' &nbsp;·&nbsp; <span style="color:var(--amber)">Falta la cotización del día</span>'
   else {
-    var partesTxt=[]
-    if(ef>0)partesTxt.push('💵 '+fmt(ef))
-    if(tr>0)partesTxt.push('🏦 '+fmt(tr))
-    var metxt=monedaExtraTexto(me)
-    if(metxt)partesTxt.push(metxt)
-    pagoMsg=' &nbsp;·&nbsp; '+partesTxt.join(' + ')+' = <strong>'+fmt(ef+tr+me.totalExtraPesos)+'</strong>'
-    if((me.usd>0&&me.usdCot<=0)||(me.eur>0&&me.eurCot<=0))pagoMsg+=' &nbsp;·&nbsp; <span style="color:var(--amber)">Falta cotización</span>'
+    var suma=ef+tr
+    if(ef>0&&tr>0)pagoMsg=' &nbsp;·&nbsp; 💵 '+ef+' '+mi.simbolo+' + 🏦 '+tr+' '+mi.simbolo+' = <strong>'+suma+' '+mi.simbolo+'</strong>'
+    else if(ef>0)pagoMsg=' &nbsp;·&nbsp; 💵 Efectivo: <strong>'+ef+' '+mi.simbolo+'</strong>'
+    else pagoMsg=' &nbsp;·&nbsp; 🏦 Transferencia: <strong>'+tr+' '+mi.simbolo+'</strong>'
+    if(mi.esExtranjera)pagoMsg+=' &nbsp;·&nbsp; <span style="color:var(--text3)">≈ '+fmt(aPesos(suma,mi))+'</span>'
   }
   el.innerHTML=`Día <strong style="color:${color}">${dia}</strong> del mes — Comision: <span style="color:var(--teal);font-weight:600;font-family:var(--mono)">$${com.toLocaleString('es-AR')}</span>`+pagoMsg
 }
@@ -3978,20 +3954,20 @@ async function guardarOBPago(opId,numeroCuota){
   const com=calcComCuota(numeroCuota,dia)
   const obpEf=parseFloat(document.getElementById('obp-ef')?.value)||0
   const obpTr=parseFloat(document.getElementById('obp-tr')?.value)||0
-  const obpMe=getMonedaExtra('obp')
-  if(obpEf<=0&&obpTr<=0&&obpMe.usd<=0&&obpMe.eur<=0){
+  const mi=getMonedaInfo('obp')
+  if(obpEf<=0&&obpTr<=0){
     if(errEl){errEl.textContent='Indica el monto en Efectivo y/o Transferencia.';errEl.style.display='block'}
     return
   }
-  if((obpMe.usd>0&&obpMe.usdCot<=0)||(obpMe.eur>0&&obpMe.eurCot<=0)){
-    if(errEl){errEl.textContent='Indica la cotización del día para USD/EUR.';errEl.style.display='block'}
+  if(mi.esExtranjera&&mi.cotiz<=0){
+    if(errEl){errEl.textContent='Indica la cotización del día.';errEl.style.display='block'}
     return
   }
   let obpPago=''
-  if(obpEf>0&&obpTr>0)obpPago='Efectivo '+fmt(obpEf)+' + Transf. '+fmt(obpTr)
+  if(obpEf>0&&obpTr>0)obpPago='Efectivo '+obpEf+' '+mi.simbolo+' + Transf. '+obpTr+' '+mi.simbolo
   else if(obpEf>0)obpPago='Efectivo'
   else if(obpTr>0)obpPago='Transferencia'
-  if(monedaExtraTexto(obpMe))obpPago=(obpPago?obpPago+' + ':'')+monedaExtraTexto(obpMe)
+  if(mi.esExtranjera)obpPago+=' ('+mi.moneda+' cotiz. '+mi.cotiz+')'
   // Subir comprobante si hay archivo
   var compUrl=null
   var fileInput=document.getElementById('obp-comprobante')
@@ -4005,12 +3981,15 @@ async function guardarOBPago(opId,numeroCuota){
       compUrl=urlData?.publicUrl||null
     }
   }
+  const obpEfPesos=mi.esExtranjera?0:obpEf
+  const obpTrPesos=mi.esExtranjera?0:obpTr
   const{error}=await db.from('ob_pagos_cuota').insert({
     operacion_id:opId,ob_id:CU.id,ob_nombre:CU.nombre,
     numero_cuota:numeroCuota,fecha_pago:f,dia_del_mes:dia,comision:com,
     metodo_pago:obpPago||null,
-    monto_efectivo:obpEf,monto_transferencia:obpTr,
-    monto_usd:obpMe.usd,cotizacion_usd:obpMe.usdCot||null,monto_eur:obpMe.eur,cotizacion_eur:obpMe.eurCot||null,
+    monto_efectivo:obpEfPesos,monto_transferencia:obpTrPesos,
+    monto_usd:mi.moneda==='USD'?obpEf+obpTr:0,cotizacion_usd:mi.moneda==='USD'?mi.cotiz:null,
+    monto_eur:mi.moneda==='EUR'?obpEf+obpTr:0,cotizacion_eur:mi.moneda==='EUR'?mi.cotiz:null,
     tesoreria_estado:'pendiente',
     comprobante_url:compUrl
   })
@@ -4155,32 +4134,24 @@ function openOBMov(opId,cliente,tipo){
     <div style="font-size:12px;color:var(--text2);margin-bottom:16px">${cliente}</div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="g2">
-        <div><label>Monto ($)</label><input id="obm-monto" type="number" placeholder="Ej: 50000" oninput="previewOBMov()"></div>
+        <div><label id="obm-monto-label">Monto ($)</label><input id="obm-monto" type="number" placeholder="Ej: 50000" oninput="previewOBMov()"></div>
         <div><label>Fecha</label><input id="obm-fecha" type="date" value="${hoy}" onchange="previewOBMov()" oninput="previewOBMov()"></div>
+      </div>
+      <div class="g2">
+        <div><label>Moneda</label><select id="obm-moneda" onchange="cambiarMonedaForm('obm')"><option value="ARS">Pesos</option><option value="USD">Dólares (USD)</option><option value="EUR">Euros (EUR)</option></select></div>
+        <div id="obm-cotiz-wrap" class="hidden"><label>Cotización del día</label><input id="obm-cotiz" type="number" placeholder="Ej: 1200" oninput="previewOBMov()"></div>
       </div>
       <div>
         <label>Forma de pago</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
           <div>
-            <label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
+            <label id="obm-ef-label" style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 Efectivo ($)</label>
             <input id="obm-ef" type="number" placeholder="0" style="font-size:13px" oninput="previewOBMov()">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
+            <label id="obm-tr-label" style="font-size:11px;color:var(--text3);margin-bottom:4px">🏦 Transferencia ($)</label>
             <input id="obm-tr" type="number" placeholder="0" style="font-size:13px" oninput="previewOBMov()">
           </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px">
-          <input type="checkbox" id="obm-usd-check" style="width:auto" onchange="toggleMonedaExtra('obm')">
-          <label style="margin:0;cursor:pointer;font-size:12px" onclick="document.getElementById('obm-usd-check').click()">Parte en USD / EUR</label>
-        </div>
-        <div id="obm-moneda-extra" class="hidden" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:4px">
-          <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">💵 USD</label><input id="obm-usd" type="number" placeholder="0" style="font-size:13px" oninput="previewOBMov()"></div>
-          <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">Cotización USD</label><input id="obm-usd-cot" type="number" placeholder="Ej: 1200" style="font-size:13px" oninput="previewOBMov()"></div>
-          <div></div>
-          <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">💶 EUR</label><input id="obm-eur" type="number" placeholder="0" style="font-size:13px" oninput="previewOBMov()"></div>
-          <div><label style="font-size:11px;color:var(--text3);margin-bottom:4px">Cotización EUR</label><input id="obm-eur-cot" type="number" placeholder="Ej: 1300" style="font-size:13px" oninput="previewOBMov()"></div>
-          <div></div>
         </div>
       </div>
       <div id="obm-prev" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2)">
@@ -4212,14 +4183,15 @@ function setOB72(v){
   previewOBMov()
 }
 function previewOBMov(){
-  const m=parseFloat(document.getElementById('obm-monto')?.value)
+  const mRaw=parseFloat(document.getElementById('obm-monto')?.value)
   const f=document.getElementById('obm-fecha')?.value
   const ef=parseFloat(document.getElementById('obm-ef')?.value)||0
   const tr=parseFloat(document.getElementById('obm-tr')?.value)||0
-  const me=getMonedaExtra('obm')
+  const mi=getMonedaInfo('obm')
   const el=document.getElementById('obm-prev')
   if(!el)return
-  if(!m||isNaN(m)){el.textContent='Ingresa los datos para ver la comision estimada';return}
+  if(!mRaw||isNaN(mRaw)){el.textContent='Ingresa los datos para ver la comision estimada';return}
+  const m=aPesos(mRaw,mi)
   let com=0,det=''
   var cfg=CFG_COM||{}
   if(obMovTipo==='incremento'){
@@ -4237,34 +4209,37 @@ function previewOBMov(){
     com=Math.round(m*(pctAh/100))
     det=`Tasa: ${pctAh}% — Comision: <span class="at">${fmt(com)}</span>`
   }
-  if(ef>0||tr>0||me.usd>0||me.eur>0){
-    var suma=ef+tr+me.totalExtraPesos,diff=m-suma
-    if(diff>0)det+=' &nbsp;·&nbsp; <span style="color:var(--amber);font-weight:600">Falta '+fmt(diff)+'</span>'
-    else if(diff<0)det+=' &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600">Sobra '+fmt(-diff)+'</span>'
+  if(mi.esExtranjera)det+=' &nbsp;·&nbsp; <span style="color:var(--text3)">≈ '+fmt(m)+'</span>'
+  if(ef>0||tr>0){
+    var suma=ef+tr,diff=mRaw-suma
+    if(mi.esExtranjera&&mi.cotiz<=0)det+=' &nbsp;·&nbsp; <span style="color:var(--amber)">Falta la cotización</span>'
+    else if(diff>0)det+=' &nbsp;·&nbsp; <span style="color:var(--amber);font-weight:600">Falta '+diff+' '+mi.simbolo+'</span>'
+    else if(diff<0)det+=' &nbsp;·&nbsp; <span style="color:var(--red);font-weight:600">Sobra '+(-diff)+' '+mi.simbolo+'</span>'
     else det+=' &nbsp;·&nbsp; <span style="color:var(--green);font-weight:600">✓ Coincide</span>'
   } else {
-    det+=' &nbsp;·&nbsp; <span style="color:var(--amber)">Falta indicar '+fmt(m)+' en efectivo/transferencia</span>'
+    det+=' &nbsp;·&nbsp; <span style="color:var(--amber)">Falta indicar '+mRaw+' '+mi.simbolo+' en efectivo/transferencia</span>'
   }
   el.innerHTML=det
 }
 async function guardarOBMov(){
-  const m=parseFloat(document.getElementById('obm-monto')?.value)
+  const mRaw=parseFloat(document.getElementById('obm-monto')?.value)
   const f=document.getElementById('obm-fecha')?.value
   const errEl=document.getElementById('obm-err')
-  if(!m||!f){if(errEl){errEl.textContent='Completa todos los campos.';errEl.style.display='block'}return}
+  if(!mRaw||!f){if(errEl){errEl.textContent='Completa todos los campos.';errEl.style.display='block'}return}
+  const mi=getMonedaInfo('obm')
+  const m=Math.round(aPesos(mRaw,mi))
   const obmEfCheck=parseFloat(document.getElementById('obm-ef')?.value)||0
   const obmTrCheck=parseFloat(document.getElementById('obm-tr')?.value)||0
-  const obmMe=getMonedaExtra('obm')
-  if(obmEfCheck<=0&&obmTrCheck<=0&&obmMe.usd<=0&&obmMe.eur<=0){
+  if(obmEfCheck<=0&&obmTrCheck<=0){
     if(errEl){errEl.textContent='Indica el monto en Efectivo y/o Transferencia.';errEl.style.display='block'}
     return
   }
-  if((obmMe.usd>0&&obmMe.usdCot<=0)||(obmMe.eur>0&&obmMe.eurCot<=0)){
-    if(errEl){errEl.textContent='Indica la cotización del día para USD/EUR.';errEl.style.display='block'}
+  if(mi.esExtranjera&&mi.cotiz<=0){
+    if(errEl){errEl.textContent='Indica la cotización del día.';errEl.style.display='block'}
     return
   }
-  if(Math.round(obmEfCheck+obmTrCheck+obmMe.totalExtraPesos)!==Math.round(m)){
-    if(errEl){errEl.textContent='Efectivo + Transferencia + USD/EUR ('+fmt(obmEfCheck+obmTrCheck+obmMe.totalExtraPesos)+') no coincide con el monto ('+fmt(m)+').';errEl.style.display='block'}
+  if(Math.round(obmEfCheck+obmTrCheck)!==Math.round(mRaw)){
+    if(errEl){errEl.textContent='Efectivo + Transferencia ('+(obmEfCheck+obmTrCheck)+' '+mi.simbolo+') no coincide con el monto ('+mRaw+' '+mi.simbolo+').';errEl.style.display='block'}
     return
   }
   let com=0
@@ -4280,15 +4255,16 @@ async function guardarOBMov(){
   const obmEf=parseFloat(document.getElementById('obm-ef')?.value)||0
   const obmTr=parseFloat(document.getElementById('obm-tr')?.value)||0
   let obmPago=''
-  if(obmEf>0&&obmTr>0)obmPago='Efectivo '+fmt(obmEf)+' + Transf. '+fmt(obmTr)
+  if(obmEf>0&&obmTr>0)obmPago='Efectivo '+obmEf+' '+mi.simbolo+' + Transf. '+obmTr+' '+mi.simbolo
   else if(obmEf>0)obmPago='Efectivo'
   else if(obmTr>0)obmPago='Transferencia'
-  if(monedaExtraTexto(obmMe))obmPago=(obmPago?obmPago+' + ':'')+monedaExtraTexto(obmMe)
+  if(mi.esExtranjera)obmPago+=' ('+mi.moneda+' cotiz. '+mi.cotiz+')'
   const{error}=await db.from('ob_movimientos').insert({
     operacion_id:obMovOpId,ob_id:CU.id,ob_nombre:CU.nombre,
     tipo:obMovTipo,monto:m,fecha:f,antes_72hrs:auto72,comision:comFinal,
-    metodo_pago:obmPago||null,monto_efectivo:obmEf,monto_transferencia:obmTr,
-    monto_usd:obmMe.usd,cotizacion_usd:obmMe.usdCot||null,monto_eur:obmMe.eur,cotizacion_eur:obmMe.eurCot||null,
+    metodo_pago:obmPago||null,monto_efectivo:mi.esExtranjera?0:obmEf,monto_transferencia:mi.esExtranjera?0:obmTr,
+    monto_usd:mi.moneda==='USD'?obmEf+obmTr:0,cotizacion_usd:mi.moneda==='USD'?mi.cotiz:null,
+    monto_eur:mi.moneda==='EUR'?obmEf+obmTr:0,cotizacion_eur:mi.moneda==='EUR'?mi.cotiz:null,
     tesoreria_estado:'pendiente'
   })
   if(error){if(errEl){errEl.textContent='Error al guardar: '+error.message;errEl.style.display='block'}return}

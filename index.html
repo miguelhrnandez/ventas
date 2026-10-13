@@ -1001,10 +1001,7 @@ async function loadDashboard() {
     return a + (asig ? (h.monto_ars||0) * asig.porcentaje / 100 : 0);
   },0);
 
-  // Mis gastos del mes = gastos personales aprobados + mi parte del hogar
-  const totMisGastos = totMes + miParteHogar;
-  // Total familiar = gastos personales aprobados de todos + total hogar
-  const totFamiliar = state.esAdmin ? (totGastosMes||0) + totalHogarMes : null;
+  // totMisGastos y totFamiliar se calculan más abajo, después de las cuotas
 
   // 3. Cuotas que vencen este mes (con tarjeta del gasto original)
   const { data: cuotasMes } = await sb.from('fam_cuotas')

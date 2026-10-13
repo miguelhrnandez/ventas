@@ -243,6 +243,7 @@ tr:hover td{background:var(--surface2)}
           <button class="btn-primary" onclick="openModalGasto()">+ Nuevo gasto</button>
         </div>
       </div>
+      <div id="gastos-cuotas-wrap"></div>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -1005,13 +1006,27 @@ async function loadDashboard() {
   // Total familiar = gastos personales aprobados de todos + total hogar
   const totFamiliar = state.esAdmin ? (totGastosMes||0) + totalHogarMes : null;
 
-  // 3. Cuotas que vencen este mes
+  // 3. Cuotas que vencen este mes (con tarjeta del gasto original)
   const { data: cuotasMes } = await sb.from('fam_cuotas')
-    .select('id,numero_cuota,monto,pagada,fecha_vencimiento,plan_id,fam_planes_cuota(total_cuotas,gasto_id,fam_gastos(descripcion,perfil_id,monto_ars))')
+    .select('id,numero_cuota,monto,pagada,fecha_vencimiento,plan_id,fam_planes_cuota(total_cuotas,gasto_id,fam_gastos(descripcion,perfil_id,monto_ars,tarjeta_id,fam_tarjetas(nombre,color)))')
     .eq('pagada', false)
     .gte('fecha_vencimiento', inicio)
     .lte('fecha_vencimiento', fin)
     .order('fecha_vencimiento');
+
+  // Cuotas propias del mes
+  const misCuotasMes = (cuotasMes||[]).filter(function(c){
+    const g = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos;
+    return g && g.perfil_id === miId;
+  });
+  const totMisCuotas = misCuotasMes.reduce(function(a,c){ return a+(c.monto||0);},0);
+  // Cuotas totales familiares del mes (admin)
+  const totCuotasFam = (cuotasMes||[]).reduce(function(a,c){ return a+(c.monto||0);},0);
+
+  // Mis gastos del mes = gastos personales aprobados + mi parte del hogar + mis cuotas
+  const totMisGastos = totMes + miParteHogar + totMisCuotas;
+  // Total familiar = gastos personales aprobados de todos + total hogar + cuotas fam
+  const totFamiliar = state.esAdmin ? (totGastosMes||0) + totalHogarMes + totCuotasFam : null;
 
   // 4. Últimos movimientos
   const { data: ultMovs } = await sb.from('fam_gastos')
@@ -1029,16 +1044,16 @@ async function loadDashboard() {
 
   // ---- RENDER KPIs ----
   const kpis = [
-    // KPI 1: mis gastos del mes (hogar + personales)
-    '<div class="stat-card"><div class="stat-label">Mis gastos ' + mesShort + '</div><div class="stat-value">' + fmtARS(totMisGastos) + '</div><div class="stat-sub" style="display:flex;flex-direction:column;gap:2px"><span>Hogar: ' + fmtARS(miParteHogar) + '</span><span>Personal: ' + fmtARS(totMes) + ' · ' + propios.filter(function(g){return g.estado==='aprobado';}).length + ' gastos</span></div></div>',
+    // KPI 1: mis gastos del mes (hogar + personales + cuotas)
+    '<div class="stat-card"><div class="stat-label">Mis gastos ' + mesShort + '</div><div class="stat-value">' + fmtARS(totMisGastos) + '</div><div class="stat-sub" style="display:flex;flex-direction:column;gap:2px"><span>Hogar: ' + fmtARS(miParteHogar) + '</span><span>Cuotas: ' + fmtARS(totMisCuotas) + '</span><span>Personal: ' + fmtARS(totMes) + '</span></div></div>',
     // KPI 2: pendientes de aprobación
     totPend > 0
       ? '<div class="stat-card" style="border-color:var(--yellow)"><div class="stat-label">Mis gastos pendientes</div><div class="stat-value text-yellow">' + totPend + '</div><div class="stat-sub">esperando aprobación</div></div>'
       : '<div class="stat-card"><div class="stat-label">Mis gastos pendientes</div><div class="stat-value text-green">0</div><div class="stat-sub">todo al día ✓</div></div>',
     // KPI 3: dólar
     state.cotizacionHoy ? '<div class="stat-card"><div class="stat-label">Dólar (último registrado)</div><div class="stat-value">$ ' + parseFloat(state.cotizacionHoy).toLocaleString('es-AR') + '</div><div class="stat-sub">ARS por USD</div></div>' : '',
-    // KPI 4: total familiar (solo admin) — hogar + gastos personales todos
-    state.esAdmin ? '<div class="stat-card" style="border-color:var(--primary)"><div class="stat-label">Total familiar ' + mesShort + '</div><div class="stat-value">' + fmtARS(totFamiliar||0) + '</div><div class="stat-sub" style="display:flex;flex-direction:column;gap:2px"><span>Hogar: ' + fmtARS(totalHogarMes) + '</span><span>Personal todos: ' + fmtARS(totGastosMes||0) + '</span></div></div>' : ''
+    // KPI 4: total familiar (solo admin) — hogar + gastos personales + cuotas fam
+    state.esAdmin ? '<div class="stat-card" style="border-color:var(--primary)"><div class="stat-label">Total familiar ' + mesShort + '</div><div class="stat-value">' + fmtARS(totFamiliar||0) + '</div><div class="stat-sub" style="display:flex;flex-direction:column;gap:2px"><span>Hogar: ' + fmtARS(totalHogarMes) + '</span><span>Cuotas: ' + fmtARS(totCuotasFam) + '</span><span>Personal: ' + fmtARS(totGastosMes||0) + '</span></div></div>' : ''
   ].filter(Boolean).join('');
   document.getElementById('dash-kpis').innerHTML = kpis;
 
@@ -1092,17 +1107,27 @@ async function loadDashboard() {
       '<div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">' +
       '<span style="font-size:13px;color:var(--text2)">Total cuotas este mes</span><span class="fw7">' + fmtARS(totCuotas) + '</span></div>' +
       cuotasMes.map(function(c){
-        const g = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos ? c.fam_planes_cuota.fam_gastos : null;
+        const pc = c.fam_planes_cuota;
+        const g = pc && pc.fam_gastos ? pc.fam_gastos : null;
         const desc = g ? g.descripcion : '-';
         const quien = g ? nombrePerfil(g.perfil_id) : '-';
-        const total = c.fam_planes_cuota ? c.fam_planes_cuota.total_cuotas : '?';
+        const total = pc ? pc.total_cuotas : '?';
+        const tarj = g && g.fam_tarjetas ? g.fam_tarjetas : null;
+        const tarjLabel = tarj ? tarj.nombre : 'Sin tarjeta';
+        const tarjColor = tarj ? (tarj.color||'#6366f1') : 'var(--text2)';
         const diasFalta = Math.ceil((new Date(c.fecha_vencimiento) - new Date()) / 86400000);
         const urgente = diasFalta <= 5;
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">' +
-          '<div><div style="font-size:13px">' + desc + '</div>' +
-          '<div style="font-size:11px;color:var(--text2)">' + quien + ' · cuota ' + c.numero_cuota + '/' + total + ' · vence ' + fmtDate(c.fecha_vencimiento) + '</div></div>' +
-          '<div style="text-align:right"><div style="font-size:13px;font-weight:600' + (urgente?';color:var(--red)':'') + '">' + fmtARS(c.monto) + '</div>' +
-          '<div style="font-size:11px;color:' + (urgente?'var(--red)':'var(--text2)') + '">' + (diasFalta <= 0 ? '¡Vencida!' : diasFalta === 1 ? 'mañana' : 'en ' + diasFalta + ' días') + '</div></div></div>';
+          '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;font-weight:500">' + desc + '</div>' +
+          '<div style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;margin-top:2px">' +
+          '<span>' + quien + '</span><span>·</span><span>cuota ' + c.numero_cuota + '/' + total + '</span><span>·</span>' +
+          '<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:' + tarjColor + ';display:inline-block"></span>' + tarjLabel + '</span>' +
+          '</div></div>' +
+          '<div style="text-align:right;flex-shrink:0;margin-left:8px">' +
+          '<div style="font-size:13px;font-weight:600' + (urgente?';color:var(--red)':'') + '">' + fmtARS(c.monto) + '</div>' +
+          '<div style="font-size:11px;color:' + (urgente?'var(--red)':'var(--text2)') + '">' + (diasFalta <= 0 ? '¡Vencida!' : diasFalta === 1 ? 'mañana' : 'en ' + diasFalta + ' días') + '</div>' +
+          '</div></div>';
       }).join('') + '</div>';
   }
 
@@ -1145,6 +1170,60 @@ async function loadGastos() {
   loading('gastos-tbody');
   const estado = document.getElementById('filtro-gasto-estado').value;
   const mes = document.getElementById('filtro-gasto-mes').value;
+
+  // Cargar cuotas del mes filtrado para mostrar encima de la tabla
+  const mesFiltro = mes || mesActual();
+  const inicioF = mesFiltro + '-01';
+  const finF = mesFiltro + '-31';
+  const miIdG = state.perfil ? state.perfil.id : 'none';
+
+  const { data: cuotasDelMes } = await sb.from('fam_cuotas')
+    .select('id,numero_cuota,monto,pagada,fecha_vencimiento,fam_planes_cuota(total_cuotas,fam_gastos(descripcion,perfil_id,tarjeta_id,fam_tarjetas(nombre,color)))')
+    .eq('pagada', false)
+    .gte('fecha_vencimiento', inicioF)
+    .lte('fecha_vencimiento', finF)
+    .order('fecha_vencimiento');
+
+  // Filtrar mis cuotas (no admin ve solo las propias)
+  const cuotasMostrar = state.esAdmin
+    ? (cuotasDelMes||[])
+    : (cuotasDelMes||[]).filter(function(c){
+        const g = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos;
+        return g && g.perfil_id === miIdG;
+      });
+
+  // Render sección cuotas del mes
+  const cuotasWrap = document.getElementById('gastos-cuotas-wrap');
+  if (cuotasMostrar.length > 0) {
+    const totC = cuotasMostrar.reduce(function(a,c){ return a+(c.monto||0);},0);
+    cuotasWrap.innerHTML = '<div style="margin-bottom:16px">' +
+      '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between">' +
+      '<span>💳 Cuotas que vencen en ' + mesFiltro + '</span><span style="color:var(--text)">' + fmtARS(totC) + '</span></div>' +
+      '<div class="table-wrap"><table><thead><tr><th>Descripción</th><th>Quién</th><th>Tarjeta</th><th>Cuota</th><th>Vencimiento</th><th>Monto</th></tr></thead><tbody>' +
+      cuotasMostrar.map(function(c){
+        const pc = c.fam_planes_cuota;
+        const g = pc && pc.fam_gastos ? pc.fam_gastos : null;
+        const desc = g ? g.descripcion : '-';
+        const quien = g ? nombrePerfil(g.perfil_id) : '-';
+        const total = pc ? pc.total_cuotas : '?';
+        const tarj = g && g.fam_tarjetas ? g.fam_tarjetas : null;
+        const tarjColor = tarj ? (tarj.color||'#6366f1') : '#94a3b8';
+        const tarjNombre = tarj ? tarj.nombre : 'Sin tarjeta';
+        const diasFalta = Math.ceil((new Date(c.fecha_vencimiento) - new Date()) / 86400000);
+        const urgente = diasFalta <= 5;
+        return '<tr>' +
+          '<td style="font-weight:500">' + desc + '</td>' +
+          '<td>' + quien + '</td>' +
+          '<td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:' + tarjColor + ';display:inline-block"></span>' + tarjNombre + '</span></td>' +
+          '<td>' + c.numero_cuota + '/' + total + '</td>' +
+          '<td style="color:' + (urgente?'var(--red)':'') + '">' + fmtDate(c.fecha_vencimiento) + (urgente ? ' ⚠' : '') + '</td>' +
+          '<td style="font-weight:600;color:' + (urgente?'var(--red)':'') + '">' + fmtARS(c.monto) + '</td>' +
+          '</tr>';
+      }).join('') +
+      '</tbody></table></div></div>';
+  } else {
+    cuotasWrap.innerHTML = '';
+  }
 
   let q = sb.from('fam_gastos').select('*, fam_tarjetas(nombre)').order('fecha', {ascending: false});
   if (!state.esAdmin) q = q.eq('perfil_id', state.perfil ? state.perfil.id : 'none');

@@ -1044,18 +1044,36 @@ async function loadDashboard() {
 
   // ---- RENDER KPIs ----
   const kpis = [
-    // KPI 1: mis gastos del mes (hogar + tarjetas con cuotas + personal)
+    // KPI 1: mis gastos del mes (hogar + tarjetas [cuotas + directos] + personal)
     (function(){
+      // Mapa de tarjetas por id para lookup rápido
+      const tarjMap = {};
+      (state.tarjetas||[]).forEach(function(t){ tarjMap[t.id] = t; });
+
       // Agrupar mis cuotas del mes por tarjeta
-      const cuotasPorTarj = {};
+      const porTarj = {};
       misCuotasMes.forEach(function(c){
         const g = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos;
         const tarj = g && g.fam_tarjetas ? g.fam_tarjetas : null;
         const key = tarj ? tarj.nombre : 'Sin tarjeta';
-        cuotasPorTarj[key] = (cuotasPorTarj[key]||0) + parseFloat(c.monto||0);
+        porTarj[key] = (porTarj[key]||0) + parseFloat(c.monto||0);
       });
-      const cuotasLineas = Object.keys(cuotasPorTarj).map(function(k){ return '<span>' + k + ': ' + fmtARS(cuotasPorTarj[k]) + '</span>'; }).join('');
-      return '<div class="stat-card"><div class="stat-label">Mis gastos ' + mesShort + '</div><div class="stat-value">' + fmtARS(totMisGastos) + '</div><div class="stat-sub" style="display:flex;flex-direction:column;gap:2px"><span>Hogar: ' + fmtARS(miParteHogar) + '</span>' + cuotasLineas + '<span>Personal: ' + fmtARS(totMes) + '</span></div></div>';
+
+      // Agrupar mis gastos directos aprobados CON tarjeta por tarjeta
+      const propiosAprobados = propios.filter(function(g){ return g.estado === 'aprobado'; });
+      const propiosConTarj = propiosAprobados.filter(function(g){ return !!g.tarjeta_id; });
+      const propiosSinTarj = propiosAprobados.filter(function(g){ return !g.tarjeta_id; });
+
+      propiosConTarj.forEach(function(g){
+        const t = tarjMap[g.tarjeta_id];
+        const key = t ? t.nombre : 'Sin tarjeta';
+        porTarj[key] = (porTarj[key]||0) + parseFloat(g.monto_ars||0);
+      });
+
+      const totPersonal = propiosSinTarj.reduce(function(a,g){ return a+(g.monto_ars||0);},0);
+      const tarjLineas = Object.keys(porTarj).map(function(k){ return '<span>' + k + ': ' + fmtARS(porTarj[k]) + '</span>'; }).join('');
+      const personalLinea = totPersonal > 0 ? '<span>Personal: ' + fmtARS(totPersonal) + '</span>' : '';
+      return '<div class="stat-card"><div class="stat-label">Mis gastos ' + mesShort + '</div><div class="stat-value">' + fmtARS(totMisGastos) + '</div><div class="stat-sub" style="display:flex;flex-direction:column;gap:2px"><span>Hogar: ' + fmtARS(miParteHogar) + '</span>' + tarjLineas + personalLinea + '</div></div>';
     })(),
     // KPI 2: pendientes de aprobación
     totPend > 0

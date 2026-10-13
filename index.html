@@ -764,6 +764,23 @@ tr:hover td{background:var(--surface2)}
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-reasignar">
+  <div class="modal">
+    <h2>Reasignar tarjeta</h2>
+    <input type="hidden" id="reasignar-gasto-id">
+    <div class="form-group">
+      <label>Tarjeta asignada</label>
+      <select id="reasignar-tarjeta-id">
+        <option value="">Sin tarjeta</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-reasignar')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarReasignar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-rechazo">
   <div class="modal">
     <h2>Motivo de rechazo</h2>
@@ -1282,6 +1299,7 @@ async function loadGastos() {
     const canEdit = state.esAdmin || g.perfil_id === (state.perfil ? state.perfil.id : '');
     const acciones = [
       canEdit && g.estado === 'pendiente' ? '<button class="btn-ghost btn-sm" onclick="openModalGasto(\'' + g.id + '\')">Editar</button>' : '',
+      state.esAdmin && g.estado !== 'pendiente' ? '<button class="btn-ghost btn-sm" onclick="openModalReasignar(\'' + g.id + '\')">↔ Tarjeta</button>' : '',
       state.esAdmin && g.estado === 'pendiente' ? '<button class="btn-green btn-sm" onclick="aprobarGasto(\'' + g.id + '\')">✓</button>' : '',
       state.esAdmin && g.estado === 'pendiente' ? '<button class="btn-red btn-sm" onclick="pedirRechazo(\'' + g.id + '\')">✗</button>' : '',
       canEdit ? '<button class="btn-red btn-sm" onclick="deleteGasto(\'' + g.id + '\')">🗑</button>' : ''
@@ -1479,6 +1497,30 @@ async function aprobarGasto(id) {
   notif('Gasto aprobado ✓');
   loadGastos();
   if (state.currentPanel === 'aprobaciones') loadAprobaciones();
+}
+
+function openModalReasignar(gastoId) {
+  document.getElementById('reasignar-gasto-id').value = gastoId;
+  // Poblar el select con las tarjetas disponibles
+  const sel = document.getElementById('reasignar-tarjeta-id');
+  sel.innerHTML = '<option value="">Sin tarjeta</option>' +
+    (state.tarjetas||[]).map(function(t){
+      return '<option value="' + t.id + '">' + t.nombre + '</option>';
+    }).join('');
+  // Buscar la tarjeta actual del gasto para preseleccionar
+  // (la buscamos del DOM o dejamos vacío)
+  openModal('modal-reasignar');
+}
+
+async function guardarReasignar() {
+  const id = document.getElementById('reasignar-gasto-id').value;
+  const tarjetaId = document.getElementById('reasignar-tarjeta-id').value || null;
+  const { error } = await sb.from('fam_gastos').update({ tarjeta_id: tarjetaId }).eq('id', id);
+  if (error) { notif('Error al guardar', 'err'); return; }
+  closeModal('modal-reasignar');
+  notif('Tarjeta actualizada ✓');
+  loadGastos();
+  if (state.currentPanel === 'dashboard') loadDashboard();
 }
 
 function pedirRechazo(id) {

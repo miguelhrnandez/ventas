@@ -983,8 +983,8 @@ async function loadDashboard() {
   const totMes = propios.filter(function(g){ return g.estado === 'aprobado'; }).reduce(function(a,g){ return a+(g.monto_ars||0);},0);
   const totPend = propios.filter(function(g){ return g.estado === 'pendiente'; }).length;
 
-  // total familiar (admin ve todo)
-  const totFamiliar = state.esAdmin
+  // total familiar (admin ve todo) — fam_gastos aprobados del mes
+  const totGastosMes = state.esAdmin
     ? (gastosMes||[]).filter(function(g){ return g.estado==='aprobado';}).reduce(function(a,g){return a+(g.monto_ars||0);},0)
     : null;
 
@@ -992,6 +992,18 @@ async function loadDashboard() {
   const { data: hogarGastos } = await sb.from('fam_hogar_gastos')
     .select('id,descripcion,categoria,monto_ars,frecuencia,proxima_fecha,fam_hogar_asignaciones(perfil_id,porcentaje)')
     .eq('activo', true).order('monto_ars', {ascending:false});
+
+  // Calcular mi parte del hogar y total hogar
+  const totalHogarMes = (hogarGastos||[]).reduce(function(a,h){ return a+(h.monto_ars||0);},0);
+  const miParteHogar = (hogarGastos||[]).reduce(function(a,h){
+    const asig = (h.fam_hogar_asignaciones||[]).find(function(x){ return x.perfil_id === miId;});
+    return a + (asig ? (h.monto_ars||0) * asig.porcentaje / 100 : 0);
+  },0);
+
+  // Mis gastos del mes = gastos personales aprobados + mi parte del hogar
+  const totMisGastos = totMes + miParteHogar;
+  // Total familiar = gastos personales aprobados de todos + total hogar
+  const totFamiliar = state.esAdmin ? (totGastosMes||0) + totalHogarMes : null;
 
   // 3. Cuotas que vencen este mes
   const { data: cuotasMes } = await sb.from('fam_cuotas')
@@ -1013,12 +1025,20 @@ async function loadDashboard() {
     pendAprobaciones = pend || [];
   }
 
+  const mesShort = new Date().toLocaleDateString('es-AR',{month:'short'});
+
   // ---- RENDER KPIs ----
   const kpis = [
-    '<div class="stat-card"><div class="stat-label">Mis gastos ' + (new Date().toLocaleDateString('es-AR',{month:'short'})) + '</div><div class="stat-value">' + fmtARS(totMes) + '</div><div class="stat-sub">' + propios.filter(function(g){return g.estado==='aprobado';}).length + ' gastos aprobados</div></div>',
-    totPend > 0 ? '<div class="stat-card" style="border-color:var(--yellow)"><div class="stat-label">Mis gastos pendientes</div><div class="stat-value text-yellow">' + totPend + '</div><div class="stat-sub">esperando aprobación</div></div>' : '<div class="stat-card"><div class="stat-label">Mis gastos pendientes</div><div class="stat-value text-green">0</div><div class="stat-sub">todo al día ✓</div></div>',
+    // KPI 1: mis gastos del mes (hogar + personales)
+    '<div class="stat-card"><div class="stat-label">Mis gastos ' + mesShort + '</div><div class="stat-value">' + fmtARS(totMisGastos) + '</div><div class="stat-sub" style="display:flex;flex-direction:column;gap:2px"><span>Hogar: ' + fmtARS(miParteHogar) + '</span><span>Personal: ' + fmtARS(totMes) + ' · ' + propios.filter(function(g){return g.estado==='aprobado';}).length + ' gastos</span></div></div>',
+    // KPI 2: pendientes de aprobación
+    totPend > 0
+      ? '<div class="stat-card" style="border-color:var(--yellow)"><div class="stat-label">Mis gastos pendientes</div><div class="stat-value text-yellow">' + totPend + '</div><div class="stat-sub">esperando aprobación</div></div>'
+      : '<div class="stat-card"><div class="stat-label">Mis gastos pendientes</div><div class="stat-value text-green">0</div><div class="stat-sub">todo al día ✓</div></div>',
+    // KPI 3: dólar
     state.cotizacionHoy ? '<div class="stat-card"><div class="stat-label">Dólar (último registrado)</div><div class="stat-value">$ ' + parseFloat(state.cotizacionHoy).toLocaleString('es-AR') + '</div><div class="stat-sub">ARS por USD</div></div>' : '',
-    state.esAdmin && totFamiliar !== null ? '<div class="stat-card" style="border-color:var(--primary)"><div class="stat-label">Total familiar ' + (new Date().toLocaleDateString('es-AR',{month:'short'})) + '</div><div class="stat-value">' + fmtARS(totFamiliar) + '</div><div class="stat-sub">todos los miembros</div></div>' : ''
+    // KPI 4: total familiar (solo admin) — hogar + gastos personales todos
+    state.esAdmin ? '<div class="stat-card" style="border-color:var(--primary)"><div class="stat-label">Total familiar ' + mesShort + '</div><div class="stat-value">' + fmtARS(totFamiliar||0) + '</div><div class="stat-sub" style="display:flex;flex-direction:column;gap:2px"><span>Hogar: ' + fmtARS(totalHogarMes) + '</span><span>Personal todos: ' + fmtARS(totGastosMes||0) + '</span></div></div>' : ''
   ].filter(Boolean).join('');
   document.getElementById('dash-kpis').innerHTML = kpis;
 
@@ -1027,14 +1047,9 @@ async function loadDashboard() {
   if (!hogarGastos || hogarGastos.length === 0) {
     hogarEl.innerHTML = '<div class="card"><div class="empty" style="padding:16px">Sin gastos del hogar cargados</div></div>';
   } else {
-    const totalHogar = hogarGastos.reduce(function(a,h){ return a+(h.monto_ars||0);},0);
-    const miParteHogar = hogarGastos.reduce(function(a,h){
-      const asig = (h.fam_hogar_asignaciones||[]).find(function(x){ return x.perfil_id === miId;});
-      return a + (asig ? (h.monto_ars||0) * asig.porcentaje / 100 : 0);
-    },0);
     hogarEl.innerHTML = '<div class="card">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">' +
-      '<span style="font-size:13px;color:var(--text2)">Total hogar</span><span class="fw7">' + fmtARS(totalHogar) + '</span></div>' +
+      '<span style="font-size:13px;color:var(--text2)">Total hogar</span><span class="fw7">' + fmtARS(totalHogarMes) + '</span></div>' +
       (miParteHogar > 0 ? '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--primary2)">Mi parte</span><span class="fw7 text-primary" style="color:var(--primary2)">' + fmtARS(miParteHogar) + '</span></div>' : '') +
       hogarGastos.slice(0,5).map(function(h){
         const asig = (h.fam_hogar_asignaciones||[]).find(function(x){ return x.perfil_id === miId;});

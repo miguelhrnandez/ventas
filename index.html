@@ -975,6 +975,10 @@ async function loadDashboard() {
 
   const miId = state.perfil ? state.perfil.id : 'x';
 
+  // 0. Recargar tarjetas frescas (puede haber nuevas desde el último load)
+  const { data: tarjetasFrescas } = await sb.from('fam_tarjetas').select('*');
+  state.tarjetas = tarjetasFrescas || [];
+
   // 1. Gastos propios del mes
   const { data: gastosMes } = await sb.from('fam_gastos')
     .select('id,monto_ars,estado,perfil_id,tarjeta_id,descripcion,categoria,fecha,moneda,monto,tipo_pago')
@@ -1090,10 +1094,11 @@ async function loadDashboard() {
   if (!state.tarjetas || state.tarjetas.length === 0) {
     tarjEl.innerHTML = '<div class="card"><div class="empty" style="padding:16px">Sin tarjetas cargadas</div></div>';
   } else {
-    const gastosCredito = (gastosMes||[]).filter(function(g){ return g.tipo_pago === 'credito' && g.tarjeta_id; });
+    // Todos los gastos del mes que tienen tarjeta asignada (crédito, cuotas, débito, etc.)
+    const gastosConTarjeta = (gastosMes||[]).filter(function(g){ return !!g.tarjeta_id; });
     tarjEl.innerHTML = '<div class="card">' + state.tarjetas.map(function(t){
       // Gastos directos con esa tarjeta este mes
-      const gastosT = gastosCredito.filter(function(g){ return g.tarjeta_id === t.id; });
+      const gastosT = gastosConTarjeta.filter(function(g){ return g.tarjeta_id === t.id; });
       const totGastosDir = gastosT.reduce(function(a,g){ return a+(g.monto_ars||0);},0);
       // Cuotas que vencen este mes en esa tarjeta
       const cuotasT = (cuotasMes||[]).filter(function(c){

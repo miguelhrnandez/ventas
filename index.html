@@ -171,27 +171,60 @@ tr:hover td{background:var(--surface2)}
     <!-- DASHBOARD -->
     <div class="panel active" id="panel-dashboard">
       <div class="panel-header">
-        <div class="panel-title" id="dashboard-title">Mi resumen</div>
+        <div>
+          <div class="panel-title" id="dashboard-title">Resumen familiar</div>
+          <div style="font-size:13px;color:var(--text2)" id="dash-mes-label"></div>
+        </div>
         <div class="panel-actions">
-          <select id="dash-periodo" onchange="loadDashboard()" style="width:auto">
-            <option value="">Este mes</option>
-          </select>
+          <button class="btn-ghost btn-sm" onclick="loadDashboard()">↻ Actualizar</button>
+          <button class="btn-primary btn-sm" onclick="openModalGasto()">+ Nuevo gasto</button>
         </div>
       </div>
-      <div id="dash-stats" class="grid-4 mb-16"></div>
-      <div class="grid-2">
+
+      <!-- FILA 1: KPIs del mes -->
+      <div id="dash-kpis" class="grid-4 mb-16"></div>
+
+      <!-- FILA 2: Lo que hay que pagar este mes -->
+      <div class="grid-2 mb-16">
         <div>
-          <h3 style="margin-bottom:12px;font-size:15px">Últimos gastos</h3>
-          <div id="dash-ultimos-gastos"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="font-size:15px;font-weight:700">🏠 Gastos del hogar</h3>
+            <span style="font-size:12px;color:var(--text2)">este mes</span>
+          </div>
+          <div id="dash-hogar"></div>
         </div>
         <div>
-          <h3 style="margin-bottom:12px;font-size:15px">Cuotas próximas</h3>
-          <div id="dash-cuotas-proximas"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="font-size:15px;font-weight:700">💳 Tarjetas</h3>
+            <span style="font-size:12px;color:var(--text2)">gasto del mes</span>
+          </div>
+          <div id="dash-tarjetas"></div>
         </div>
       </div>
-      <div class="mt-16" id="dash-pendientes-wrap" style="display:none">
-        <h3 style="margin-bottom:12px;font-size:15px;color:var(--yellow)">⏳ Gastos pendientes de aprobación</h3>
-        <div id="dash-pendientes"></div>
+
+      <!-- FILA 3: Cuotas + Actividad reciente -->
+      <div class="grid-2 mb-16">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="font-size:15px;font-weight:700">📅 Cuotas que vencen este mes</h3>
+          </div>
+          <div id="dash-cuotas"></div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="font-size:15px;font-weight:700">🕐 Últimos movimientos</h3>
+          </div>
+          <div id="dash-movimientos"></div>
+        </div>
+      </div>
+
+      <!-- FILA 4: Pendientes de aprobación (admin) -->
+      <div id="dash-aprobaciones-wrap" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="font-size:15px;font-weight:700;color:var(--yellow)">⏳ Pendientes de aprobación</h3>
+          <button class="btn-ghost btn-sm" onclick="showPanel('aprobaciones')">Ver todos</button>
+        </div>
+        <div id="dash-aprobaciones"></div>
       </div>
     </div>
 
@@ -935,64 +968,158 @@ async function loadDashboard() {
   const mes = mesActual();
   const inicio = mes + '-01';
   const fin = mes + '-31';
+  const d = new Date();
+  const mesNombre = d.toLocaleDateString('es-AR', {month:'long', year:'numeric'});
+  document.getElementById('dash-mes-label').textContent = mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1);
 
-  // stats propios del mes
-  let q = sb.from('fam_gastos').select('monto_ars, estado, es_compartido, perfil_id').gte('fecha', inicio).lte('fecha', fin);
-  if (!state.esAdmin) q = q.eq('perfil_id', state.perfil ? state.perfil.id : 'x');
-  const { data: gastosMes } = await q;
+  const miId = state.perfil ? state.perfil.id : 'x';
 
-  const totAprobados = (gastosMes||[]).filter(function(g){ return g.estado === 'aprobado'; }).reduce(function(a,g){ return a + (g.monto_ars||0); }, 0);
-  const totPendientes = (gastosMes||[]).filter(function(g){ return g.estado === 'pendiente'; }).length;
+  // 1. Gastos propios del mes
+  const { data: gastosMes } = await sb.from('fam_gastos')
+    .select('id,monto_ars,estado,perfil_id,tarjeta_id,descripcion,categoria,fecha,moneda,monto,tipo_pago')
+    .gte('fecha', inicio).lte('fecha', fin);
 
-  // cuotas próximas
-  const { data: cuotasProx } = await sb.from('fam_cuotas')
-    .select('id, fecha_vencimiento, monto, pagada, plan_id, fam_planes_cuota(gasto_id, fam_gastos(descripcion, perfil_id))')
+  const propios = (gastosMes||[]).filter(function(g){ return g.perfil_id === miId; });
+  const totMes = propios.filter(function(g){ return g.estado === 'aprobado'; }).reduce(function(a,g){ return a+(g.monto_ars||0);},0);
+  const totPend = propios.filter(function(g){ return g.estado === 'pendiente'; }).length;
+
+  // total familiar (admin ve todo)
+  const totFamiliar = state.esAdmin
+    ? (gastosMes||[]).filter(function(g){ return g.estado==='aprobado';}).reduce(function(a,g){return a+(g.monto_ars||0);},0)
+    : null;
+
+  // 2. Gastos del hogar + mis asignaciones
+  const { data: hogarGastos } = await sb.from('fam_hogar_gastos')
+    .select('id,descripcion,categoria,monto_ars,frecuencia,proxima_fecha,fam_hogar_asignaciones(perfil_id,porcentaje)')
+    .eq('activo', true).order('monto_ars', {ascending:false});
+
+  // 3. Cuotas que vencen este mes
+  const { data: cuotasMes } = await sb.from('fam_cuotas')
+    .select('id,numero_cuota,monto,pagada,fecha_vencimiento,plan_id,fam_planes_cuota(total_cuotas,gasto_id,fam_gastos(descripcion,perfil_id,monto_ars))')
     .eq('pagada', false)
-    .gte('fecha_vencimiento', today())
-    .order('fecha_vencimiento')
-    .limit(5);
+    .gte('fecha_vencimiento', inicio)
+    .lte('fecha_vencimiento', fin)
+    .order('fecha_vencimiento');
 
-  // últimos gastos
-  let qg = sb.from('fam_gastos').select('id,descripcion,monto,moneda,monto_ars,fecha,estado,perfil_id,categoria').order('fecha', {ascending: false}).limit(8);
-  if (!state.esAdmin) qg = qg.eq('perfil_id', state.perfil ? state.perfil.id : 'x');
-  const { data: ultGastos } = await qg;
+  // 4. Últimos movimientos
+  const { data: ultMovs } = await sb.from('fam_gastos')
+    .select('id,descripcion,monto_ars,monto,moneda,fecha,estado,perfil_id,categoria,tipo_pago,tarjeta_id')
+    .order('created_at', {ascending:false}).limit(6);
 
-  // pending aprobaciones (admin)
-  let pendCount = 0;
+  // 5. Pendientes de aprobación (admin)
+  let pendAprobaciones = [];
   if (state.esAdmin) {
-    const { count } = await sb.from('fam_gastos').select('id', {count:'exact',head:true}).eq('estado','pendiente');
-    pendCount = count || 0;
+    const { data: pend } = await sb.from('fam_gastos').select('id,descripcion,monto_ars,perfil_id,fecha,categoria').eq('estado','pendiente').order('created_at').limit(5);
+    pendAprobaciones = pend || [];
   }
 
-  // render stats
-  document.getElementById('dash-stats').innerHTML = [
-    '<div class="stat-card"><div class="stat-label">Gastos este mes</div><div class="stat-value">' + fmtARS(totAprobados) + '</div><div class="stat-sub">aprobados</div></div>',
-    '<div class="stat-card"><div class="stat-label">Pendientes aprobación</div><div class="stat-value text-yellow">' + totPendientes + '</div><div class="stat-sub">gastos a revisar</div></div>',
-    state.cotizacionHoy ? '<div class="stat-card"><div class="stat-label">USD hoy</div><div class="stat-value">$ ' + parseFloat(state.cotizacionHoy).toLocaleString('es-AR') + '</div><div class="stat-sub">último TC registrado</div></div>' : '',
-    pendCount > 0 ? '<div class="stat-card" style="border-color:var(--yellow)"><div class="stat-label">Para aprobar (admin)</div><div class="stat-value text-yellow">' + pendCount + '</div><div class="stat-sub">gastos pendientes</div></div>' : ''
-  ].join('');
+  // ---- RENDER KPIs ----
+  const kpis = [
+    '<div class="stat-card"><div class="stat-label">Mis gastos ' + (new Date().toLocaleDateString('es-AR',{month:'short'})) + '</div><div class="stat-value">' + fmtARS(totMes) + '</div><div class="stat-sub">' + propios.filter(function(g){return g.estado==='aprobado';}).length + ' gastos aprobados</div></div>',
+    totPend > 0 ? '<div class="stat-card" style="border-color:var(--yellow)"><div class="stat-label">Mis gastos pendientes</div><div class="stat-value text-yellow">' + totPend + '</div><div class="stat-sub">esperando aprobación</div></div>' : '<div class="stat-card"><div class="stat-label">Mis gastos pendientes</div><div class="stat-value text-green">0</div><div class="stat-sub">todo al día ✓</div></div>',
+    state.cotizacionHoy ? '<div class="stat-card"><div class="stat-label">Dólar (último registrado)</div><div class="stat-value">$ ' + parseFloat(state.cotizacionHoy).toLocaleString('es-AR') + '</div><div class="stat-sub">ARS por USD</div></div>' : '',
+    state.esAdmin && totFamiliar !== null ? '<div class="stat-card" style="border-color:var(--primary)"><div class="stat-label">Total familiar ' + (new Date().toLocaleDateString('es-AR',{month:'short'})) + '</div><div class="stat-value">' + fmtARS(totFamiliar) + '</div><div class="stat-sub">todos los miembros</div></div>' : ''
+  ].filter(Boolean).join('');
+  document.getElementById('dash-kpis').innerHTML = kpis;
 
-  // últimos gastos
-  const ugEl = document.getElementById('dash-ultimos-gastos');
-  if (!ultGastos || ultGastos.length === 0) {
-    ugEl.innerHTML = '<div class="empty" style="padding:20px">Sin gastos este mes</div>';
+  // ---- RENDER HOGAR ----
+  const hogarEl = document.getElementById('dash-hogar');
+  if (!hogarGastos || hogarGastos.length === 0) {
+    hogarEl.innerHTML = '<div class="card"><div class="empty" style="padding:16px">Sin gastos del hogar cargados</div></div>';
   } else {
-    ugEl.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Desc</th><th>Monto</th><th>Estado</th></tr></thead><tbody>' +
-      ultGastos.map(function(g) {
-        return '<tr><td>' + fmtDate(g.fecha) + '</td><td>' + g.descripcion + '</td><td>' + fmtARS(g.monto_ars || g.monto) + '</td><td>' + badgeEstado(g.estado) + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+    const totalHogar = hogarGastos.reduce(function(a,h){ return a+(h.monto_ars||0);},0);
+    const miParteHogar = hogarGastos.reduce(function(a,h){
+      const asig = (h.fam_hogar_asignaciones||[]).find(function(x){ return x.perfil_id === miId;});
+      return a + (asig ? (h.monto_ars||0) * asig.porcentaje / 100 : 0);
+    },0);
+    hogarEl.innerHTML = '<div class="card">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">' +
+      '<span style="font-size:13px;color:var(--text2)">Total hogar</span><span class="fw7">' + fmtARS(totalHogar) + '</span></div>' +
+      (miParteHogar > 0 ? '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--primary2)">Mi parte</span><span class="fw7 text-primary" style="color:var(--primary2)">' + fmtARS(miParteHogar) + '</span></div>' : '') +
+      hogarGastos.slice(0,5).map(function(h){
+        const asig = (h.fam_hogar_asignaciones||[]).find(function(x){ return x.perfil_id === miId;});
+        const miPct = asig ? asig.porcentaje : 0;
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">' +
+          '<div><div style="font-size:13px">' + h.descripcion + '</div>' +
+          '<div style="font-size:11px;color:var(--text2)">' + (h.frecuencia||'') + (miPct > 0 ? ' · mi parte: ' + miPct + '%' : '') + '</div></div>' +
+          '<div style="text-align:right"><div style="font-size:13px;font-weight:600">' + fmtARS(h.monto_ars) + '</div>' +
+          (miPct > 0 ? '<div style="font-size:11px;color:var(--primary2)">' + fmtARS(h.monto_ars * miPct / 100) + '</div>' : '') +
+          '</div></div>';
+      }).join('') + '</div>';
   }
 
-  // cuotas próximas
-  const cpEl = document.getElementById('dash-cuotas-proximas');
-  if (!cuotasProx || cuotasProx.length === 0) {
-    cpEl.innerHTML = '<div class="empty" style="padding:20px">Sin cuotas próximas</div>';
+  // ---- RENDER TARJETAS ----
+  const tarjEl = document.getElementById('dash-tarjetas');
+  if (!state.tarjetas || state.tarjetas.length === 0) {
+    tarjEl.innerHTML = '<div class="card"><div class="empty" style="padding:16px">Sin tarjetas cargadas</div></div>';
   } else {
-    cpEl.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Vence</th><th>Gasto</th><th>Monto</th></tr></thead><tbody>' +
-      cuotasProx.map(function(c) {
-        const desc = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos ? c.fam_planes_cuota.fam_gastos.descripcion : '-';
-        return '<tr><td>' + fmtDate(c.fecha_vencimiento) + '</td><td>' + desc + '</td><td>' + fmtARS(c.monto) + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+    const gastosCredito = (gastosMes||[]).filter(function(g){ return g.tipo_pago === 'credito' && g.tarjeta_id; });
+    tarjEl.innerHTML = '<div class="card">' + state.tarjetas.map(function(t){
+      const gastosT = gastosCredito.filter(function(g){ return g.tarjeta_id === t.id; });
+      const totT = gastosT.reduce(function(a,g){ return a+(g.monto_ars||0);},0);
+      const pct = t.limite_ars > 0 ? Math.min(100, Math.round(totT / t.limite_ars * 100)) : 0;
+      return '<div style="margin-bottom:14px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+        '<div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:50%;background:' + (t.color||'#6366f1') + '"></div><span style="font-size:13px;font-weight:600">' + t.nombre + '</span></div>' +
+        '<span style="font-size:13px;font-weight:700">' + fmtARS(totT) + '</span></div>' +
+        (t.limite_ars > 0 ? '<div class="progress-bar" style="margin-bottom:3px"><div class="progress-fill" style="width:' + pct + '%;background:' + (pct>80?'var(--red)':pct>50?'var(--yellow)':'var(--green)') + '"></div></div><div style="font-size:11px;color:var(--text2)">Límite: ' + fmtARS(t.limite_ars) + ' · usado: ' + pct + '%</div>' : '<div style="font-size:11px;color:var(--text2)">' + gastosT.length + ' gastos este mes</div>') +
+        '</div>';
+    }).join('') + '</div>';
+  }
+
+  // ---- RENDER CUOTAS DEL MES ----
+  const cuotasEl = document.getElementById('dash-cuotas');
+  if (!cuotasMes || cuotasMes.length === 0) {
+    cuotasEl.innerHTML = '<div class="card"><div class="empty" style="padding:16px">Sin cuotas este mes 🎉</div></div>';
+  } else {
+    const totCuotas = cuotasMes.reduce(function(a,c){ return a+(c.monto||0);},0);
+    cuotasEl.innerHTML = '<div class="card">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">' +
+      '<span style="font-size:13px;color:var(--text2)">Total cuotas este mes</span><span class="fw7">' + fmtARS(totCuotas) + '</span></div>' +
+      cuotasMes.map(function(c){
+        const g = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos ? c.fam_planes_cuota.fam_gastos : null;
+        const desc = g ? g.descripcion : '-';
+        const quien = g ? nombrePerfil(g.perfil_id) : '-';
+        const total = c.fam_planes_cuota ? c.fam_planes_cuota.total_cuotas : '?';
+        const diasFalta = Math.ceil((new Date(c.fecha_vencimiento) - new Date()) / 86400000);
+        const urgente = diasFalta <= 5;
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">' +
+          '<div><div style="font-size:13px">' + desc + '</div>' +
+          '<div style="font-size:11px;color:var(--text2)">' + quien + ' · cuota ' + c.numero_cuota + '/' + total + ' · vence ' + fmtDate(c.fecha_vencimiento) + '</div></div>' +
+          '<div style="text-align:right"><div style="font-size:13px;font-weight:600' + (urgente?';color:var(--red)':'') + '">' + fmtARS(c.monto) + '</div>' +
+          '<div style="font-size:11px;color:' + (urgente?'var(--red)':'var(--text2)') + '">' + (diasFalta <= 0 ? '¡Vencida!' : diasFalta === 1 ? 'mañana' : 'en ' + diasFalta + ' días') + '</div></div></div>';
+      }).join('') + '</div>';
+  }
+
+  // ---- RENDER ÚLTIMOS MOVIMIENTOS ----
+  const movEl = document.getElementById('dash-movimientos');
+  if (!ultMovs || ultMovs.length === 0) {
+    movEl.innerHTML = '<div class="card"><div class="empty" style="padding:16px">Sin movimientos</div></div>';
+  } else {
+    movEl.innerHTML = '<div class="card">' + ultMovs.map(function(g){
+      const iconoCat = {Supermercado:'🛒',Restaurante:'🍽',Transporte:'🚗',Salud:'💊',Educación:'📚',Entretenimiento:'🎮',Ropa:'👕',Tecnología:'💻',Viajes:'✈',Servicios:'🔧',Mascotas:'🐾'};
+      const icono = iconoCat[g.categoria] || '💸';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<div style="width:32px;height:32px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">' + icono + '</div>' +
+        '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + g.descripcion + '</div>' +
+        '<div style="font-size:11px;color:var(--text2)">' + nombrePerfil(g.perfil_id) + ' · ' + fmtDate(g.fecha) + '</div></div>' +
+        '<div style="text-align:right;flex-shrink:0"><div style="font-size:13px;font-weight:700">' + fmtARS(g.monto_ars||g.monto) + '</div>' +
+        '<div>' + badgeEstado(g.estado) + '</div></div></div>';
+    }).join('') + '</div>';
+  }
+
+  // ---- RENDER APROBACIONES ----
+  if (state.esAdmin && pendAprobaciones.length > 0) {
+    document.getElementById('dash-aprobaciones-wrap').style.display = 'block';
+    document.getElementById('dash-aprobaciones').innerHTML = pendAprobaciones.map(function(g){
+      return '<div class="card mb-16 approval-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
+        '<div><div class="fw7">' + g.descripcion + '</div><div class="text-muted" style="font-size:12px">' + nombrePerfil(g.perfil_id) + ' · ' + fmtDate(g.fecha) + ' · ' + (g.categoria||'Sin categoría') + '</div></div>' +
+        '<div style="display:flex;align-items:center;gap:8px"><span class="fw7">' + fmtARS(g.monto_ars) + '</span>' +
+        '<button class="btn-green btn-sm" onclick="aprobarGasto(\'' + g.id + '\')">✓</button>' +
+        '<button class="btn-red btn-sm" onclick="pedirRechazo(\'' + g.id + '\')">✗</button></div></div>';
+    }).join('');
+  } else {
+    document.getElementById('dash-aprobaciones-wrap').style.display = 'none';
   }
 }
 

@@ -1575,9 +1575,38 @@ async function saveTarjeta() {
 }
 
 async function deleteTarjeta(id) {
-  if (!confirm('¿Eliminar tarjeta?')) return;
+  // Ver cuántos gastos tiene esta tarjeta
+  const { data: gastosAsoc } = await sb.from('fam_gastos').select('id').eq('tarjeta_id', id);
+  const cant = gastosAsoc ? gastosAsoc.length : 0;
+
+  let accion = 'desvincular';
+  if (cant > 0) {
+    const resp = confirm(
+      'Esta tarjeta tiene ' + cant + ' gasto' + (cant > 1 ? 's' : '') + ' registrado' + (cant > 1 ? 's' : '') + '.\n\n' +
+      '• Aceptar → eliminar la tarjeta Y sus gastos\n' +
+      '• Cancelar → solo eliminar la tarjeta, los gastos quedan sin tarjeta asignada'
+    );
+    if (resp === true) {
+      accion = 'borrar';
+    } else if (resp === false) {
+      accion = 'desvincular';
+    }
+  } else {
+    if (!confirm('¿Eliminar tarjeta? No tiene gastos asociados.')) return;
+  }
+
+  if (accion === 'borrar') {
+    // Borrar gastos asociados primero
+    await sb.from('fam_gastos').delete().eq('tarjeta_id', id);
+  } else {
+    // Limpiar tarjeta_id de los gastos
+    await sb.from('fam_gastos').update({ tarjeta_id: null }).eq('tarjeta_id', id);
+  }
+
   await sb.from('fam_tarjetas').delete().eq('id', id);
-  notif('Tarjeta eliminada');
+  const { data } = await sb.from('fam_tarjetas').select('*');
+  state.tarjetas = data || [];
+  notif('Tarjeta eliminada' + (cant > 0 ? (accion === 'borrar' ? ' junto con sus gastos' : ', gastos desvinculados') : ''));
   loadTarjetas();
 }
 

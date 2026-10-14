@@ -785,10 +785,15 @@ tr:hover td{background:var(--surface2)}
   <div class="modal">
     <h2 id="modal-miembro-title">Agregar miembro</h2>
     <input type="hidden" id="miembro-id">
-    <div class="form-group">
-      <label>Email (usuario Supabase) *</label>
-      <input type="email" id="miembro-email" placeholder="email@ejemplo.com">
-      <div style="font-size:11px;color:var(--text2);margin-top:4px">El usuario debe existir en Auth de Supabase</div>
+    <div id="miembro-auth-fields">
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" id="miembro-email" placeholder="email@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label>Contraseña *</label>
+        <input type="password" id="miembro-pass" placeholder="Mínimo 6 caracteres">
+      </div>
     </div>
     <div class="form-group">
       <label>Nombre *</label>
@@ -2196,10 +2201,12 @@ async function loadMiembros() {
 
 function openModalMiembro(id) {
   document.getElementById('miembro-id').value = id || '';
-  document.getElementById('modal-miembro-title').textContent = id ? 'Editar miembro' : 'Agregar miembro';
-  ['miembro-email','miembro-nombre','miembro-alias'].forEach(function(f){ document.getElementById(f).value = ''; });
+  document.getElementById('modal-miembro-title').textContent = id ? 'Editar miembro' : 'Nuevo miembro';
+  ['miembro-email','miembro-pass','miembro-nombre','miembro-alias'].forEach(function(f){ document.getElementById(f).value = ''; });
   document.getElementById('miembro-rol').value = 'miembro';
   document.getElementById('miembro-color').value = '#6366f1';
+  // mostrar/ocultar campos de auth según si es nuevo o edición
+  document.getElementById('miembro-auth-fields').style.display = id ? 'none' : 'block';
   if (id) {
     const p = state.perfiles.find(function(x){ return x.id === id; });
     if (p) {
@@ -2216,31 +2223,49 @@ async function saveMiembro() {
   const id = document.getElementById('miembro-id').value;
   const nombre = document.getElementById('miembro-nombre').value.trim();
   const email = document.getElementById('miembro-email').value.trim();
+  const pass = document.getElementById('miembro-pass').value;
   if (!nombre) { notif('Nombre obligatorio', 'err'); return; }
 
   const row = {
-    nombre: nombre, alias: document.getElementById('miembro-alias').value || null,
+    nombre: nombre,
+    alias: document.getElementById('miembro-alias').value || null,
     rol: document.getElementById('miembro-rol').value,
     avatar_color: document.getElementById('miembro-color').value
   };
 
   if (id) {
+    // Edición — solo actualiza perfil
     const { error } = await sb.from('fam_perfiles').update(row).eq('id', id);
     if (error) { notif('Error: ' + error.message, 'err'); return; }
   } else {
-    // Para crear, el user_id debe existir en auth. Buscamos por email.
-    if (!email) { notif('Email obligatorio para nuevo miembro', 'err'); return; }
-    // buscar usuario por email via admin endpoint no disponible desde cliente
-    // En este flujo el admin debe ingresar el UUID del usuario manualmente o el usuario se registra
-    // Por simplicidad hacemos insert sin user_id y el admin puede asignarlo después
-    const { error } = await sb.from('fam_perfiles').insert({ ...row, user_id: null });
-    if (error) { notif('Error: ' + error.message, 'err'); return; }
+    // Nuevo — primero crea usuario en Auth via Admin API
+    if (!email) { notif('Email obligatorio', 'err'); return; }
+    if (!pass || pass.length < 6) { notif('La contraseña debe tener al menos 6 caracteres', 'err'); return; }
+
+    const SUPABASE_URL = 'https://mwblnzzesjajzxmpuqbe.supabase.co';
+    const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Ymxuenplc2phanp4bXB1cWJlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjIyMjU4MCwiZXhwIjoyMDkxNzk4NTgwfQ.bdd_6IwTeAOMfir60VMi7oiJ-1WleSgJFBzW0j0HQNM';
+
+    const res = await fetch(SUPABASE_URL + '/auth/v1/admin/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SERVICE_KEY,
+        'Authorization': 'Bearer ' + SERVICE_KEY
+      },
+      body: JSON.stringify({ email: email, password: pass, email_confirm: true })
+    });
+    const authData = await res.json();
+    if (!res.ok) { notif('Error al crear usuario: ' + (authData.message || authData.error || 'desconocido'), 'err'); return; }
+
+    const userId = authData.id;
+    const { error } = await sb.from('fam_perfiles').insert({ ...row, user_id: userId });
+    if (error) { notif('Error al crear perfil: ' + error.message, 'err'); return; }
   }
 
   const { data: perfiles } = await sb.from('fam_perfiles').select('*').order('nombre');
   state.perfiles = perfiles || [];
   closeModal('modal-miembro');
-  notif('Miembro guardado');
+  notif('Miembro guardado ✓');
   loadMiembros();
 }
 

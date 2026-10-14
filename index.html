@@ -259,7 +259,7 @@ tr:hover td{background:var(--surface2)}
       <div class="grid-2 mb-16">
         <div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3 style="font-size:15px;font-weight:700">📅 Cuotas que vencen este mes</h3>
+            <h3 style="font-size:15px;font-weight:700">📅 Pagos en cuotas activos</h3>
           </div>
           <div id="dash-cuotas"></div>
         </div>
@@ -1177,7 +1177,13 @@ async function loadDashboard() {
   // Total familiar = gastos personales aprobados de todos + total hogar + cuotas fam
   const totFamiliar = state.esAdmin ? (totGastosMes||0) + totalHogarMes + totCuotasFam : null;
 
-  // 4. Últimos movimientos
+  // 4. Planes de cuotas activos (para el widget de progreso)
+  const planesQuery = sb.from('fam_planes_cuota')
+    .select('id,total_cuotas,gasto_id,fam_gastos(descripcion,perfil_id,monto_ars,tarjeta_id,fam_tarjetas(nombre,color)),fam_cuotas(id,numero_cuota,monto,pagada,fecha_vencimiento)')
+    .order('gasto_id');
+  const { data: planesActivos } = await (state.esAdmin ? planesQuery : planesQuery);
+
+  // 5. Últimos movimientos
   const { data: ultMovs } = await sb.from('fam_gastos')
     .select('id,descripcion,monto_ars,monto,moneda,fecha,estado,perfil_id,categoria,tipo_pago,tarjeta_id')
     .order('created_at', {ascending:false}).limit(6);
@@ -1401,36 +1407,67 @@ async function loadDashboard() {
   }
 
   // ---- RENDER CUOTAS DEL MES ----
+  // ---- RENDER PLANES DE CUOTAS (progreso) ----
   const cuotasEl = document.getElementById('dash-cuotas');
-  if (!cuotasMes || cuotasMes.length === 0) {
-    cuotasEl.innerHTML = '<div class="card"><div class="empty" style="padding:16px">Sin cuotas este mes 🎉</div></div>';
+  // filtrar planes según si es admin (todos) o miembro (solo los propios)
+  const planesFiltrados = (planesActivos || []).filter(function(p) {
+    if (state.esAdmin) return true;
+    const g = p.fam_gastos;
+    return g && g.perfil_id === miId;
+  }).filter(function(p) {
+    // solo planes con cuotas pendientes (no todas pagadas)
+    const cuotas = p.fam_cuotas || [];
+    return cuotas.some(function(c) { return !c.pagada; });
+  });
+
+  if (!planesFiltrados || planesFiltrados.length === 0) {
+    cuotasEl.innerHTML = '<div class="card"><div class="empty" style="padding:16px">Sin pagos en cuotas activos 🎉</div></div>';
   } else {
-    const totCuotas = cuotasMes.reduce(function(a,c){ return a+(c.monto||0);},0);
     cuotasEl.innerHTML = '<div class="card">' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">' +
-      '<span style="font-size:13px;color:var(--text2)">Total cuotas este mes</span><span class="fw7">' + fmtARS(totCuotas) + '</span></div>' +
-      cuotasMes.map(function(c){
-        const pc = c.fam_planes_cuota;
-        const g = pc && pc.fam_gastos ? pc.fam_gastos : null;
-        const desc = g ? g.descripcion : '-';
-        const quien = g ? nombrePerfil(g.perfil_id) : '-';
-        const total = pc ? pc.total_cuotas : '?';
-        const tarj = g && g.fam_tarjetas ? g.fam_tarjetas : null;
+      planesFiltrados.map(function(p) {
+        const g = p.fam_gastos || {};
+        const cuotas = p.fam_cuotas || [];
+        const total = p.total_cuotas || cuotas.length;
+        const pagadas = cuotas.filter(function(c){ return c.pagada; }).length;
+        const restantes = total - pagadas;
+        const pct = Math.round((pagadas / total) * 100);
+        const tarj = g.fam_tarjetas;
+        const tarjColor = tarj ? (tarj.color || '#6366f1') : 'var(--primary)';
         const tarjLabel = tarj ? tarj.nombre : 'Sin tarjeta';
-        const tarjColor = tarj ? (tarj.color||'#6366f1') : 'var(--text2)';
-        const diasFalta = Math.ceil((new Date(c.fecha_vencimiento) - new Date()) / 86400000);
-        const urgente = diasFalta <= 5;
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">' +
-          '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:13px;font-weight:500">' + desc + '</div>' +
-          '<div style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;margin-top:2px">' +
-          '<span>' + quien + '</span><span>·</span><span>cuota ' + c.numero_cuota + '/' + total + '</span><span>·</span>' +
-          '<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:' + tarjColor + ';display:inline-block"></span>' + tarjLabel + '</span>' +
-          '</div></div>' +
-          '<div style="text-align:right;flex-shrink:0;margin-left:8px">' +
-          '<div style="font-size:13px;font-weight:600' + (urgente?';color:var(--red)':'') + '">' + fmtARS(c.monto) + '</div>' +
-          '<div style="font-size:11px;color:' + (urgente?'var(--red)':'var(--text2)') + '">' + (diasFalta <= 0 ? '¡Vencida!' : diasFalta === 1 ? 'mañana' : 'en ' + diasFalta + ' días') + '</div>' +
-          '</div></div>';
+        const quien = nombrePerfil(g.perfil_id);
+        // cuota mensual
+        const montoCuota = cuotas.length > 0 ? cuotas[0].monto : 0;
+        // próxima cuota pendiente
+        const proxima = cuotas.filter(function(c){ return !c.pagada; }).sort(function(a,b){ return new Date(a.fecha_vencimiento)-new Date(b.fecha_vencimiento); })[0];
+        // fecha de última cuota = mes de finalización
+        const ultima = cuotas.slice().sort(function(a,b){ return new Date(b.fecha_vencimiento)-new Date(a.fecha_vencimiento); })[0];
+        const fechaFin = ultima ? new Date(ultima.fecha_vencimiento) : null;
+        const messFin = fechaFin ? fechaFin.toLocaleDateString('es-AR', {month:'2-digit', year:'2-digit'}) : '?';
+        // color barra según progreso
+        const barColor = pct >= 75 ? 'var(--green)' : pct >= 40 ? 'var(--yellow)' : 'var(--primary)';
+
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (g.descripcion || '-') + '</div>' +
+              '<div style="font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:5px">' +
+                (state.esAdmin ? '<span>' + quien + '</span><span>·</span>' : '') +
+                '<span style="display:inline-flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:' + tarjColor + ';display:inline-block"></span>' + tarjLabel + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div style="text-align:right;flex-shrink:0;margin-left:12px">' +
+              '<div style="font-size:13px;font-weight:700">' + fmtARS(montoCuota) + '<span style="font-size:10px;color:var(--text2)">/mes</span></div>' +
+            '</div>' +
+          '</div>' +
+          // barra de progreso
+          '<div style="background:var(--surface2);border-radius:4px;height:6px;margin-bottom:6px">' +
+            '<div style="background:' + barColor + ';height:6px;border-radius:4px;width:' + pct + '%"></div>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2)">' +
+            '<span>' + pagadas + '/' + total + ' cuotas · <span style="color:var(--text)">faltan ' + restantes + '</span></span>' +
+            '<span>termina <span style="color:var(--text)">' + messFin + '</span></span>' +
+          '</div>' +
+        '</div>';
       }).join('') + '</div>';
   }
 

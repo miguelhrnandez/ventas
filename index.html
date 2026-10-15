@@ -149,10 +149,22 @@ tr:hover td{background:var(--surface2)}
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(44,40,37,.4);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 8px 48px rgba(44,40,37,.14)}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 8px 48px rgba(44,40,37,.14);transition:transform .3s ease}
 .modal h2{font-family:'DM Serif Display',Georgia,serif;font-size:20px;font-weight:400;margin-bottom:22px;letter-spacing:-.01em}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+/* BOTTOM SHEET on mobile */
+@media(max-width:600px){
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal{border-radius:20px 20px 0 0;max-height:92vh;max-width:100%;padding:20px 20px 32px}
+  .modal::before{content:'';display:block;width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* GASTOS TABS */
+.gastos-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface2);border-radius:10px;padding:4px}
+.gastos-tab{flex:1;border:none;background:transparent;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s}
+.gastos-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(44,40,37,.1)}
+.gastos-tab:hover:not(.active){color:var(--text)}
 
 /* MISC */
 .empty{text-align:center;padding:48px;color:var(--text2)}
@@ -242,7 +254,6 @@ tr:hover td{background:var(--surface2)}
     <button class="nav-btn active" onclick="showPanel('dashboard')">Dashboard</button>
     <button class="nav-btn" onclick="showPanel('gastos')">Gastos del mes</button>
     <button class="nav-btn" onclick="showPanel('tarjetas')">Tarjetas</button>
-    <button class="nav-btn" onclick="showPanel('cuotas')">Cuotas</button>
     <button class="nav-btn" onclick="showPanel('hogar')">Hogar</button>
     <button class="nav-btn" onclick="showPanel('aportes')">Aportes</button>
     <button class="nav-btn" onclick="showPanel('pagos-ext')">Pagos externos</button>
@@ -297,99 +308,80 @@ tr:hover td{background:var(--surface2)}
         </div>
       </div>
 
-      <!-- FILA 1: KPIs del mes -->
-      <div id="dash-kpis" class="grid-4 mb-16"></div>
+      <!-- ALERTA: tarjetas con pago próximo -->
+      <div id="dash-tarjeta-alerta" style="display:none;margin-bottom:16px"></div>
 
-      <!-- FILA 2: Resumen por miembro (solo admin) -->
-      <div id="dash-resumen-miembros-wrap" style="display:none" class="mb-16">
+      <!-- TOTAL GRANDE del mes -->
+      <div id="dash-total-hero" style="margin-bottom:20px"></div>
+
+      <!-- BREAKDOWN: tarjetas, hogar, cuotas -->
+      <div id="dash-breakdown" style="margin-bottom:20px"></div>
+
+      <!-- PENDIENTES de aprobación (admin) -->
+      <div id="dash-aprobaciones-wrap" style="display:none;margin-bottom:20px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <h3 style="font-size:15px;font-weight:700">👥 Gastos por miembro este mes</h3>
-        </div>
-        <div id="dash-resumen-miembros" class="grid-4"></div>
-      </div>
-
-      <!-- FILA 3: Gráfico por categoría (admin y usuarios avanzados) -->
-      <div class="mb-16" id="dash-chart-wrap">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <h3 style="font-size:15px;font-weight:700">📊 Gastos por categoría este mes</h3>
-          <span id="dash-chart-subtotal" style="font-size:12px;color:var(--text2)"></span>
-        </div>
-        <div class="card" style="padding:20px">
-          <canvas id="dash-chart-cat" height="120"></canvas>
-        </div>
-      </div>
-
-      <!-- FILA 4: Cuotas activas (vista simplificada para no-admin, arriba) -->
-      <div id="dash-cuotas-simple-wrap" style="display:none;margin-bottom:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <h3 style="font-size:15px;font-weight:700">📅 Mis pagos en cuotas</h3>
-        </div>
-        <div id="dash-cuotas-simple"></div>
-      </div>
-
-      <!-- FILA 4: Lo que hay que pagar este mes (layout completo) -->
-      <div class="grid-2 mb-16" id="dash-hogar-tarjetas-wrap">
-        <div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3 style="font-size:15px;font-weight:700">🏠 Gastos del hogar</h3>
-            <span style="font-size:12px;color:var(--text2)">este mes</span>
-          </div>
-          <div id="dash-hogar"></div>
-        </div>
-        <div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3 style="font-size:15px;font-weight:700">💳 Tarjetas</h3>
-            <span style="font-size:12px;color:var(--text2)">gasto del mes</span>
-          </div>
-          <div id="dash-tarjetas"></div>
-        </div>
-      </div>
-
-      <!-- FILA 5: Cuotas + Actividad reciente (layout completo, solo admin) -->
-      <div class="grid-2 mb-16" id="dash-cuotas-movs-wrap">
-        <div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3 style="font-size:15px;font-weight:700">📅 Pagos en cuotas activos</h3>
-          </div>
-          <div id="dash-cuotas"></div>
-        </div>
-        <div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3 style="font-size:15px;font-weight:700">🕐 Últimos movimientos</h3>
-          </div>
-          <div id="dash-movimientos"></div>
-        </div>
-      </div>
-
-      <!-- FILA 5b: Últimos movimientos (no-admin, layout simple) -->
-      <div id="dash-movs-simple-wrap" style="display:none;margin-bottom:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <h3 style="font-size:15px;font-weight:700">🕐 Mis últimos movimientos</h3>
-        </div>
-        <div id="dash-movimientos-simple"></div>
-      </div>
-
-      <!-- FILA 6: Pendientes de aprobación (admin) -->
-      <div id="dash-aprobaciones-wrap" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <h3 style="font-size:15px;font-weight:700;color:var(--yellow)">⏳ Pendientes de aprobación</h3>
+          <h3 style="font-size:14px;font-weight:600;color:var(--yellow)">Pendientes de aprobación</h3>
           <button class="btn-ghost btn-sm" onclick="showPanel('aprobaciones')">Ver todos</button>
         </div>
         <div id="dash-aprobaciones"></div>
       </div>
+
+      <!-- ÚLTIMOS MOVIMIENTOS -->
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="font-size:14px;font-weight:600;color:var(--text)">Últimos movimientos</h3>
+          <button class="btn-ghost btn-sm" onclick="showPanel('gastos')">Ver todos</button>
+        </div>
+        <div id="dash-movimientos"></div>
+      </div>
+
+      <!-- Resumen por miembro (solo admin) -->
+      <div id="dash-resumen-miembros-wrap" style="display:none;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="font-size:14px;font-weight:600;color:var(--text)">Gastos por persona este mes</h3>
+        </div>
+        <div id="dash-resumen-miembros" class="grid-4"></div>
+      </div>
+
+      <!-- Legacy IDs kept for compat with existing loadDashboard JS -->
+      <div id="dash-kpis" style="display:none"></div>
+      <div id="dash-hogar" style="display:none"></div>
+      <div id="dash-tarjetas" style="display:none"></div>
+      <div id="dash-cuotas" style="display:none"></div>
+      <div id="dash-chart-wrap" style="display:none"><canvas id="dash-chart-cat"></canvas></div>
+      <div id="dash-chart-subtotal" style="display:none"></div>
+      <div id="dash-hogar-tarjetas-wrap" style="display:none"></div>
+      <div id="dash-cuotas-movs-wrap" style="display:none"></div>
+      <div id="dash-cuotas-simple-wrap" style="display:none"><div id="dash-cuotas-simple"></div></div>
+      <div id="dash-movs-simple-wrap" style="display:none"><div id="dash-movimientos-simple"></div></div>
     </div>
 
     <!-- GASTOS DEL MES (vista unificada) -->
     <div class="panel" id="panel-gastos">
       <div class="panel-header">
-        <div class="panel-title">💸 Compromisos del mes</div>
+        <div class="panel-title">Compromisos del mes</div>
         <div class="panel-actions">
           <select id="filtro-gasto-mes" onchange="loadGastos()" style="width:auto"></select>
           <button class="btn-primary" onclick="openModalGasto()">+ Nuevo gasto</button>
         </div>
       </div>
-      <div id="gastos-resumen" style="margin-bottom:16px"></div>
-      <div id="gastos-grupos"></div>
+      <!-- Sub-tabs -->
+      <div class="gastos-tabs">
+        <button class="gastos-tab active" id="tab-detalle" onclick="switchGastosTab('detalle')">Detalle</button>
+        <button class="gastos-tab" id="tab-graficos" onclick="switchGastosTab('graficos')">Gráficos</button>
+      </div>
+      <!-- Detalle view -->
+      <div id="gastos-view-detalle">
+        <div style="margin-bottom:12px">
+          <input type="text" id="gastos-search" placeholder="Buscar gasto..." oninput="filterGastos()" style="width:100%;box-sizing:border-box">
+        </div>
+        <div id="gastos-resumen" style="margin-bottom:16px"></div>
+        <div id="gastos-grupos"></div>
+      </div>
+      <!-- Gráficos view -->
+      <div id="gastos-view-graficos" style="display:none">
+        <div id="gastos-chart-container" style="padding:8px 0"></div>
+      </div>
     </div>
 
     <!-- TARJETAS -->
@@ -1779,6 +1771,170 @@ async function loadDashboard() {
   } else {
     document.getElementById('dash-aprobaciones-wrap').style.display = 'none';
   }
+
+  // ---- RENDER NUEVO HERO (total grande) ----
+  const heroTotal = state.esAdmin ? (totFamiliar || 0) : totMisGastos;
+  const heroLabel = state.esAdmin ? 'Gasto familiar ' + mesCapital.split(' ')[0] : 'Lo que gasté en ' + mesCapital.split(' ')[0];
+  const mesAntTot = state.esAdmin ? totFamAnt : totMesAnt;
+  const tendencia = (function() {
+    if (!mesAntTot || mesAntTot === 0) return '';
+    const diff = ((heroTotal - mesAntTot) / mesAntTot) * 100;
+    const abs = Math.abs(diff).toFixed(0);
+    if (diff > 5) return '<span style="color:var(--red);font-size:12px;display:flex;align-items:center;gap:4px;margin-top:4px">↑ ' + abs + '% más que el mes pasado</span>';
+    if (diff < -5) return '<span style="color:var(--green);font-size:12px;display:flex;align-items:center;gap:4px;margin-top:4px">↓ ' + abs + '% menos que el mes pasado</span>';
+    return '<span style="color:var(--text2);font-size:12px;display:flex;align-items:center;gap:4px;margin-top:4px">≈ Similar al mes pasado</span>';
+  })();
+
+  document.getElementById('dash-total-hero').innerHTML =
+    '<div style="background:var(--surface2);border-radius:16px;padding:20px 24px;border:1px solid var(--border)">' +
+      '<div style="font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px">' + heroLabel + '</div>' +
+      '<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:clamp(28px,6vw,40px);font-weight:400;letter-spacing:-.02em;color:var(--text);line-height:1">' + fmtARS(heroTotal) + '</div>' +
+      tendencia +
+      (totPend > 0 ? '<div style="margin-top:8px;font-size:12px;color:var(--yellow)">+ ' + fmtARS(propios.filter(function(g){return g.estado==="pendiente";}).reduce(function(a,g){return a+(g.monto_ars||0);},0)) + ' pendientes de aprobación</div>' : '') +
+    '</div>';
+
+  // ---- RENDER BREAKDOWN (tarjetas + hogar + cuotas) ----
+  var bkItems = [];
+
+  // Tarjetas con movimientos del mes
+  var tarjetasUsadas = state.tarjetas.filter(function(t) {
+    var tieneG = (gastosMes||[]).some(function(g){ return g.tarjeta_id === t.id && (state.esAdmin || g.perfil_id === miId); });
+    var tieneC = (cuotasMes||[]).some(function(c){
+      var g = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos;
+      return g && g.tarjeta_id === t.id && (state.esAdmin || g.perfil_id === miId);
+    });
+    return tieneG || tieneC || state.esAdmin;
+  });
+
+  tarjetasUsadas.forEach(function(t) {
+    var gastosT = (gastosMes||[]).filter(function(g){ return g.tarjeta_id === t.id && g.estado==='aprobado' && (state.esAdmin || g.perfil_id===miId); });
+    var cuotasT = (cuotasMes||[]).filter(function(c){
+      var g = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos;
+      return g && g.tarjeta_id === t.id && (state.esAdmin || g.perfil_id===miId);
+    });
+    var tot = gastosT.reduce(function(a,g){return a+(g.monto_ars||0);},0) + cuotasT.reduce(function(a,c){return a+(c.monto||0);},0);
+    if (tot === 0 && !state.esAdmin) return;
+    var pct = t.limite_ars > 0 ? Math.min(100, Math.round(tot/t.limite_ars*100)) : 0;
+    var color = t.color || '#8B5E3C';
+
+    // Alerta de fecha de corte/pago
+    var alertaTarj = '';
+    if (t.fecha_cierre) {
+      var hoy = new Date(); hoy.setHours(0,0,0,0);
+      var diaCierre = parseInt(t.fecha_cierre, 10);
+      var fechaCierre = new Date(hoy.getFullYear(), hoy.getMonth(), diaCierre);
+      if (fechaCierre < hoy) fechaCierre.setMonth(fechaCierre.getMonth()+1);
+      var diasParaCierre = Math.ceil((fechaCierre - hoy) / 86400000);
+      if (diasParaCierre <= 5) {
+        alertaTarj = '<div style="font-size:11px;color:var(--yellow);margin-top:3px">Pago de tarjeta en ' + diasParaCierre + ' día' + (diasParaCierre===1?'':'s') + '</div>';
+      }
+    }
+
+    bkItems.push(
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+          '<div style="display:flex;align-items:center;gap:6px">' +
+            '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';display:inline-block"></span>' +
+            '<span style="font-size:13px;font-weight:600">' + t.nombre + '</span>' +
+          '</div>' +
+          '<span style="font-size:15px;font-weight:700">' + fmtARS(tot) + '</span>' +
+        '</div>' +
+        alertaTarj +
+        (pct > 0 ? '<div style="margin-top:8px;background:var(--surface2);border-radius:4px;height:4px"><div style="background:' + (pct>80?'var(--red)':pct>50?'var(--yellow)':color) + ';height:4px;border-radius:4px;width:' + pct + '%"></div></div><div style="font-size:10px;color:var(--text2);margin-top:3px">' + pct + '% del límite</div>' : '') +
+      '</div>'
+    );
+  });
+
+  // Hogar
+  if (totalHogarMes > 0) {
+    bkItems.push(
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span style="font-size:13px;font-weight:600;color:var(--text)">Gastos del hogar</span>' +
+          '<span style="font-size:15px;font-weight:700">' + fmtARS(totalHogarMes) + '</span>' +
+        '</div>' +
+        (miParteHogar > 0 && !state.esAdmin ? '<div style="font-size:11px;color:var(--text2);margin-top:3px">Tu parte: ' + fmtARS(miParteHogar) + '</div>' : '') +
+      '</div>'
+    );
+  }
+
+  // Cuotas activas
+  if (totCuotasFam > 0 || totMisCuotas > 0) {
+    var totCuotasDisplay = state.esAdmin ? totCuotasFam : totMisCuotas;
+    bkItems.push(
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span style="font-size:13px;font-weight:600;color:var(--text)">Cuotas del mes</span>' +
+          '<span style="font-size:15px;font-weight:700">' + fmtARS(totCuotasDisplay) + '</span>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  document.getElementById('dash-breakdown').innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">' +
+      bkItems.join('') +
+    '</div>';
+
+  // ---- ALERTA TARJETAS CON PAGO PRÓXIMO ----
+  var alertasTarjeta = [];
+  state.tarjetas.forEach(function(t) {
+    if (!t.fecha_cierre) return;
+    var hoy = new Date(); hoy.setHours(0,0,0,0);
+    var diaCierre = parseInt(t.fecha_cierre, 10);
+    var fechaCierre = new Date(hoy.getFullYear(), hoy.getMonth(), diaCierre);
+    if (fechaCierre < hoy) fechaCierre.setMonth(fechaCierre.getMonth()+1);
+    var diasParaCierre = Math.ceil((fechaCierre - hoy) / 86400000);
+    if (diasParaCierre <= 5) {
+      alertasTarjeta.push({ nombre: t.nombre, dias: diasParaCierre, color: t.color });
+    }
+  });
+
+  var alertaEl = document.getElementById('dash-tarjeta-alerta');
+  if (alertasTarjeta.length > 0) {
+    alertaEl.style.display = 'block';
+    alertaEl.innerHTML = alertasTarjeta.map(function(a) {
+      return '<div style="background:rgba(201,153,58,.12);border:1px solid var(--yellow);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px">' +
+        '<span style="font-size:20px">⏰</span>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:600;color:var(--yellow)">' +
+            (a.dias === 0 ? 'Hoy' : a.dias === 1 ? 'Mañana' : 'En ' + a.dias + ' días') + ' vence el pago de ' + a.nombre +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--text2);margin-top:2px">Acordate de pagar el total de la tarjeta.</div>' +
+        '</div>' +
+      '</div>';
+    }).join('<div style="height:8px"></div>');
+  } else {
+    alertaEl.style.display = 'none';
+  }
+
+  // ---- ULTIMOS MOVIMIENTOS (nuevo contenedor) ----
+  (function(){
+    var movEl = document.getElementById('dash-movimientos');
+    var items = state.esAdmin ? (ultMovs||[]) : (ultMovs||[]).filter(function(g){ return g.perfil_id === miId; }).slice(0,5);
+    if (!items || items.length === 0) {
+      movEl.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px 0">Sin movimientos recientes.</div>';
+      return;
+    }
+    movEl.innerHTML = '<div style="background:var(--surface2);border-radius:12px;overflow:hidden">' + items.map(function(g, idx){
+      var isLast = idx === items.length - 1;
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;' + (isLast ? '' : 'border-bottom:1px solid var(--border)') + '">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + g.descripcion + '</div>' +
+          '<div style="font-size:11px;color:var(--text2);margin-top:1px">' + (state.esAdmin ? nombrePerfil(g.perfil_id) + ' · ' : '') + fmtDate(g.fecha) + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0">' +
+          '<div style="font-size:13px;font-weight:700">' + fmtARS(g.monto_ars||g.monto) + '</div>' +
+          '<div>' + badgeEstado(g.estado) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('') + '</div>';
+  })();
+
+  // ---- RESUMEN MIEMBROS (admin) ----
+  if (state.esAdmin) {
+    document.getElementById('dash-resumen-miembros-wrap').style.display = 'block';
+  }
 }
 
 // ============================================================
@@ -2001,6 +2157,118 @@ async function loadGastos() {
   }
 
   gruposEl.innerHTML = html;
+
+  // Store raw data for filtering/charts
+  window._gastosRawData = { tarjetaMap, hogarItems, totalTarjetas, totalHogar, totalGeneral };
+
+  // Rebuild chart if that tab is active
+  if (document.getElementById('gastos-view-graficos').style.display !== 'none') {
+    renderGastosChart();
+  }
+}
+
+function switchGastosTab(tab) {
+  document.getElementById('gastos-view-detalle').style.display = tab === 'detalle' ? '' : 'none';
+  document.getElementById('gastos-view-graficos').style.display = tab === 'graficos' ? '' : 'none';
+  document.getElementById('tab-detalle').classList.toggle('active', tab === 'detalle');
+  document.getElementById('tab-graficos').classList.toggle('active', tab === 'graficos');
+  if (tab === 'graficos') renderGastosChart();
+}
+
+function filterGastos() {
+  var q = (document.getElementById('gastos-search').value || '').toLowerCase().trim();
+  var rows = document.querySelectorAll('#gastos-grupos tr');
+  rows.forEach(function(tr) {
+    var text = tr.textContent.toLowerCase();
+    tr.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+  // Also toggle group headers if all rows hidden
+  var groups = document.querySelectorAll('#gastos-grupos > div');
+  groups.forEach(function(g) {
+    var tbody = g.querySelector('tbody');
+    if (!tbody) return;
+    var visible = Array.from(tbody.querySelectorAll('tr')).some(function(r){ return r.style.display !== 'none'; });
+    g.style.display = visible ? '' : 'none';
+  });
+}
+
+async function renderGastosChart() {
+  var container = document.getElementById('gastos-chart-container');
+  if (!container) return;
+
+  var mes = document.getElementById('filtro-gasto-mes').value || mesActual();
+  // Fetch last 5 months of gastos totals for comparison
+  var meses = [];
+  for (var i = 4; i >= 0; i--) {
+    var d = new Date(mes + '-01');
+    d.setMonth(d.getMonth() - i);
+    meses.push(d.toISOString().slice(0,7));
+  }
+
+  container.innerHTML = '<div style="color:var(--text2);padding:24px;text-align:center">Cargando gráfico...</div>';
+
+  var promises = meses.map(function(m) {
+    var ini = m + '-01', fin = m + '-31';
+    return Promise.all([
+      sb.from('fam_cuotas')
+        .select('monto,fecha_vencimiento,fam_planes_cuota(fam_gastos(perfil_id))')
+        .gte('fecha_vencimiento', ini).lte('fecha_vencimiento', fin),
+      sb.from('fam_gastos')
+        .select('monto,monto_ars,moneda,fecha')
+        .gte('fecha', ini).lte('fecha', fin).eq('tiene_cuotas', false),
+      sb.from('fam_hogar_gastos')
+        .select('monto').eq('mes', m)
+    ]).then(function(res) {
+      var miId = state.perfil ? state.perfil.id : 'none';
+      var cuotasTotal = (res[0].data || []).reduce(function(a,c) {
+        if (!state.esAdmin) {
+          var g = c.fam_planes_cuota && c.fam_planes_cuota.fam_gastos;
+          if (!g || g.perfil_id !== miId) return a;
+        }
+        return a + (c.monto || 0);
+      }, 0);
+      var gastosTotal = (res[1].data || []).reduce(function(a,g){ return a + (g.monto_ars || g.monto || 0); }, 0);
+      var hogarTotal = (res[2].data || []).reduce(function(a,h){ return a + (h.monto || 0); }, 0);
+      return { mes: m, total: cuotasTotal + gastosTotal + hogarTotal, cuotas: cuotasTotal, gastos: gastosTotal, hogar: hogarTotal };
+    });
+  });
+
+  var datos = await Promise.all(promises);
+  var maxVal = Math.max(...datos.map(function(d){ return d.total; }), 1);
+  var mesLabels = datos.map(function(d) {
+    var parts = d.mes.split('-');
+    var nombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    return nombres[parseInt(parts[1],10)-1] + ' ' + parts[0].slice(2);
+  });
+
+  var html = '<div style="padding:16px 0">' +
+    '<div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)">Evolución de gastos — últimos 5 meses</div>' +
+    '<div style="display:flex;align-items:flex-end;gap:8px;height:160px;margin-bottom:8px">';
+
+  datos.forEach(function(d, idx) {
+    var pctCuotas = maxVal > 0 ? (d.cuotas / maxVal * 100) : 0;
+    var pctGastos = maxVal > 0 ? (d.gastos / maxVal * 100) : 0;
+    var pctHogar  = maxVal > 0 ? (d.hogar  / maxVal * 100) : 0;
+    var esActual = d.mes === mes;
+    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0">' +
+      '<div style="font-size:10px;color:var(--text2);margin-bottom:4px;white-space:nowrap">' + fmtARS(d.total) + '</div>' +
+      '<div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:120px;gap:1px">' +
+        '<div style="width:100%;height:' + pctHogar + '%;background:var(--blue);border-radius:0;min-height:' + (pctHogar>0?'2px':'0') + ';opacity:0.8"></div>' +
+        '<div style="width:100%;height:' + pctGastos + '%;background:var(--green);border-radius:0;min-height:' + (pctGastos>0?'2px':'0') + ';opacity:0.8"></div>' +
+        '<div style="width:100%;height:' + pctCuotas + '%;background:var(--primary);border-radius:4px 4px 0 0;min-height:' + (pctCuotas>0?'2px':'0') + ';opacity:0.8"></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:' + (esActual ? 'var(--primary)' : 'var(--text2)') + ';margin-top:6px;font-weight:' + (esActual?'700':'400') + '">' + mesLabels[idx] + '</div>' +
+    '</div>';
+  });
+
+  html += '</div>';
+  html += '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">' +
+    '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:12px;height:12px;border-radius:2px;background:var(--primary);display:inline-block"></span>Cuotas</div>' +
+    '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:12px;height:12px;border-radius:2px;background:var(--green);display:inline-block"></span>Gastos directos</div>' +
+    '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:12px;height:12px;border-radius:2px;background:var(--blue);display:inline-block"></span>Hogar</div>' +
+  '</div></div>';
+
+  container.innerHTML = html;
 }
 
 function openModalGasto(id) {

@@ -8,118 +8,163 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 /* Fuentes */
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0}
 
-/* ── Paleta hogareña / minimalista cálida ── */
+/* ── Paleta limpia azul/gris ── */
 :root{
-  --bg:#F2EDE5;
-  --surface:#FBF8F3;
-  --surface2:#E8E0D4;
-  --border:#CEC4B4;
-  --text:#2A1F14;
-  --text2:#7A6A58;
-  --primary:#8B5E3C;   /* madera / caoba cálida */
-  --primary2:#6B4428;
-  --green:#5A8C5A;
-  --red:#C05454;
-  --yellow:#C9993A;
-  --blue:#4A7FA5;
-  --orange:#C97A3A;
-  --purple:#8068A0;
+  --bg:#F4F5F2;
+  --surface:#FFFFFF;
+  --surface2:#EEF0EB;
+  --border:#E3E5DF;
+  --border2:#D3D7CF;
+  --text:#15202B;
+  --text2:#5A6470;
+  --text3:#3F5878;
+  --primary:#1D4E89;
+  --primary2:#123562;
+  --primary-bg:#E8EEF6;
+  --green:#2E7D4F;
+  --green-bg:#E2F1E7;
+  --red:#B3261E;
+  --red-bg:#FBE7E5;
+  --yellow:#8A4E05;
+  --yellow-bg:#FDF1DE;
+  --blue:#1D4E89;
+  --orange:#B0611A;
+  --purple:#7A3E9D;
   color-scheme:light;
 }
 @media(prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#1C1916;
-    --surface:#252220;
-    --surface2:#2E2A27;
-    --border:#3A3530;
-    --text:#EAE5DC;
-    --text2:#8C847A;
-    --primary:#A87650;
-    --primary2:#C49060;
-    --green:#6BA06B;
-    --red:#D06666;
-    --yellow:#D4A84A;
-    --blue:#5C8FBA;
-    --orange:#D48C4A;
-    --purple:#9478B0;
+    --bg:#1A1E22;
+    --surface:#232830;
+    --surface2:#2B3240;
+    --border:#343E4E;
+    --border2:#404C5E;
+    --text:#E8EDF2;
+    --text2:#8A96A4;
+    --text3:#6E96BE;
+    --primary:#4A8FD4;
+    --primary2:#6AAFEE;
+    --primary-bg:#1A2D44;
+    --green:#4EAA75;
+    --green-bg:#162B1E;
+    --red:#E05958;
+    --red-bg:#2B1515;
+    --yellow:#D4A74A;
+    --yellow-bg:#2B2010;
+    --blue:#4A8FD4;
+    --orange:#E08040;
+    --purple:#A068C8;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1C1510;
-  --surface:#241C14;
-  --surface2:#2E2418;
-  --border:#3D3020;
-  --text:#EAE0D0;
-  --text2:#8C7A62;
-  --primary:#A87650;
-  --primary2:#C49060;
-  --green:#6BA06B;
-  --red:#D06666;
-  --yellow:#D4A84A;
-  --blue:#5C8FBA;
-  --orange:#D48C4A;
-  --purple:#9478B0;
+  --bg:#1A1E22;
+  --surface:#232830;
+  --surface2:#2B3240;
+  --border:#343E4E;
+  --border2:#404C5E;
+  --text:#E8EDF2;
+  --text2:#8A96A4;
+  --text3:#6E96BE;
+  --primary:#4A8FD4;
+  --primary2:#6AAFEE;
+  --primary-bg:#1A2D44;
+  --green:#4EAA75;
+  --green-bg:#162B1E;
+  --red:#E05958;
+  --red-bg:#2B1515;
+  --yellow:#D4A74A;
+  --yellow-bg:#2B2010;
+  --blue:#4A8FD4;
+  --orange:#E08040;
+  --purple:#A068C8;
   color-scheme:dark;
 }
-body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;font-weight:400}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;font-weight:400}
 a{color:var(--primary);text-decoration:none}
 button{cursor:pointer;font:inherit;border:none;border-radius:8px;padding:8px 16px;transition:all .15s}
 input,select,textarea{font:inherit;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;width:100%;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(139,94,60,.14)}
-label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500;letter-spacing:.02em;text-transform:uppercase}
-.btn-primary{background:var(--primary);color:#fff;font-weight:500;letter-spacing:.01em}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,78,137,.14)}
+label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.btn-primary{background:var(--primary);color:#fff;font-weight:700;letter-spacing:.01em;border-radius:10px;min-height:40px}
 .btn-primary:hover{background:var(--primary2)}
-.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
 .btn-ghost:hover{background:var(--surface2);color:var(--text)}
-.btn-red{background:var(--red);color:#fff}
-.btn-green{background:var(--green);color:#fff}
-.btn-sm{padding:4px 10px;font-size:12px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 1px 4px rgba(44,40,37,.06)}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.02em}
-.badge-green{background:rgba(90,140,90,.14);color:var(--green)}
-.badge-red{background:rgba(192,84,84,.14);color:var(--red)}
-.badge-yellow{background:rgba(201,153,58,.14);color:var(--yellow)}
-.badge-blue{background:rgba(74,127,165,.14);color:var(--blue)}
+.btn-red{background:var(--red);color:#fff;font-weight:700}
+.btn-green{background:var(--green);color:#fff;font-weight:700}
+.btn-sm{padding:4px 12px;font-size:12px;min-height:32px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 1px 4px rgba(21,32,43,.06)}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-blue{background:var(--primary-bg);color:var(--primary)}
 .badge-gray{background:var(--surface2);color:var(--text2)}
 
 /* AUTH */
 #auth-screen{display:flex;min-height:100vh;background:var(--bg)}
 .auth-left{display:none;flex:1;background:var(--primary);padding:48px;flex-direction:column;justify-content:space-between}
 @media(min-width:700px){.auth-left{display:flex}}
-.auth-left-brand{font-family:'DM Serif Display',Georgia,serif;font-size:32px;color:#fff;font-weight:400;letter-spacing:-.02em}
-.auth-left-tagline{font-size:14px;color:rgba(255,255,255,.65);line-height:1.6;max-width:280px}
+.auth-left-brand{font-size:32px;color:#fff;font-weight:800;letter-spacing:-.02em}
+.auth-left-tagline{font-size:14px;color:rgba(255,255,255,.7);line-height:1.6;max-width:300px}
 .auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:32px}
 .auth-box{width:100%;max-width:360px}
-.auth-box h1{font-family:'DM Serif Display',Georgia,serif;font-size:24px;margin-bottom:6px;font-weight:400;letter-spacing:-.01em;color:var(--text)}
-.auth-box p{color:var(--text2);margin-bottom:28px;font-size:13px}
+.auth-box h1{font-size:26px;margin-bottom:6px;font-weight:800;letter-spacing:-.02em;color:var(--text)}
+.auth-box p{color:var(--text2);margin-bottom:28px;font-size:14px}
 .form-group{margin-bottom:16px}
 .auth-error{background:rgba(192,84,84,.1);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:10px;font-size:13px;margin-bottom:16px;display:none}
 
+/* ONBOARDING */
+#onboarding-overlay{position:fixed;inset:0;z-index:2000;background:rgba(21,32,43,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px}
+#onboarding-overlay.open{display:flex}
+.ob-card{background:var(--surface);border-radius:24px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 80px rgba(21,32,43,.2)}
+.ob-slides{display:flex;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.ob-slide{min-width:100%;padding:40px 36px 32px;display:flex;flex-direction:column;gap:0}
+.ob-icon{width:60px;height:60px;border-radius:16px;background:var(--primary);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.ob-icon svg{color:#fff}
+.ob-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-bottom:8px}
+.ob-text{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:28px}
+.ob-features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.ob-feature{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600}
+.ob-feature-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;font-size:16px}
+.ob-nav{display:flex;align-items:center;justify-content:space-between}
+.ob-dots{display:flex;gap:6px}
+.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:all .25s}
+.ob-dot.active{width:20px;border-radius:4px;background:var(--primary)}
+.ob-actions{display:flex;gap:10px}
+
 /* LAYOUT */
 #app{display:none;height:100vh;overflow:hidden;flex-direction:column}
-/* Hamburguesa flotante */
-.hamburger{position:fixed;top:14px;left:14px;z-index:600;width:40px;height:40px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(44,40,37,.1)}
+.hamburger{position:fixed;top:14px;left:14px;z-index:600;width:40px;height:40px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(21,32,43,.08)}
 .hamburger:hover{background:var(--surface2)}
-/* Botón salir flotante */
 .btn-logout{position:fixed;top:14px;right:14px;z-index:600}
-/* Avatar usuario flotante */
-.avatar-float{position:fixed;top:14px;right:62px;z-index:600;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
-.nav-btn{background:transparent;border-radius:8px;padding:6px 14px;color:var(--text2);font-size:13px;white-space:nowrap;border:none}
-.nav-btn:hover{background:var(--surface2);color:var(--text)}
-.nav-btn.active{background:var(--primary);color:#fff}
-.drawer-overlay{position:fixed;inset:0;background:rgba(44,40,37,.4);z-index:500;display:none}
+.avatar-float{position:fixed;top:14px;right:62px;z-index:600;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+
+/* DRAWER con iconos tipo diseño */
+.nav-btn{background:transparent;border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;white-space:normal;border:none;display:flex;align-items:flex-start;gap:12px;text-align:left;width:100%;font-weight:600;transition:background .15s}
+.nav-btn:hover{background:var(--surface2)}
+.nav-btn.active{background:var(--primary-bg);color:var(--primary)}
+.nav-btn .nav-icon{flex:none;margin-top:1px;color:var(--text2);transition:color .15s}
+.nav-btn.active .nav-icon{color:var(--primary)}
+.nav-btn-texts{display:flex;flex-direction:column;gap:1px}
+.nav-btn-title{font-size:14px;font-weight:700;line-height:1.2}
+.nav-btn-sub{font-size:11px;color:var(--text2);font-weight:500;line-height:1.3}
+.nav-btn.active .nav-btn-sub{color:var(--text3)}
+.drawer-overlay{position:fixed;inset:0;background:rgba(21,32,43,.4);z-index:500;display:none}
 .drawer-overlay.open{display:block}
-.drawer{position:fixed;top:0;left:0;bottom:0;width:250px;background:var(--surface);border-right:1px solid var(--border);z-index:501;transform:translateX(-100%);transition:transform .25s ease;padding:16px 0;overflow-y:auto}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:272px;background:var(--surface);border-right:1px solid var(--border);z-index:501;transform:translateX(-100%);transition:transform .25s ease;overflow-y:auto;display:flex;flex-direction:column}
 .drawer.open{transform:translateX(0)}
-.drawer-logo{font-family:'DM Serif Display',Georgia,serif;font-size:20px;font-weight:400;color:var(--text);padding:4px 20px 18px;border-bottom:1px solid var(--border);margin-bottom:8px;letter-spacing:-.01em}
-.drawer .nav-btn{display:block;width:100%;text-align:left;border-radius:0;padding:11px 20px;font-size:14px;border-bottom:1px solid transparent;font-weight:400}
-.drawer .nav-btn.active{background:rgba(139,94,60,.1);color:var(--primary);border-left:3px solid var(--primary);font-weight:500}
-.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.drawer-header{display:flex;align-items:center;gap:12px;padding:22px 18px 18px;border-bottom:1px solid var(--border)}
+.drawer-logo-icon{width:38px;height:38px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;flex:none}
+.drawer-logo-name{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.drawer-logo-sub{font-size:12px;color:var(--text2);font-weight:500}
+.drawer-section{padding:8px 8px 0}
+.drawer-section-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);padding:8px 12px 6px;display:block}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
 .main{flex:1;overflow-y:auto;padding:24px 20px;padding-top:68px}
 .main::-webkit-scrollbar{width:6px}
 .main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -128,31 +173,31 @@ label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-wei
 .panel{display:none}
 .panel.active{display:block}
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--border)}
-.panel-title{font-family:'DM Serif Display',Georgia,serif;font-size:24px;font-weight:400;letter-spacing:-.01em;color:var(--text)}
+.panel-title{font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--text)}
+.panel-sub{font-size:13px;color:var(--text2);margin-top:2px}
 .panel-actions{display:flex;gap:8px;flex-wrap:wrap}
 
 /* GRID / TABLES */
 .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
 .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
 .grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(44,40,37,.05)}
-.stat-label{font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
-.stat-value{font-family:'DM Serif Display',Georgia,serif;font-size:26px;font-weight:400;letter-spacing:-.01em}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 1px 4px rgba(21,32,43,.05)}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.stat-value{font-size:28px;font-weight:800;letter-spacing:-.02em}
 .stat-sub{font-size:12px;color:var(--text2);margin-top:3px}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 14px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);font-weight:500;letter-spacing:.05em;text-transform:uppercase}
-td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px}
+th{text-align:left;padding:10px 14px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface2)}
-.table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);background:var(--surface)}
+.table-wrap{overflow-x:auto;border-radius:16px;border:1px solid var(--border);background:var(--surface)}
 
 /* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(44,40,37,.4);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal-overlay{position:fixed;inset:0;background:rgba(21,32,43,.45);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 8px 48px rgba(44,40,37,.14);transition:transform .3s ease}
-.modal h2{font-family:'DM Serif Display',Georgia,serif;font-size:20px;font-weight:400;margin-bottom:22px;letter-spacing:-.01em}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 8px 48px rgba(21,32,43,.14);transition:transform .3s ease}
+.modal h2{font-size:20px;font-weight:800;margin-bottom:22px;letter-spacing:-.02em}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
-/* BOTTOM SHEET on mobile */
 @media(max-width:600px){
   .modal-overlay{align-items:flex-end;padding:0}
   .modal{border-radius:20px 20px 0 0;max-height:92vh;max-width:100%;padding:20px 20px 32px}
@@ -162,8 +207,8 @@ tr:hover td{background:var(--surface2)}
 
 /* GASTOS TABS */
 .gastos-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface2);border-radius:10px;padding:4px}
-.gastos-tab{flex:1;border:none;background:transparent;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s}
-.gastos-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(44,40,37,.1)}
+.gastos-tab{flex:1;border:none;background:transparent;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s}
+.gastos-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(21,32,43,.1)}
 .gastos-tab:hover:not(.active){color:var(--text)}
 
 /* MISC */
@@ -176,7 +221,7 @@ tr:hover td{background:var(--surface2)}
 .text-yellow{color:var(--yellow)}
 .text-blue{color:var(--blue)}
 .text-muted{color:var(--text2)}
-.fw7{font-weight:600}
+.fw7{font-weight:700}
 .flex{display:flex}
 .items-center{align-items:center}
 .gap-8{gap:8px}
@@ -187,7 +232,7 @@ tr:hover td{background:var(--surface2)}
 .progress-bar{background:var(--surface2);border-radius:4px;height:5px;overflow:hidden}
 .progress-fill{height:100%;border-radius:4px;background:var(--primary);transition:width .3s}
 .notif{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.notif-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;box-shadow:0 4px 24px rgba(44,40,37,.14);animation:slideIn .2s ease}
+.notif-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;box-shadow:0 4px 24px rgba(21,32,43,.14);animation:slideIn .2s ease}
 .notif-item.ok{border-color:var(--green);color:var(--green)}
 .notif-item.err{border-color:var(--red);color:var(--red)}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
@@ -204,6 +249,84 @@ tr:hover td{background:var(--surface2)}
 
 <!-- NOTIFICACIONES -->
 <div class="notif" id="notif-container"></div>
+
+<!-- ONBOARDING -->
+<div id="onboarding-overlay">
+  <div class="ob-card">
+    <div class="ob-slides" id="ob-slides">
+
+      <!-- Slide 1: Bienvenida -->
+      <div class="ob-slide">
+        <div class="ob-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+        </div>
+        <div class="ob-title">Bienvenido a Casa</div>
+        <div class="ob-text">Tu panel de finanzas familiares. Controlá los gastos, tarjetas y aportes del hogar — todo en un solo lugar, sin tener que preguntar.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--primary-bg);color:var(--primary)">💸</div>Gastos y cuotas del mes</div>
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--green-bg);color:var(--green)">💳</div>Tarjetas y fechas de cierre</div>
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--yellow-bg);color:var(--yellow)">🏠</div>Hogar, aportes y más</div>
+        </div>
+        <div class="ob-nav">
+          <div class="ob-dots">
+            <div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div>
+          </div>
+          <div class="ob-actions">
+            <button class="btn-ghost btn-sm" onclick="cerrarOnboarding()">Omitir</button>
+            <button class="btn-primary btn-sm" onclick="obNext()">Siguiente →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Gastos y tarjetas -->
+      <div class="ob-slide">
+        <div class="ob-icon" style="background:var(--green)">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6"/><path d="M9 12h6"/></svg>
+        </div>
+        <div class="ob-title">Registrá cada gasto</div>
+        <div class="ob-text">Desde el botón <strong>+ Nuevo gasto</strong> podés cargar cualquier gasto: supermercado, servicios, compras en cuotas. El sistema los agrupa por categoría y te muestra el total del mes.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--primary-bg)">🔍</div>Buscá y filtrá por mes o categoría</div>
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--green-bg)">📊</div>Gráfico comparativo con meses anteriores</div>
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--yellow-bg)">✅</div>Marcá gastos como pagados fácilmente</div>
+        </div>
+        <div class="ob-nav">
+          <div class="ob-dots">
+            <div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div>
+          </div>
+          <div class="ob-actions">
+            <button class="btn-ghost btn-sm" onclick="obPrev()">← Atrás</button>
+            <button class="btn-primary btn-sm" onclick="obNext()">Siguiente →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Tarjetas y alertas -->
+      <div class="ob-slide">
+        <div class="ob-icon" style="background:var(--orange)">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        </div>
+        <div class="ob-title">Tarjetas y alertas por mail</div>
+        <div class="ob-text">Cargá tus tarjetas con la fecha de cierre. El sistema te avisa cuando se acerca y, al confirmar el cierre, <strong>envía automáticamente un correo</strong> a cada miembro con el detalle de lo que le corresponde pagar.</div>
+        <div class="ob-features">
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--yellow-bg)">🔔</div>Alerta en el dashboard cuando cierra pronto</div>
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--primary-bg)">📧</div>Email automático al cierre de cada tarjeta</div>
+          <div class="ob-feature"><div class="ob-feature-icon" style="background:var(--green-bg)">👥</div>Cada uno recibe solo su parte</div>
+        </div>
+        <div class="ob-nav">
+          <div class="ob-dots">
+            <div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div>
+          </div>
+          <div class="ob-actions">
+            <button class="btn-ghost btn-sm" onclick="obPrev()">← Atrás</button>
+            <button class="btn-primary btn-sm" onclick="cerrarOnboarding()">¡Empezar! 🏠</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <!-- AUTH -->
 <div id="auth-screen">
@@ -250,17 +373,72 @@ tr:hover td{background:var(--surface2)}
   <!-- Drawer mobile -->
   <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
   <div class="drawer" id="nav-drawer">
-    <div class="drawer-logo">Casa</div>
-    <button class="nav-btn active" onclick="showPanel('dashboard')">Dashboard</button>
-    <button class="nav-btn" onclick="showPanel('gastos')">Gastos del mes</button>
-    <button class="nav-btn" onclick="showPanel('tarjetas')">Tarjetas</button>
-    <button class="nav-btn" onclick="showPanel('hogar')">Hogar</button>
-    <button class="nav-btn" onclick="showPanel('aportes')">Aportes</button>
-    <button class="nav-btn" onclick="showPanel('pagos-ext')">Pagos externos</button>
-    <button class="nav-btn admin-only" onclick="showPanel('aprobaciones')" style="display:none">Aprobaciones</button>
-    <button class="nav-btn admin-only" onclick="showPanel('cotizaciones')" style="display:none">USD / ARS</button>
-    <button class="nav-btn admin-only" onclick="showPanel('miembros')" style="display:none">Miembros</button>
-    <button class="nav-btn admin-only" onclick="showPanel('auditoria')" style="display:none">Auditoría</button>
+    <!-- Header -->
+    <div class="drawer-header">
+      <div class="drawer-logo-icon">
+        <svg width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+      </div>
+      <div>
+        <div class="drawer-logo-name">Casa</div>
+        <div class="drawer-logo-sub">Finanzas familiares</div>
+      </div>
+    </div>
+
+    <!-- El mes -->
+    <div class="drawer-section">
+      <span class="drawer-section-label">El mes</span>
+      <button class="nav-btn active" onclick="showPanel('dashboard')">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Resumen</span><span class="nav-btn-sub">Cómo va el mes de un vistazo</span></div>
+      </button>
+      <button class="nav-btn" onclick="showPanel('gastos')">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6"/><path d="M9 12h6"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Gastos del mes</span><span class="nav-btn-sub">Todo lo que se pagó o se debe</span></div>
+      </button>
+      <button class="nav-btn" onclick="showPanel('tarjetas')">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Tarjetas</span><span class="nav-btn-sub">Cierres y gastos por tarjeta</span></div>
+      </button>
+    </div>
+
+    <!-- El hogar -->
+    <div class="drawer-section">
+      <span class="drawer-section-label">El hogar</span>
+      <button class="nav-btn" onclick="showPanel('hogar')">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Hogar</span><span class="nav-btn-sub">Expensas, servicios y tu parte</span></div>
+      </button>
+      <button class="nav-btn" onclick="showPanel('aportes')">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Aportes</span><span class="nav-btn-sub">Cuánto pone cada uno</span></div>
+      </button>
+      <button class="nav-btn" onclick="showPanel('pagos-ext')">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16 12H8"/><path d="M12 8l-4 4 4 4"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Pagos externos</span><span class="nav-btn-sub">Pagos a terceros y recurrentes</span></div>
+      </button>
+    </div>
+
+    <!-- Admin -->
+    <div class="drawer-section admin-only" style="display:none">
+      <span class="drawer-section-label">Administración</span>
+      <button class="nav-btn admin-only" onclick="showPanel('aprobaciones')" style="display:none">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Aprobaciones</span><span class="nav-btn-sub">Gastos pendientes de revisión</span></div>
+      </button>
+      <button class="nav-btn admin-only" onclick="showPanel('cotizaciones')" style="display:none">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">USD / ARS</span><span class="nav-btn-sub">Tipo de cambio actual</span></div>
+      </button>
+      <button class="nav-btn admin-only" onclick="showPanel('miembros')" style="display:none">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Miembros</span><span class="nav-btn-sub">Gestión de accesos</span></div>
+      </button>
+      <button class="nav-btn admin-only" onclick="showPanel('auditoria')" style="display:none">
+        <svg class="nav-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <div class="nav-btn-texts"><span class="nav-btn-title">Auditoría</span><span class="nav-btn-sub">Historial de cambios</span></div>
+      </button>
+    </div>
+    <div style="height:16px"></div>
   </div>
 
   <!-- Elementos flotantes -->
@@ -271,32 +449,6 @@ tr:hover td{background:var(--surface2)}
 
     <!-- DASHBOARD -->
     <div class="panel active" id="panel-dashboard">
-      <!-- TUTORIAL banner (primera vez) -->
-      <div id="dash-tutorial" style="display:none;background:linear-gradient(135deg,#312e81,#1e3a5f);border:1px solid var(--primary);border-radius:12px;padding:16px 20px;margin-bottom:20px;position:relative">
-        <button onclick="cerrarTutorial()" style="position:absolute;top:10px;right:12px;background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:0">✕</button>
-        <div style="font-size:16px;font-weight:700;margin-bottom:6px">👋 ¡Bienvenido/a a Familia Finanzas!</div>
-        <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px">Acá podés ver en un solo lugar todo lo que gastás durante el mes. El menú de la izquierda (☰) te lleva a cada sección:</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:12px">
-          <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px">
-            <div style="font-size:14px">💸 <strong>Gastos</strong></div>
-            <div style="font-size:11px;color:var(--text2);margin-top:2px">Registrá lo que gastás y seguí el estado</div>
-          </div>
-          <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px">
-            <div style="font-size:14px">💳 <strong>Tarjetas</strong></div>
-            <div style="font-size:11px;color:var(--text2);margin-top:2px">Cuánto usaste de cada tarjeta</div>
-          </div>
-          <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px">
-            <div style="font-size:14px">📅 <strong>Cuotas</strong></div>
-            <div style="font-size:11px;color:var(--text2);margin-top:2px">Lo que pagás en cuotas cada mes</div>
-          </div>
-          <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px">
-            <div style="font-size:14px">🏠 <strong>Hogar</strong></div>
-            <div style="font-size:11px;color:var(--text2);margin-top:2px">Gastos del hogar y tu parte</div>
-          </div>
-        </div>
-        <button class="btn-primary btn-sm" onclick="cerrarTutorial()">¡Entendido, empezar! →</button>
-      </div>
-
       <div class="panel-header">
         <div>
           <div class="panel-title" id="dashboard-title">Resumen familiar</div>
@@ -672,6 +824,43 @@ tr:hover td{background:var(--surface2)}
       <button class="btn-ghost" onclick="closeModal('modal-tarjeta')">Cancelar</button>
       <button class="btn-primary" onclick="saveTarjeta()">Guardar</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirmar cierre de tarjeta + email -->
+<div class="modal-overlay" id="modal-cierre-tarjeta">
+  <div class="modal" style="max-width:580px">
+    <h2>Confirmar cierre de tarjeta</h2>
+    <div id="cierre-tarjeta-info" style="background:var(--primary-bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="font-size:15px;font-weight:700" id="cierre-tarjeta-nombre">—</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px" id="cierre-tarjeta-fechas">—</div>
+      <div style="font-size:22px;font-weight:800;color:var(--primary);margin-top:10px" id="cierre-tarjeta-total">$ 0</div>
+      <div style="font-size:12px;color:var(--text2)">Total del periodo</div>
+    </div>
+
+    <div id="cierre-reparto" style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">Reparto por persona</div>
+      <div id="cierre-reparto-lista" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- Opción de email -->
+    <div style="background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:20px">
+      <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-size:14px;font-weight:600;color:var(--text);letter-spacing:0;cursor:pointer;margin:0">
+        <input type="checkbox" id="cierre-avisar-email" checked style="width:18px;height:18px;accent-color:var(--primary)">
+        Avisar por correo a cada persona
+      </label>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px;padding-left:28px">Se enviará un email con el detalle de sus gastos de esta tarjeta al correo registrado de cada miembro.</div>
+    </div>
+
+    <div id="cierre-enviado-ok" style="display:none;background:var(--green-bg);border:1px solid var(--green);border-radius:12px;padding:14px;margin-bottom:16px;font-size:14px;font-weight:600;color:var(--green)">
+      ✓ Cierre confirmado. Los correos se enviaron correctamente.
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-cierre-tarjeta')">Cancelar</button>
+      <button class="btn-primary" id="btn-confirmar-cierre" onclick="confirmarCierreTarjeta()">Confirmar cierre</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-top:10px;text-align:center">Después de confirmar, los gastos de esta tarjeta y este periodo no se pueden editar.</div>
   </div>
 </div>
 
@@ -1199,6 +1388,9 @@ async function iniciarApp(user) {
   ['filtro-gasto-mes','filtro-cuotas-mes','filtro-aportes-mes'].forEach(buildMesesOpts);
 
   loadDashboard();
+
+  // mostrar onboarding si es la primera vez
+  setTimeout(mostrarOnboardingSiNecesario, 600);
 }
 
 // init
@@ -1209,10 +1401,201 @@ sb.auth.getSession().then(function(res) {
 });
 
 // ============================================================
+// ONBOARDING
+// ============================================================
+let obSlide = 0;
+const OB_TOTAL = 3;
+
+function obShowSlide(n) {
+  obSlide = Math.max(0, Math.min(OB_TOTAL - 1, n));
+  const slides = document.querySelector('.ob-slides');
+  if (slides) slides.style.transform = 'translateX(-' + (obSlide * 100) + '%)';
+  document.querySelectorAll('.ob-dot').forEach(function(d, i) {
+    d.classList.toggle('active', i === obSlide);
+  });
+}
+function obNext() {
+  if (obSlide < OB_TOTAL - 1) obShowSlide(obSlide + 1);
+  else cerrarOnboarding();
+}
+function obPrev() { obShowSlide(obSlide - 1); }
+function cerrarOnboarding() {
+  const overlay = document.getElementById('onboarding-overlay');
+  if (overlay) overlay.classList.remove('open');
+  try {
+    const key = 'fam_ob_v1_' + (state.perfil ? state.perfil.id : 'guest');
+    localStorage.setItem(key, '1');
+  } catch(e) {}
+}
+function mostrarOnboardingSiNecesario() {
+  try {
+    const key = 'fam_ob_v1_' + (state.perfil ? state.perfil.id : 'guest');
+    if (localStorage.getItem(key)) return; // ya lo vio
+  } catch(e) {}
+  obSlide = 0;
+  const overlay = document.getElementById('onboarding-overlay');
+  if (overlay) {
+    obShowSlide(0);
+    overlay.classList.add('open');
+  }
+}
+
+// ============================================================
+// CIERRE DE TARJETA + EMAIL
+// ============================================================
+let _cierreTarjetaId = null;
+
+async function openModalCierreTarjeta(tarjetaId, nombreTarjeta) {
+  _cierreTarjetaId = tarjetaId;
+  document.getElementById('cierre-tarjeta-nombre').textContent = nombreTarjeta;
+  document.getElementById('cierre-tarjeta-fechas').textContent = 'Calculando…';
+  document.getElementById('cierre-tarjeta-total').textContent = '…';
+  document.getElementById('cierre-reparto-lista').innerHTML = '<div style="color:var(--text2);font-size:13px">Cargando gastos…</div>';
+  document.getElementById('cierre-enviado-ok').style.display = 'none';
+  document.getElementById('btn-confirmar-cierre').disabled = false;
+  document.getElementById('cierre-avisar-email').checked = true;
+  openModal('modal-cierre-tarjeta');
+
+  // Obtener datos de la tarjeta
+  const { data: tarjeta } = await sb.from('fam_tarjetas').select('*').eq('id', tarjetaId).single();
+  if (tarjeta) {
+    const hoy = new Date();
+    const diaC = tarjeta.cierre_dia || '?';
+    const diaV = tarjeta.vencimiento_dia || '?';
+    document.getElementById('cierre-tarjeta-fechas').textContent =
+      'Cierre día ' + diaC + ' · Vencimiento día ' + diaV + ' · ' + hoy.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+  }
+
+  // Traer gastos del mes actual de esa tarjeta
+  const ahora = new Date();
+  const mesInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().slice(0, 10);
+  const mesFin = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+  const { data: gastos } = await sb.from('fam_gastos')
+    .select('monto, perfil_id, fam_perfiles(nombre, email)')
+    .eq('tarjeta_id', tarjetaId)
+    .gte('fecha', mesInicio)
+    .lte('fecha', mesFin);
+
+  if (!gastos || gastos.length === 0) {
+    document.getElementById('cierre-tarjeta-total').textContent = fmtARS(0);
+    document.getElementById('cierre-reparto-lista').innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px 0">No hay gastos registrados para este mes en esta tarjeta.</div>';
+    return;
+  }
+
+  // Agrupar por persona
+  const porPersona = {};
+  let totalGeneral = 0;
+  gastos.forEach(function(g) {
+    const pid = g.perfil_id;
+    const nombre = g.fam_perfiles ? g.fam_perfiles.nombre : 'Sin nombre';
+    const email = g.fam_perfiles ? g.fam_perfiles.email : null;
+    if (!porPersona[pid]) porPersona[pid] = { nombre: nombre, email: email, total: 0 };
+    porPersona[pid].total += (g.monto || 0);
+    totalGeneral += (g.monto || 0);
+  });
+
+  document.getElementById('cierre-tarjeta-total').textContent = fmtARS(totalGeneral);
+
+  // Render reparto
+  const lista = Object.values(porPersona);
+  document.getElementById('cierre-reparto-lista').innerHTML = lista.map(function(p) {
+    const pct = totalGeneral > 0 ? Math.round(p.total / totalGeneral * 100) : 0;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">' +
+      '<div><div style="font-weight:700;font-size:14px">' + p.nombre + '</div>' +
+      '<div style="font-size:12px;color:var(--text2)">' + (p.email || 'sin email') + ' · ' + pct + '% del total</div></div>' +
+      '<div style="font-weight:800;font-size:15px;color:var(--primary)">' + fmtARS(p.total) + '</div></div>';
+  }).join('');
+
+  // Guardar datos para cuando se confirme
+  window._cierreData = { lista, tarjeta, totalGeneral };
+}
+
+async function confirmarCierreTarjeta() {
+  const btn = document.getElementById('btn-confirmar-cierre');
+  btn.disabled = true;
+  btn.textContent = 'Procesando…';
+
+  const avisar = document.getElementById('cierre-avisar-email').checked;
+  const data = window._cierreData;
+
+  if (avisar && data && data.lista) {
+    // Enviar emails usando EmailJS
+    const emailsPromises = data.lista.filter(function(p) { return p.email; }).map(function(p) {
+      return enviarEmailCierre({
+        nombre: p.nombre,
+        email: p.email,
+        monto: fmtARS(p.total),
+        totalGeneral: fmtARS(data.totalGeneral),
+        tarjetaNombre: data.tarjeta ? data.tarjeta.nombre : '—',
+        banco: data.tarjeta ? (data.tarjeta.banco || '') : '',
+      });
+    });
+    try {
+      await Promise.all(emailsPromises);
+    } catch(e) {
+      console.warn('Error enviando emails:', e);
+    }
+  }
+
+  // Registrar el cierre en la base de datos (log)
+  try {
+    await sb.from('fam_auditorias').insert({
+      accion: 'cierre_tarjeta',
+      detalle: JSON.stringify({
+        tarjeta_id: _cierreTarjetaId,
+        total: data ? data.totalGeneral : 0,
+        fecha: new Date().toISOString(),
+        emails_enviados: avisar,
+      }),
+      perfil_id: state.perfil ? state.perfil.id : null,
+    });
+  } catch(e) { /* tabla puede no existir */ }
+
+  btn.textContent = 'Confirmar cierre';
+  btn.disabled = false;
+  document.getElementById('cierre-enviado-ok').style.display = 'flex';
+  document.getElementById('cierre-enviado-ok').textContent = avisar
+    ? '✓ Cierre confirmado. Correos enviados correctamente.'
+    : '✓ Cierre confirmado.';
+  setTimeout(function() { closeModal('modal-cierre-tarjeta'); }, 2200);
+}
+
+// Enviar email de cierre usando EmailJS (servicio gratuito)
+async function enviarEmailCierre(params) {
+  // EmailJS - configurar con tus propias credenciales en https://emailjs.com
+  // Reemplazá estos valores con los tuyos:
+  const EMAILJS_SERVICE_ID = 'service_familia';   // <-- tu service ID
+  const EMAILJS_TEMPLATE_ID = 'template_cierre';  // <-- tu template ID
+  const EMAILJS_PUBLIC_KEY = 'TU_PUBLIC_KEY';     // <-- tu public key
+
+  // Cargar EmailJS si no está cargado
+  if (!window.emailjs) {
+    await new Promise(function(resolve, reject) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+  }
+
+  return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_name: params.nombre,
+    to_email: params.email,
+    tarjeta: params.tarjetaNombre,
+    banco: params.banco,
+    monto_personal: params.monto,
+    monto_total: params.totalGeneral,
+    mes: new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }),
+  });
+}
+
+// ============================================================
 // NAVEGACION
 // ============================================================
 function cerrarTutorial() {
-  document.getElementById('dash-tutorial').style.display = 'none';
   try {
     const tutKey = 'fam_tutorial_v1_' + (state.perfil ? state.perfil.id : 'guest');
     localStorage.setItem(tutKey, '1');
@@ -1750,13 +2133,7 @@ async function loadDashboard() {
     document.getElementById('dash-hogar-tarjetas-wrap').style.display = 'grid';
   }
 
-  // Tutorial primera vez
-  try {
-    const tutKey = 'fam_tutorial_v1_' + (state.perfil ? state.perfil.id : 'guest');
-    if (!localStorage.getItem(tutKey)) {
-      document.getElementById('dash-tutorial').style.display = 'block';
-    }
-  } catch(e) {}
+  // Tutorial primera vez → ahora se maneja con el onboarding overlay
 
   // ---- RENDER APROBACIONES ----
   if (state.esAdmin && pendAprobaciones.length > 0) {
@@ -2551,12 +2928,31 @@ async function loadTarjetas() {
   const { data } = await sb.from('fam_tarjetas').select('*, fam_perfiles(nombre, avatar_color)').order('nombre');
   const cont = document.getElementById('tarjetas-grid');
   if (!data || data.length === 0) { empty('tarjetas-grid', 'Sin tarjetas'); return; }
+  const hoy = new Date();
   cont.innerHTML = data.map(function(t) {
-    return '<div class="card" style="border-top:3px solid ' + (t.color || '#6366f1') + '"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="fw7">' + t.nombre + '</div><span class="badge ' + (t.tipo === 'credito' ? 'badge-blue' : 'badge-green') + '">' + t.tipo + '</span></div>' +
+    // calcular días para cierre
+    let alertaCierre = '';
+    let btnCierre = '';
+    if (t.tipo === 'credito' && t.cierre_dia) {
+      const diaC = parseInt(t.cierre_dia);
+      let proxCierre = new Date(hoy.getFullYear(), hoy.getMonth(), diaC);
+      if (proxCierre <= hoy) proxCierre = new Date(hoy.getFullYear(), hoy.getMonth() + 1, diaC);
+      const dias = Math.ceil((proxCierre - hoy) / 864e5);
+      if (dias <= 3) alertaCierre = '<div style="background:var(--red-bg);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:var(--red);margin-top:8px">⚠ Cierra en ' + dias + ' día' + (dias !== 1 ? 's' : '') + '</div>';
+      else if (dias <= 7) alertaCierre = '<div style="background:var(--yellow-bg);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:var(--yellow);margin-top:8px">🕐 Cierra en ' + dias + ' días</div>';
+      if (state.esAdmin) btnCierre = '<button class="btn-primary btn-sm" onclick="openModalCierreTarjeta(\'' + t.id + '\',\'' + (t.nombre||'').replace(/'/g,"\\'") + '\')" style="background:var(--green)">✓ Confirmar cierre</button>';
+    }
+    return '<div class="card" style="border-top:3px solid ' + (t.color || 'var(--primary)') + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+      '<div style="font-size:15px;font-weight:800">' + t.nombre + '</div>' +
+      '<span class="badge ' + (t.tipo === 'credito' ? 'badge-blue' : 'badge-green') + '">' + t.tipo + '</span></div>' +
       '<div class="text-muted mt-4" style="font-size:12px">' + (t.banco || '') + (t.fam_perfiles ? ' · ' + t.fam_perfiles.nombre : '') + '</div>' +
       (t.tipo === 'credito' && t.cierre_dia ? '<div class="text-muted mt-4" style="font-size:12px">Cierre día ' + t.cierre_dia + ' · Vence día ' + (t.vencimiento_dia||'?') + '</div>' : '') +
-      (t.limite_ars ? '<div class="mt-8">Límite: ' + fmtARS(t.limite_ars) + '</div>' : '') +
-      '<div style="display:flex;gap:8px;margin-top:12px"><button class="btn-ghost btn-sm" onclick="openModalTarjeta(\'' + t.id + '\')">Editar</button>' +
+      (t.limite_ars ? '<div class="mt-8" style="font-size:13px">Límite: <strong>' + fmtARS(t.limite_ars) + '</strong></div>' : '') +
+      alertaCierre +
+      '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">' +
+      btnCierre +
+      '<button class="btn-ghost btn-sm" onclick="openModalTarjeta(\'' + t.id + '\')">Editar</button>' +
       '<button class="btn-red btn-sm" onclick="deleteTarjeta(\'' + t.id + '\')">🗑</button></div></div>';
   }).join('');
 }
